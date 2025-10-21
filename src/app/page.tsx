@@ -36,7 +36,7 @@ export default function MaintenancePage() {
 
           {/* Heading */}
           <h1 className="text-4xl font-bold bg-gradient-to-r from-[#2e3f6e] to-[#4DB7FE] bg-clip-text text-transparent mb-4">
-            We're Cooking Up Something Amazing!
+            We&#39;re Cooking Up Something Amazing!
           </h1>
 
           {/* Subheading */}
@@ -48,7 +48,7 @@ export default function MaintenancePage() {
           <div className="flex items-center justify-center gap-2 mb-8">
             <Sparkles className="w-5 h-5 text-[#4DB7FE] animate-bounce" />
             <p className="text-lg text-gray-700 font-medium">
-              We'll be back soon{dots}
+              We&#39;ll be back soon{dots}
             </p>
             <Sparkles className="w-5 h-5 text-[#3d528b] animate-bounce delay-150" />
           </div>
