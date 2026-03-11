@@ -107,7 +107,7 @@ export default function Login() {
 
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Sign In</h2>
           <p className="mt-2 text-muted-foreground">
-            Don't have an account? 
+            Don&apos;t have an account? 
             {/* Declarative navigation using Link */}
             <Link href="/register" className="ml-1 font-semibold text-primary hover:text-accent underline-offset-4 hover:underline">
                 Create one

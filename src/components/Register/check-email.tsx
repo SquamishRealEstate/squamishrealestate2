@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Loader2 } from "lucide-react";
 import { supabase } from "@/config/supabaseClient";
 import { Button } from "../ui/button";
 
-export default function CheckEmail() {
+function CheckEmailContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -78,6 +78,16 @@ export default function CheckEmail() {
         </div>
 
       </div>
+    </div>
+  );
+}
+
+export default function CheckEmail() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-white px-6">
+      <Suspense fallback={<Loader2 className="animate-spin w-8 h-8 text-primary" />}>
+        <CheckEmailContent />
+      </Suspense>
     </div>
   );
 }

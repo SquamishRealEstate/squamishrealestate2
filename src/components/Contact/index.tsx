@@ -97,7 +97,7 @@ export default function Contact() {
         />
         <div className="relative z-10 text-center text-white px-4">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-2">Contact Us</h1>
-          <p className="text-lg text-white/80 font-medium italic">Let's find your place in the mountains.</p>
+          <p className="text-lg text-white/80 font-medium italic">Let&apos;s find your place in the mountains.</p>
         </div>
       </div>
 
