@@ -1,3 +1,4 @@
+import Link from 'next/link';
 
 export default function Footer() {
     return (
@@ -29,8 +30,8 @@ export default function Footer() {
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-secondary-foreground/80">
                 <li><a href="#" className="hover:text-secondary-foreground transition-colors">About Us</a></li>
-                <li><a href="#" className="hover:text-secondary-foreground transition-colors">Terms Of Use</a></li>
-                <li><a href="#" className="hover:text-secondary-foreground transition-colors">Privacy Policy</a></li>
+                <li><Link href="/terms-of-use" target='_blank' className="hover:text-secondary-foreground transition-colors">Terms Of Use</Link></li>
+                <li><Link href="/privacy-statement" className="hover:text-secondary-foreground transition-colors">Privacy Policy</Link></li>
               </ul>
             </div>
 
