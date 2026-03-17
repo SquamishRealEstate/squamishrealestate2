@@ -1,6 +1,10 @@
-import { header, footer } from './branding'; // Ensure this matches your file path
+import { header, footer } from "./branding"; // Ensure this matches your file path
 
-export const contactEmailTemplate = (name: string, email: string, message: string) => `
+export const contactEmailTemplate = (
+  name: string,
+  email: string,
+  message: string,
+) => `
   <div style="font-family: sans-serif; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
     ${header}
     <div style="padding: 32px; color: #334155;">

@@ -4,7 +4,7 @@
    - Smooth transitions with ease-out curves
 */
 
-import { useState, useCallback, useEffect , useRef} from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Map, X, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,43 +12,38 @@ import { MapView } from "@/components/Map/Map";
 import type { Listing } from "@/lib/mockData";
 import { mockListings } from "@/lib/mockData";
 
-
 interface CollapsibleMapProps {
   listings?: Listing[];
   onListingClick?: (listing: Listing) => void;
 }
 
-export default function CollapsibleMap({ 
+export default function CollapsibleMap({
   listings = mockListings,
-  onListingClick 
+  onListingClick,
 }: CollapsibleMapProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const [isFullscreen, setIsFullscreen] = useState(false);
-    const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
-    const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
-    const handleMapReady = useCallback((map: mapboxgl.Map) => {
-        setMapInstance(map);
-    }, []);
+  const handleMapReady = useCallback((map: mapboxgl.Map) => {
+    setMapInstance(map);
+  }, []);
 
- useEffect(() => {
-  if (!mapInstance || !containerRef.current) return;
+  useEffect(() => {
+    if (!mapInstance || !containerRef.current) return;
 
-  const handleTransitionEnd = () => {
-    mapInstance.resize();
-  };
+    const handleTransitionEnd = () => {
+      mapInstance.resize();
+    };
 
-  const el = containerRef.current;
-  el.addEventListener("transitionend", handleTransitionEnd);
+    const el = containerRef.current;
+    el.addEventListener("transitionend", handleTransitionEnd);
 
-  return () => {
-    el.removeEventListener("transitionend", handleTransitionEnd);
-  };
-}, [mapInstance]);
-
-
-
-
+    return () => {
+      el.removeEventListener("transitionend", handleTransitionEnd);
+    };
+  }, [mapInstance]);
 
   if (!isExpanded) {
     // Collapsed state - show button to expand
@@ -69,10 +64,10 @@ export default function CollapsibleMap({
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className={cn(
           "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
-          isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
+          isExpanded ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
         onClick={() => setIsExpanded(false)}
       />
@@ -87,43 +82,39 @@ export default function CollapsibleMap({
             : "top-20 right-6 bottom-6 w-[600px] rounded-2xl",
           isExpanded
             ? "translate-x-0 opacity-100"
-            : "translate-x-full opacity-0"
+            : "translate-x-full opacity-0",
         )}
       >
         <div className="flex flex-col h-full">
-            {/* Map Header */}
-            <div className="p-4 frosted-glass border-b border-border/20 flex items-center justify-between">
-                <h3 className="font-semibold text-lg">Property Map</h3>
-                <div className="flex items-center gap-2">
-                    <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setIsFullscreen(!isFullscreen)}
-                    >
-                    {isFullscreen ? (
-                        <Minimize2 className="w-5 h-5" />
-                    ) : (
-                        <Maximize2 className="w-5 h-5" />
-                    )}
-                    </Button>
-                    <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => setIsExpanded(false)}
-                    >
-                    <X className="w-5 h-5" />
-                    </Button>
-                </div>
+          {/* Map Header */}
+          <div className="p-4 frosted-glass border-b border-border/20 flex items-center justify-between">
+            <h3 className="font-semibold text-lg">Property Map</h3>
+            <div className="flex items-center gap-2">
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setIsFullscreen(!isFullscreen)}
+              >
+                {isFullscreen ? (
+                  <Minimize2 className="w-5 h-5" />
+                ) : (
+                  <Maximize2 className="w-5 h-5" />
+                )}
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setIsExpanded(false)}
+              >
+                <X className="w-5 h-5" />
+              </Button>
             </div>
+          </div>
 
-            {/* Map */}
-            <div className="flex-1 overflow-hidden">
-
-            <MapView
-                className="w-full h-full"
-                onMapReady={handleMapReady}
-            />
-            </div>
+          {/* Map */}
+          <div className="flex-1 overflow-hidden">
+            <MapView className="w-full h-full" onMapReady={handleMapReady} />
+          </div>
         </div>
       </div>
     </>

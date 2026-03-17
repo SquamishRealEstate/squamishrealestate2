@@ -1,8 +1,12 @@
-'use client';
+"use client";
 
 import { useEffect, useRef, useState } from "react";
 
-export default function LazySection({ children }: { children: React.ReactNode }) {
+export default function LazySection({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const ref = useRef<HTMLDivElement | null>(null);
   const [visible, setVisible] = useState(false);
 
@@ -18,7 +22,7 @@ export default function LazySection({ children }: { children: React.ReactNode })
           observer.disconnect();
         }
       },
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
 
     if (ref.current) observer.observe(ref.current);

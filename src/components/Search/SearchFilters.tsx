@@ -26,7 +26,6 @@ import { Navigation, Pagination } from "swiper/modules";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
-
 interface SearchFiltersProps {
   onFilterChange?: (filters: FilterState) => void;
   compact?: boolean;
@@ -41,7 +40,10 @@ export interface FilterState {
   minBathrooms: number;
 }
 
-export default function SearchFilters({ onFilterChange, compact = false }: SearchFiltersProps) {
+export default function SearchFilters({
+  onFilterChange,
+  compact = false,
+}: SearchFiltersProps) {
   const [filters, setFilters] = useState<FilterState>({
     neighborhood: "All Neighborhoods",
     listingType: "All Types",
@@ -62,10 +64,7 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
         p.neighborhood !== filters.neighborhood
       )
         return false;
-      if (
-        filters.listingType !== "All Types" &&
-        p.type !== filters.listingType
-      )
+      if (filters.listingType !== "All Types" && p.type !== filters.listingType)
         return false;
       if (p.bedrooms < filters.minBedrooms) return false;
       if (p.bathrooms < filters.minBathrooms) return false;
@@ -78,8 +77,6 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
     setFilteredListings(filtered);
   };
 
-
-
   const handleFilterChange = (key: keyof FilterState, value: any) => {
     const newFilters = { ...filters, [key]: value };
     setFilters(newFilters);
@@ -91,18 +88,18 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
       <div className="container">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-              Start Your Property Search
+            Start Your Property Search
           </h2>
           <div className="flex gap-3 items-center">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-              <Input 
+              <Input
                 placeholder="Search by address, neighborhood..."
                 className="pl-10 h-12"
               />
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               size="icon"
               className="h-12 w-12"
               onClick={() => setShowAdvanced(!showAdvanced)}
@@ -125,7 +122,7 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
           {/* Search Input */}
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input 
+            <Input
               placeholder="Search by address, neighborhood, or property type..."
               className="pl-12 h-14 text-base"
             />
@@ -136,16 +133,20 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
             {/* Neighborhood */}
             <div className="space-y-2">
               <Label>Neighborhood</Label>
-              <Select 
+              <Select
                 value={filters.neighborhood}
-                onValueChange={(value) => handleFilterChange("neighborhood", value)}
+                onValueChange={(value) =>
+                  handleFilterChange("neighborhood", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {neighborhoods.map((n) => (
-                    <SelectItem key={n} value={n}>{n}</SelectItem>
+                    <SelectItem key={n} value={n}>
+                      {n}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -154,16 +155,20 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
             {/* Listing Type */}
             <div className="space-y-2">
               <Label>Listing Type</Label>
-              <Select 
+              <Select
                 value={filters.listingType}
-                onValueChange={(value) => handleFilterChange("listingType", value)}
+                onValueChange={(value) =>
+                  handleFilterChange("listingType", value)
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {listingTypes.map((t) => (
-                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -172,9 +177,11 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
             {/* Bedrooms */}
             <div className="space-y-2">
               <Label>Min Bedrooms</Label>
-              <Select 
+              <Select
                 value={filters.minBedrooms.toString()}
-                onValueChange={(value) => handleFilterChange("minBedrooms", parseInt(value))}
+                onValueChange={(value) =>
+                  handleFilterChange("minBedrooms", parseInt(value))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -193,9 +200,11 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
             {/* Bathrooms */}
             <div className="space-y-2">
               <Label>Min Bathrooms</Label>
-              <Select 
+              <Select
                 value={filters.minBathrooms.toString()}
-                onValueChange={(value) => handleFilterChange("minBathrooms", parseInt(value))}
+                onValueChange={(value) =>
+                  handleFilterChange("minBathrooms", parseInt(value))
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -212,8 +221,8 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
           </div>
 
           {/* Advanced Filters Toggle */}
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             onClick={() => setShowAdvanced(!showAdvanced)}
             className="w-full"
           >
@@ -229,7 +238,8 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
                 <div className="flex justify-between items-center">
                   <Label>Price Range</Label>
                   <span className="text-sm text-muted-foreground">
-                    {formatPrice(filters.minPrice)} - {formatPrice(filters.maxPrice)}
+                    {formatPrice(filters.minPrice)} -{" "}
+                    {formatPrice(filters.maxPrice)}
                   </span>
                 </div>
                 <Slider
@@ -248,7 +258,11 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
           )}
 
           {/* Search Button */}
-          <Button className="w-full h-12 text-base" size="lg" onClick={applyFilters}>
+          <Button
+            className="w-full h-12 text-base"
+            size="lg"
+            onClick={applyFilters}
+          >
             <Search className="w-5 h-5 mr-2" />
             Search Properties
           </Button>
@@ -285,6 +299,5 @@ export default function SearchFilters({ onFilterChange, compact = false }: Searc
         )}
       </div>
     </div>
-
   );
 }

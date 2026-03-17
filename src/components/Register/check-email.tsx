@@ -42,16 +42,13 @@ function CheckEmailContent() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <div className="max-w-md w-full text-center p-8 rounded-xl shadow-lg">
-
         <h1 className="text-3xl font-bold mb-4">Check Your Email</h1>
 
         <p className="text-slate-600 mb-4">
           We’ve sent a confirmation link to:
         </p>
 
-        {email && (
-          <p className="font-medium text-slate-900 mb-6">{email}</p>
-        )}
+        {email && <p className="font-medium text-slate-900 mb-6">{email}</p>}
 
         <Button
           size="lg"
@@ -61,9 +58,7 @@ function CheckEmailContent() {
           Go to Home <ArrowRight className="ml-2 w-5 h-5" />
         </Button>
 
-        {message && (
-          <p className="text-sm text-emerald-600 mb-4">{message}</p>
-        )}
+        {message && <p className="text-sm text-emerald-600 mb-4">{message}</p>}
 
         <div className="text-sm text-slate-500">
           Didn’t receive the email?{" "}
@@ -76,7 +71,6 @@ function CheckEmailContent() {
             {loading ? "Sending..." : "Resend"}
           </button>
         </div>
-
       </div>
     </div>
   );
@@ -85,7 +79,9 @@ function CheckEmailContent() {
 export default function CheckEmail() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-6">
-      <Suspense fallback={<Loader2 className="animate-spin w-8 h-8 text-primary" />}>
+      <Suspense
+        fallback={<Loader2 className="animate-spin w-8 h-8 text-primary" />}
+      >
         <CheckEmailContent />
       </Suspense>
     </div>
