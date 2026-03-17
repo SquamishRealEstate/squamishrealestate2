@@ -18,18 +18,18 @@ interface ListingCardProps {
 
 export default function ListingCard({ listing, onClick }: ListingCardProps) {
   return (
-    <Card 
+    <Card
       className="group overflow-hidden cursor-pointer transition-all duration-400 hover:shadow-xl hover:-translate-y-1"
       onClick={onClick}
     >
       {/* Image Container */}
       <div className="relative h-64 overflow-hidden">
-        <img 
-          src={listing.image} 
+        <img
+          src={listing.image}
           alt={listing.title}
           className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
         />
-        
+
         {/* Status Badge */}
         {listing.status === "pending" && (
           <Badge className="absolute top-4 right-4 bg-accent text-accent-foreground">
@@ -41,7 +41,7 @@ export default function ListingCard({ listing, onClick }: ListingCardProps) {
             Sold
           </Badge>
         )}
-        
+
         {/* Price Overlay - Frosted Glass */}
         <div className="absolute bottom-0 left-0 right-0 frosted-glass border-t border-border/20 p-4">
           <p className="font-accent text-2xl font-bold text-primary">
@@ -49,21 +49,19 @@ export default function ListingCard({ listing, onClick }: ListingCardProps) {
           </p>
         </div>
       </div>
-      
+
       {/* listing Details */}
       <div className="p-4 space-y-3">
         <div>
-            <h3 className="text-xl font-semibold text-foreground mb-1 line-clamp-2 min-h-[3.5rem]">
+          <h3 className="text-xl font-semibold text-foreground mb-1 line-clamp-2 min-h-[3.5rem]">
             {listing.title}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-                {listing.address}
-            </p>
-            <p className="text-xs text-muted-foreground mt-1">
-                {listing.neighborhood}
-            </p>
+          </h3>
+          <p className="text-sm text-muted-foreground">{listing.address}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {listing.neighborhood}
+          </p>
         </div>
-        
+
         {/* listing Stats */}
         <div className="flex items-center gap-4 text-sm text-muted-foreground pt-3 border-t border-border">
           <div className="flex items-center gap-1.5">

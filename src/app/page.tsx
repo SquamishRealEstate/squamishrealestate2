@@ -1,11 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import Home from "@/components/Home";
 // import { Wrench, Sparkles, Clock, Twitter, Instagram, Linkedin, Facebook } from 'lucide-react';
 
 export default function MaintenancePage() {
-
   return (
     // <div className="min-h-screen bg-gradient-to-br from-[#2e3f6e] via-[#3d528b] to-[#4DB7FE] flex items-center justify-center p-4 relative overflow-hidden">
     //   {/* Animated background elements */}
@@ -66,33 +65,33 @@ export default function MaintenancePage() {
 
     //       {/* Social Links */}
     //        <div className="mt-8 flex justify-center gap-4">
-    //         <a 
-    //           href="https://twitter.com/SquamishRE" 
-    //           target="_blank" 
+    //         <a
+    //           href="https://twitter.com/SquamishRE"
+    //           target="_blank"
     //           rel="noopener noreferrer"
     //           className="w-10 h-10 bg-gradient-to-r from-[#3d528b] to-[#4DB7FE] rounded-full flex items-center justify-center hover:scale-110 transition-transform"
     //         >
     //           <Twitter className="w-5 h-5 text-white" />
     //         </a>
-    //         <a 
-    //           href="https://www.instagram.com/sean.squamish.realestate/" 
-    //           target="_blank" 
+    //         <a
+    //           href="https://www.instagram.com/sean.squamish.realestate/"
+    //           target="_blank"
     //           rel="noopener noreferrer"
     //           className="w-10 h-10 bg-gradient-to-r from-[#3d528b] to-[#4DB7FE] rounded-full flex items-center justify-center hover:scale-110 transition-transform"
     //         >
     //           <Instagram className="w-5 h-5 text-white" />
     //         </a>
-    //         <a 
-    //           href="https://www.linkedin.com/company/squamish-realestate" 
-    //           target="_blank" 
+    //         <a
+    //           href="https://www.linkedin.com/company/squamish-realestate"
+    //           target="_blank"
     //           rel="noopener noreferrer"
     //           className="w-10 h-10 bg-gradient-to-r from-[#3d528b] to-[#4DB7FE] rounded-full flex items-center justify-center hover:scale-110 transition-transform"
     //         >
     //           <Linkedin className="w-5 h-5 text-white" />
     //         </a>
-    //         <a 
-    //           href="https://www.facebook.com/sean.squamish.realestate" 
-    //           target="_blank" 
+    //         <a
+    //           href="https://www.facebook.com/sean.squamish.realestate"
+    //           target="_blank"
     //           rel="noopener noreferrer"
     //           className="w-10 h-10 bg-gradient-to-r from-[#3d528b] to-[#4DB7FE] rounded-full flex items-center justify-center hover:scale-110 transition-transform"
     //         >

@@ -13,3 +13,4 @@
 - Updated the Navbar to dynamically display the user’s name and logout option when authenticated, and Login / Create Account options when not signed in.
 - Added Terms of Use and Privacy Statement pages. Included links to the Disclosure of Representation in Trading Services and Privacy Notice and Consent documents, hosted on Google Drive.
 - Added Contact Us page with contact details and a message submission form, including form validation and email notifications to both the user and admin.
+- Updated Navbar to be responsive with mobile menu
