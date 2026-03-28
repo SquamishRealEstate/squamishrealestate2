@@ -66,7 +66,7 @@ export default function Blogs() {
         </div>
         <div className="text-center mt-12">
           <Button variant="outline">
-            View All
+            View All Blogs
             <ArrowRight className="ml-2 w-4 h-4" />
           </Button>
         </div>

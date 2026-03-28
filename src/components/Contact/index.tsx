@@ -133,6 +133,7 @@ export default function Contact() {
                   <img
                     src="https://lh3.googleusercontent.com/d/1OgL1mWWWQijCzPwQWjpIjoamLsUECTQH"
                     alt="Sean Brawley"
+                    referrerPolicy="no-referrer"
                     className="h-full w-full object-cover"
                   />
                 </div>
