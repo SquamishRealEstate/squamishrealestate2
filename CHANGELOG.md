@@ -14,3 +14,9 @@
 - Added Terms of Use and Privacy Statement pages. Included links to the Disclosure of Representation in Trading Services and Privacy Notice and Consent documents, hosted on Google Drive.
 - Added Contact Us page with contact details and a message submission form, including form validation and email notifications to both the user and admin.
 - Updated Navbar to be responsive with mobile menu
+- Implemented an Admin Portal with authentication and role-based access for admins only.
+- Updated the Navbar to conditionally display the admin dashboard for authorized users.
+- Developed a User Management module with search, view, and delete capabilities.
+- Developed a Blogs Management module with full create, read, update, and delete functionality.
+- Developed a Reels Management module with full create, read, update, and delete functionality.
+- Introduced load more functionality to improve performance by avoiding large data fetches at once.

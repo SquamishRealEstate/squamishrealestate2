@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { supabase } from "@/config/supabaseClient";
 import { Menu, X } from "lucide-react";
+import { useAdmin } from "@/hooks/useAdmin";
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { isAdmin, isLoading } = useAdmin();
 
   useEffect(() => {
     const getUser = async () => {
@@ -35,10 +37,10 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-30 frosted-glass border-b border-border/20">
       <div className="container mx-auto flex items-center justify-between h-20">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg flex ">
             <img src="/images/icon.ico" alt="Home" />
           </div>
-          <div>
+          <div className=" mb-[-6px]">
             <h1 className="text-xl font-bold">Squamish Real Estate</h1>
             <p className="text-xs text-muted-foreground">
               Your Mountain Home Awaits
@@ -62,7 +64,7 @@ export default function Navbar() {
             href="#about"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
-            About
+            Local News
           </a>
           <div className="flex items-center gap-3 ml-4">
             {!user ? (
@@ -82,8 +84,16 @@ export default function Navbar() {
                   {user.user_metadata?.full_name?.split(" ")[0] || user.email}
                 </span>
 
-                <Button variant="outline" asChild>
-                  <Link href="/dashboard">Dashboard</Link>
+                <Button asChild variant="outline">
+                  {!isLoading && isAdmin ? (
+                    <Link href="/admin" target="_blank">
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <Link href="/dashboard" target="_blank">
+                      Dashboard
+                    </Link>
+                  )}
                 </Button>
 
                 <Button variant="ghost" onClick={handleLogout}>
@@ -131,7 +141,7 @@ export default function Navbar() {
             onClick={() => setIsMenuOpen(false)}
             className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >
-            About
+            Local News
           </a>
 
           <div className="h-px bg-slate-100 my-4" />
