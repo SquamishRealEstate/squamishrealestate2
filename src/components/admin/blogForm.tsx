@@ -24,6 +24,7 @@ type Blog = {
   image: string;
   content: string;
   created_at: string;
+  slug: string;
 };
 
 interface BlogFormProps {
@@ -110,6 +111,15 @@ export default function BlogForm({
     }
   };
 
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "") // Remove special characters
+      .replace(/[\s_-]+/g, "-") // Replace spaces/underscores with dashes
+      .replace(/^-+|-+$/g, ""); // Remove leading/trailing dashes
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
@@ -126,7 +136,11 @@ export default function BlogForm({
       //     .from("blogs")
       //     .insert([{ ...formData, image: finalImageUrl }]);
 
-      const submissionData = { ...formData, image: finalImageUrl };
+      const submissionData = {
+        ...formData,
+        image: finalImageUrl,
+        slug: generateSlug(formData.title),
+      };
 
       const { id, created_at, ...updatePayload } = submissionData as any;
 
