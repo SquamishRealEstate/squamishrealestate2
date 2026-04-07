@@ -153,12 +153,13 @@ export const AllBlogs = () => {
                     </h2>
 
                     <p className="text-muted-foreground font-body text-[15px] line-clamp-3 mb-8 leading-relaxed">
-                      {blog.content.replace(/<[^>]*>/g, "")}
+                      {blog.content.replace(/<[^>]*>/g, "").substring(0, 160)}
+                      ...
                     </p>
 
                     <div className="mt-auto pt-6 border-t border-border/50">
                       <Link
-                        href={`/blog/${blog.title.toLowerCase().replace(/\s+/g, "-")}}`}
+                        href={`/blog/${blog.slug}`}
                         className="flex items-center justify-between group/btn"
                       >
                         <span className="font-accent text-[11px] uppercase tracking-[0.2em] text-primary font-bold">
