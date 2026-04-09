@@ -17,12 +17,14 @@ import {
   Loader2,
   CheckCircle,
   ExternalLink,
+  Layers,
 } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import UserManagement from "./userManagement";
 import BlogManager from "./blogManager";
 import ReelManager from "./reelManager";
 import InquiryManager from "./inquiryManager";
+import FeaturedManager from "./featuredManager";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -126,6 +128,12 @@ export default function AdminDashboard() {
             active={activeTab === "inquiries"}
             onClick={() => switchTab("inquiries")}
           />
+          <SidebarItem
+            icon={<Layers size={20} />}
+            label="Featured Properties"
+            active={activeTab === "featured"}
+            onClick={() => switchTab("featured")}
+          />
         </nav>
         <div className="lg:hidden pt-4 mt-4 border-t border-slate-800">
           <Link
@@ -176,6 +184,7 @@ export default function AdminDashboard() {
           {activeTab === "blogs" && <BlogManager />}
           {activeTab === "reels" && <ReelManager />}
           {activeTab === "inquiries" && <InquiryManager />}
+          {activeTab === "featured" && <FeaturedManager />}
         </div>
       </main>
     </div>

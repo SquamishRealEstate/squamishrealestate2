@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import HomeButton from "../ui/homeButton";
 import { Button } from "../ui/button";
+import { supabase } from "@/config/supabaseClient";
 
 export default function Contact() {
   const [loading, setLoading] = useState(false);
@@ -68,6 +69,20 @@ export default function Contact() {
 
       const result = await response.json();
       console.log("Server responded with:", result);
+
+      const { error: supabaseError } = await supabase.from("inquiries").insert([
+        {
+          name: formData.name,
+          email: formData.email,
+          message: formData.message,
+        },
+      ]);
+
+      if (supabaseError) {
+        setError("Failed to save inquiry. Please try again later.");
+        return;
+      }
+
       if (response.ok) {
         setMessage("Message successfully sent! We'll be in touch soon.");
         setFormData({ name: "", email: "", message: "" });
