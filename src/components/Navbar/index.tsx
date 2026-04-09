@@ -63,7 +63,7 @@ export default function Navbar() {
             Neighborhoods
           </a>
           <a
-            href="#about"
+            href="/blogs"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Local News
@@ -139,7 +139,7 @@ export default function Navbar() {
             Neighborhoods
           </a>
           <a
-            href="#about"
+            href="/blogs"
             onClick={() => setIsMenuOpen(false)}
             className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >

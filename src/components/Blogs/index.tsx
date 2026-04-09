@@ -8,11 +8,11 @@ import {
   Users,
   ArrowRight,
   Loader2,
-  Calculator,
-  BarChart3,
-  Building2,
-  Star,
-  Trees,
+  Tag,
+  Key,
+  Newspaper,
+  MapPin,
+  Store,
   FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -28,18 +28,14 @@ interface Blog {
   image: string | null;
 }
 
-// 1. Icon Mapping Object based on your SQL categories
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-  Featured: <Star className="w-8 h-8" />,
-  Homes: <HomeIcon className="w-8 h-8" />,
-  Townhomes: <Building2 className="w-8 h-8" />,
-  Condos: <Building2 className="w-8 h-8" />,
-  Mortgages: <Calculator className="w-8 h-8" />,
-  Statistics: <BarChart3 className="w-8 h-8" />,
+  Listed: <Tag className="w-8 h-8" />,
+  Sold: <Key className="w-8 h-8" />,
+  News: <Newspaper className="w-8 h-8" />,
   Trends: <TrendingUp className="w-8 h-8" />,
-  "New Projects": <Trees className="w-8 h-8" />,
-  Commercial: <Users className="w-8 h-8" />,
-  Favourites: <Star className="w-8 h-8" />,
+  People: <Users className="w-8 h-8" />,
+  Places: <MapPin className="w-8 h-8" />,
+  Businesses: <Store className="w-8 h-8" />,
 };
 
 export default function Blogs() {
