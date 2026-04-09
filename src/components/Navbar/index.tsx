@@ -36,17 +36,19 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-30 frosted-glass border-b border-border/20">
       <div className="container mx-auto flex items-center justify-between h-20">
-        <div className="flex items-center gap-2">
-          <div className="w-12 h-12 rounded-lg flex ">
-            <img src="/images/icon.ico" alt="Home" />
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-12 h-12 rounded-lg flex ">
+              <img src="/images/icon.ico" alt="Home" />
+            </div>
+            <div className=" mb-[-6px]">
+              <h1 className="text-xl font-bold">Squamish Real Estate</h1>
+              <p className="text-xs text-muted-foreground">
+                Your Mountain Home Awaits
+              </p>
+            </div>
           </div>
-          <div className=" mb-[-6px]">
-            <h1 className="text-xl font-bold">Squamish Real Estate</h1>
-            <p className="text-xs text-muted-foreground">
-              Your Mountain Home Awaits
-            </p>
-          </div>
-        </div>
+        </Link>
         <div className="hidden lg:flex items-center gap-6">
           <a
             href="#properties"
@@ -61,7 +63,7 @@ export default function Navbar() {
             Neighborhoods
           </a>
           <a
-            href="#about"
+            href="/blogs"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Local News
@@ -137,7 +139,7 @@ export default function Navbar() {
             Neighborhoods
           </a>
           <a
-            href="#about"
+            href="/blogs"
             onClick={() => setIsMenuOpen(false)}
             className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >
