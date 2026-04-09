@@ -21,6 +21,7 @@ type Blog = {
   image: string;
   content: string;
   created_at: string;
+  slug: string;
 };
 
 const PAGE_SIZE = 6; // How many blogs to show per "page"
