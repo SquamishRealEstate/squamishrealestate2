@@ -270,7 +270,7 @@ const ReviewCard = ({ review }: { review: any }) => {
         </div>
 
         <p className="text-gray-600 text-sm leading-tight mb-4 italic line-clamp-3">
-          "{review.comments || "No comments provided."}"
+          &quot;{review.comments || "No comments provided."}&quot;
         </p>
 
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 mb-4">
@@ -549,7 +549,7 @@ export const LastSold = ({
   const isLandListing = type.includes("land");
 
   function getGarageSituation(availableParking: string): string {
-    let answer: string = "Other";
+    const answer: string = "Other";
     try {
       const rank: string[] = [
         "Triple",
@@ -992,7 +992,10 @@ export const ReviewForm = ({
     try {
       // Note: handleUpload logic remains as per your implementation
       let photoLinks: string[] = [];
-      /* if (formData.files.length > 0) { photoLinks = await handleUpload(formData.files, "reviews"); } */
+      // /*
+      if (formData.files.length > 0) {
+        photoLinks = await handleUpload(formData.files, "reviews");
+      }
 
       const reviewPayload = {
         pid: property.pid,
@@ -1286,7 +1289,8 @@ export const ReportAnIssueForm = ({
           </h5>
         </div>
         <p className="mt-2 text-sm text-muted-foreground max-w-md leading-relaxed">
-          Spotted a discrepancy in the data? Let us know and we'll investigate.
+          Spotted a discrepancy in the data? Let us know and we&apos;ll
+          investigate.
         </p>
 
         <form onSubmit={onReport} className="pt-6 space-y-6">
