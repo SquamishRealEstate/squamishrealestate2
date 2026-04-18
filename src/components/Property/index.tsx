@@ -22,6 +22,9 @@ import {
   TrendingUp,
   Lock,
   MessageSquare,
+  CircleDollarSign,
+  Briefcase,
+  Home,
 } from "lucide-react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -75,6 +78,9 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const reportRef = React.useRef<HTMLDivElement>(null);
   const [selectedItem, setSelectedItem] = useState<string>("");
   const [propertyDetails, setPropertyDetails] = useState<any[]>([]);
+  const [honestDoorCurrentPrice, setHonestDoorCurrentPrice] =
+    useState("Coming Soon");
+  const [HonestDoorURL, setHonestDoorURL] = useState("");
   const [selectedExplorerTab, setSelectedExplorerTab] =
     useState<string>("New Listings");
   const [propertyInfo, setPropertyInfo] = useState<any[]>([]);
@@ -183,14 +189,13 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           value: property.market_status,
           icon: TrendingUp,
         },
-        // {
-        //   name: "HonestDoor Price",
-        //   value: honestDoorCurrentPrice,
-        //   icon: CircleDollarSign,
-        //   href: HonestDoorURL,
-        // },
-        // { name: "Street Average", value: streetAverage, icon: Briefcase },
-        // { name: "Appreciation/year", value: appreciation(), icon: Home },
+        {
+          name: "HonestDoor Price",
+          value: honestDoorCurrentPrice,
+          icon: CircleDollarSign,
+        },
+        { name: "Street Average", value: "Coming Soon", icon: Briefcase },
+        { name: "Appreciation/year", value: "Coming Soon", icon: Home },
       ];
 
       const propertyInfo = [
@@ -615,10 +620,13 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                               //      <HDMyHomeWidgetComponent />
                               //   </div>
                               // ) :
-                              <div className="py-20 text-center  uppercase tracking-widest text-muted-foreground text-xs">
-                                Coming Soon
+                              <div className="bg-white flex justify-center p-6 mb-5">
+                                <HDMyHomeWidgetComponent />
                               </div>
                             ) : (
+                              // <div className="py-20 text-center  uppercase tracking-widest text-muted-foreground text-xs">
+                              //   Coming Soon
+                              // </div>
                               React.createElement(info.component, {
                                 property,
                                 type,
