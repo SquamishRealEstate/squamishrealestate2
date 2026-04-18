@@ -30,6 +30,7 @@ export default function Contact() {
     name: "",
     email: "",
     message: "",
+    templateType: "CONTACT_FORM", // Default template type
   });
 
   const validations = {
@@ -85,7 +86,12 @@ export default function Contact() {
 
       if (response.ok) {
         setMessage("Message successfully sent! We'll be in touch soon.");
-        setFormData({ name: "", email: "", message: "" });
+        setFormData({
+          name: "",
+          email: "",
+          message: "",
+          templateType: "CONTACT_FORM",
+        });
         setTriedToSubmit(false);
 
         setTimeout(() => setMessage(null), 3000);

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@honestdoor/widget-react": "^0.2.5",
     "@mapbox/mapbox-gl-geocoder": "^5.1.2",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-label": "^2.1.8",

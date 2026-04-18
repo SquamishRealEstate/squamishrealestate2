@@ -12,7 +12,7 @@ import {
   MapboxStyleSwitcherControl,
 } from "mapbox-gl-style-switcher";
 import "mapbox-gl-style-switcher/styles.css";
-import { cn, formatPid } from "@/lib/utils";
+import { cn, formatPid, formatString } from "@/lib/utils";
 import { supabase } from "@/config/supabaseClient";
 import { popupStyles } from "./popupStyles";
 
@@ -77,11 +77,14 @@ export function MapView({ className, onMapReady }: MapViewProps) {
     type: "detached" | "strata",
   ): HTMLDivElement => {
     const container = document.createElement("div");
+    container.className = "popup-clickable-container";
+    container.style.cursor = "pointer";
 
     // Inner content HTML depending on type
     let innerHTML = "";
     if (type === "detached") {
       const property = result.property;
+      const targetUrl = `/property/landing/detached/${property.pid}/${formatString(property.civic_address)}`;
       innerHTML = `
         <img 
         src="/images/Default-Card.jpg" 
@@ -98,44 +101,62 @@ export function MapView({ className, onMapReady }: MapViewProps) {
         </p>
         </div>
     `;
+
+      container.addEventListener("click", () => {
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
+      });
     } else if (type === "strata") {
       const { property, relatedStrata } = result;
-
       const dropdownOptions = relatedStrata
         .map((unit: any) => {
-          return `<option value="${unit.civic_address}">
+          return `<option value="${unit.pid}|${unit.civic_address}">
                   ${unit.civic_address}
                 </option>`;
         })
         .join("");
 
       innerHTML = `
-    <div class="popup-card">
+      <div class="popup-card default-cursor">
+        <img src="/images/Default-Card.jpg" alt="Strata Property" class="popup-image" />
+        <div class="popup-content">
+          <p class="popup-address">${property.neighbourhood} | ${property.postal_code}</p>
+          
+          <div class="field-group">
+            <label class="popup-label">Select Unit:</label>
+            <select id="strata-unit-select" class="popup-select">
+              ${dropdownOptions}
+            </select>
+          </div>
 
-      <!-- Image -->
-      <img 
-        src="/images/Default-Card.jpg" 
-        alt="Strata Property" 
-        class="popup-image"
-      />
-
-      <!-- Property Info -->
-      <div class="popup-content">
-        <p class="popup-address">
-          ${property.neighbourhood} | ${property.postal_code}
-        </p>
-
-        <label class="popup-label">Select Unit:</label>
-        <select id="strata-unit-select" class="popup-select">
-          ${dropdownOptions}
-        </select>
-
-        <div id="unit-details" class="popup-details">
-          <!-- Selected unit details will render here -->
+          <button id="view-unit-btn" class="popup-btn-primary">
+            View Property Details
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </button>
         </div>
       </div>
-    </div>
-  `;
+    `;
+
+      // ADD CLICK HANDLER ONLY TO THE BUTTON
+      setTimeout(() => {
+        const viewBtn = container.querySelector(
+          "#view-unit-btn",
+        ) as HTMLButtonElement;
+
+        viewBtn.addEventListener("click", () => {
+          const select = container.querySelector(
+            "#strata-unit-select",
+          ) as HTMLSelectElement;
+          const [selectedPid, selectedAddress] = select.value.split("|");
+
+          const formattedAddress = formatString(selectedAddress);
+          const targetUrl = `/property/landing/strata/${selectedPid}/${formattedAddress}`;
+
+          window.open(targetUrl, "_blank", "noopener,noreferrer");
+        });
+      }, 0);
     }
 
     container.innerHTML = `

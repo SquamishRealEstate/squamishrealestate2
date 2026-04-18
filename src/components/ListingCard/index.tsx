@@ -44,7 +44,7 @@ export default function ListingCard({ listing, onClick }: ListingCardProps) {
 
         {/* Price Overlay - Frosted Glass */}
         <div className="absolute bottom-0 left-0 right-0 frosted-glass border-t border-border/20 p-4">
-          <p className="font-accent text-2xl font-bold text-primary">
+          <p className="text-2xl font-bold text-primary">
             {formatPrice(listing.price)}
           </p>
         </div>

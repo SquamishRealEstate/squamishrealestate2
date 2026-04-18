@@ -136,7 +136,7 @@ export const ShareMenu = ({ title, url }: ShareMenuProps) => {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-md",
+          "w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-all duration-300 shadow-md",
           isOpen
             ? "bg-zinc-800 text-white scale-90"
             : "bg-primary text-white hover:bg-primary/90 hover:scale-105",
