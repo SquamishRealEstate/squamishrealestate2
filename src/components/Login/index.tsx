@@ -92,7 +92,7 @@ export default function Login() {
           </div>
           <h1 className="text-5xl font-extrabold mb-4 leading-tight">
             Welcome back <br />
-            <span className="text-accent font-accent italic font-medium text-4xl">
+            <span className="text-accent italic font-medium text-4xl">
               to the mountains.
             </span>
           </h1>

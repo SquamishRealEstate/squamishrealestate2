@@ -200,7 +200,7 @@ export default function Reels() {
         {loading ? (
           <div className="w-full py-24 flex flex-col items-center justify-center">
             <Loader2 className="animate-spin text-primary mb-3" size={32} />
-            <p className="text-slate-400 font-accent uppercase tracking-widest text-[10px]">
+            <p className="text-slate-400 uppercase tracking-widest text-[10px]">
               Loading Reels...
             </p>
           </div>

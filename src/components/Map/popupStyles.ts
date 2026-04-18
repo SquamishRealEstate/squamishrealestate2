@@ -56,6 +56,18 @@ export const popupStyles = `
   position: relative;
   width: 260px;
   font-family: sans-serif;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+}
+
+
+.view-hint {
+  font-size: 11px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: block;
+  margin-top: 10px;
 }
 
 .popup-content {
@@ -79,11 +91,63 @@ export const popupStyles = `
   margin-bottom: 10px;
   border-radius: 4px;
   border: 1px solid #ddd;
+
+  
 }
 
 .popup-details {
   font-size: 13px;
   line-height: 1.4;
 }
+
+/* Container adjustments */
+.popup-card.default-cursor {
+  cursor: default; /* Removes the pointer from the whole card */
+}
+
+.field-group {
+  margin-bottom: 12px;
+}
+
+/* The New Button UI */
+.popup-btn-primary {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin-top: 4px;
+  background-color: #1a1a1a; /* Change to your primary brand color */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.popup-btn-primary:hover {
+  background-color: #333333; /* Slightly lighter shade for hover */
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.popup-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+/* Ensure the SVG icon scales nicely */
+.popup-btn-primary svg {
+  transition: transform 0.2s ease;
+}
+
+.popup-btn-primary:hover svg {
+  transform: translateX(3px); /* Arrow slides right on hover */
+}
+
 
 `;

@@ -22,3 +22,4 @@
 - Developed a Featured Prperties module with search, view, and delete capabilities.
 - Developed a Contact Inquiries module with view and delete capabilities.
 - Introduced load more functionality to improve performance by avoiding large data fetches at once.
+- Implemented property detail page

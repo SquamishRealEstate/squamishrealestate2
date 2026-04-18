@@ -70,7 +70,7 @@ export const AllBlogs = () => {
         />
         <div className="container relative z-10 text-center">
           {/* Accent Label */}
-          <div className="inline-flex items-center gap-3 text-accent font-accent uppercase tracking-[0.3em] text-[10px] mb-3">
+          <div className="inline-flex items-center gap-3 text-accent  uppercase tracking-[0.3em] text-[10px] mb-3">
             <span className="w-10 h-px bg-accent/30" />
             The Squamish Journal
             <span className="w-10 h-px bg-accent/30" />
@@ -103,7 +103,7 @@ export const AllBlogs = () => {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-24">
             <Loader2 className="animate-spin text-primary mb-4" size={40} />
-            <p className="text-secondary font-accent uppercase tracking-widest text-xs">
+            <p className="text-secondary  uppercase tracking-widest text-xs">
               Loading the landscape
             </p>
           </div>
@@ -130,14 +130,14 @@ export const AllBlogs = () => {
                     )}
                     {/* Cedar Accent Tag */}
                     <div className="absolute top-5 left-5">
-                      <span className="px-4 py-1.5 bg-accent text-accent-foreground font-accent text-[10px] uppercase tracking-widest rounded-full shadow-lg">
+                      <span className="px-4 py-1.5 bg-accent text-accent-foreground  text-[10px] uppercase tracking-widest rounded-full shadow-lg">
                         {blog.category}
                       </span>
                     </div>
                   </div>
 
                   <div className="p-8 flex flex-col flex-1">
-                    <div className="flex items-center gap-4 mb-5 text-secondary/60 font-accent text-[10px] uppercase tracking-widest">
+                    <div className="flex items-center gap-4 mb-5 text-secondary/60  text-[10px] uppercase tracking-widest">
                       <div className="flex items-center gap-2">
                         <Calendar size={13} className="text-accent" />{" "}
                         {new Date(blog.created_at).toLocaleDateString()}
@@ -162,7 +162,7 @@ export const AllBlogs = () => {
                         href={`/blog/${blog.slug}`}
                         className="flex items-center justify-between group/btn"
                       >
-                        <span className="font-accent text-[11px] uppercase tracking-[0.2em] text-primary font-bold">
+                        <span className=" text-[11px] uppercase tracking-[0.2em] text-primary font-bold">
                           Read Full Story
                         </span>
                         <div className="w-10 h-10 rounded-full border border-border flex items-center justify-center group-hover/btn:bg-primary group-hover/btn:text-primary-foreground transition-all">
@@ -185,7 +185,7 @@ export const AllBlogs = () => {
                 >
                   <ChevronLeft size={20} />
                 </button>
-                <span className="font-accent text-xs font-bold uppercase tracking-[0.3em] text-secondary">
+                <span className=" text-xs font-bold uppercase tracking-[0.3em] text-secondary">
                   {currentPage} /{" "}
                   {Math.ceil(filteredBlogs.length / itemsPerPage)}
                 </span>

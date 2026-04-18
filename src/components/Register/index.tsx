@@ -156,7 +156,7 @@ export default function Register() {
           </div>
           <h1 className="text-5xl font-extrabold mb-6 leading-tight">
             Elevate your living <br />{" "}
-            <span className="text-accent font-accent italic font-medium text-4xl leading-tight">
+            <span className="text-accent italic font-medium text-4xl leading-tight">
               in the Sea to Sky.
             </span>
           </h1>

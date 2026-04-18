@@ -1,14 +1,26 @@
-// app/api/contact/route.ts
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
-import {
-  contactEmailTemplate,
-  userThankYouTemplate,
-} from "@/lib/emailTemplates";
+import { masterDynamicTemplate } from "@/lib/emailTemplates";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, message } = await req.json();
+    // 1. Parse the body exactly ONCE here
+    const body = await req.json();
+
+    // 2. Destructure everything you might need from the body
+    const {
+      name,
+      email,
+      message,
+      templateType,
+      propertyAddress,
+      scores,
+      estimateValue,
+      reviewText,
+      photo_urls,
+      issueDetails,
+      propertyOwner,
+    } = body;
 
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
@@ -19,21 +31,150 @@ export async function POST(req: Request) {
       },
     });
 
+    let adminHtml = "";
+    let userHtml = "";
+    let adminSubject = "";
+    let userSubject = "";
+
+    // Template Switching Logic
+    switch (templateType) {
+      case "PROPERTY_REPORT": {
+        adminSubject = `Report Request: ${propertyAddress}`;
+        userSubject = "Your Property Report Request";
+
+        const sharedHtml = masterDynamicTemplate(
+          "Property Report Request",
+          "We have received your request for a detailed market report and are currently preparing the data.",
+          {
+            Property_Address: propertyAddress, // Address moved here
+            Contact_Email: email,
+            Name: name || "Valued Client",
+          },
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
+      case "REVIEW_FORM": {
+        adminSubject = `Property Review: ${propertyAddress}`;
+        userSubject = "Copy of your Property Review";
+
+        // Build details with Address at the top
+        const details: Record<string, any> = {
+          Property_Address: propertyAddress, // Address moved here
+          Submitted_By: name || "Valued Client",
+          Contact_Email: email,
+          Estimated_Value: estimateValue,
+          ...scores,
+          Comments: reviewText || "No comments provided.",
+        };
+
+        if (photo_urls && photo_urls.length > 0) {
+          details["Attached_Photos"] = photo_urls
+            .map(
+              (url: string, i: number) =>
+                `<a href="${url}" style="color: #8c5e46; text-decoration: none; font-weight: 600;">View Photo ${i + 1}</a>`,
+            )
+            .join(", ");
+        }
+
+        const sharedHtml = masterDynamicTemplate(
+          "Property Review Details",
+          "A property review has been submitted with the following details.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
+      case "REPORT_ISSUE": {
+        adminSubject = `🚨 Issue Reported: ${propertyAddress}`;
+        userSubject = "We've received your report - Squamish Real Estate";
+
+        const details = {
+          Reported_By: name || "User",
+          User_Email: email,
+          Property: propertyAddress,
+          Issue_Description: issueDetails,
+        };
+
+        const sharedHtml = masterDynamicTemplate(
+          "Issue Report Received",
+          "Thank you for helping us improve. We have received your report and our team will look into it shortly.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
+      case "THINKING_OF_SELLING": {
+        adminSubject = `Thinking of Selling: ${name}`;
+        userSubject = "Thanks for reaching out - Squamish Real Estate";
+
+        const details = {
+          Email: email,
+          Property: propertyAddress,
+          Owner: propertyOwner || "N/A",
+        };
+
+        const sharedHtml = masterDynamicTemplate(
+          "Thinking of Selling Inquiry",
+          "We have received your inquiry about selling your property. Our team will review your message and get back to you shortly.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
+      case "CONTACT_FORM":
+      default: {
+        adminSubject = `New Inquiry: ${name}`;
+        userSubject = "We've received your message - Squamish Real Estate";
+
+        const details = {
+          Name: name,
+          Email: email,
+          Message: message,
+        };
+
+        adminHtml = masterDynamicTemplate(
+          "New Contact Inquiry",
+          "A new contact form submission has been received from the website.",
+          details,
+        );
+
+        userHtml = masterDynamicTemplate(
+          "Thanks for reaching out",
+          "We have successfully received your inquiry and will get back to you shortly.",
+          details,
+        );
+        break;
+      }
+    }
+
     await Promise.all([
+      // 1. Sent to Sean (Admin)
       transporter.sendMail({
         from: `"Squamish Real Estate" <${process.env.EMAIL_USER}>`,
         to: "sean@squamish.realestate",
-        subject: `New Contact: ${name}`,
-        text: message,
-        html: contactEmailTemplate(name, email, message),
+        subject: adminSubject,
+        html: adminHtml,
       }),
 
-      // Email to User (Confirmation)
+      // 2. Sent to User (Confirmation)
       transporter.sendMail({
-        from: `"Squamish Real Estate" <${process.env.SMTP_USER}>`,
+        from: `"Squamish Real Estate" <${process.env.EMAIL_USER}>`,
         to: email,
-        subject: "Thanks for connecting with Squamish Real Estate",
-        html: userThankYouTemplate(name),
+        subject: userSubject,
+        html: userHtml,
       }),
     ]);
 

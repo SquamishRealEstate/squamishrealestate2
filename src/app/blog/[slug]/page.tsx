@@ -55,7 +55,7 @@ export default function BlogPost() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center">
         <Loader2 className="animate-spin text-primary mb-4" size={40} />
-        <p className="font-accent text-xs uppercase tracking-widest text-secondary">
+        <p className="text-xs uppercase tracking-widest text-secondary">
           Opening the Journal...
         </p>
       </div>
@@ -86,7 +86,7 @@ export default function BlogPost() {
         <div className="container max-w-4xl px-6">
           <button
             onClick={() => router.back()}
-            className="flex items-center gap-2 text-secondary/60 hover:text-primary transition-colors font-accent text-[10px] uppercase tracking-widest mb-10 group"
+            className="flex items-center gap-2 text-secondary/60 hover:text-primary transition-colors  text-[10px] uppercase tracking-widest mb-10 group"
           >
             <ChevronLeft
               size={14}
@@ -96,7 +96,7 @@ export default function BlogPost() {
           </button>
 
           <header className="space-y-6 mb-12">
-            <span className="px-4 py-1 bg-accent/10 text-accent font-accent text-[10px] uppercase tracking-[0.2em] rounded-full border border-accent/20 inline-block">
+            <span className="px-4 py-1 bg-accent/10 text-accent  text-[10px] uppercase tracking-[0.2em] rounded-full border border-accent/20 inline-block">
               {blog.category}
             </span>
 
@@ -105,11 +105,11 @@ export default function BlogPost() {
             </h1>
 
             <div className="flex flex-wrap items-center gap-6 pt-6 border-t border-border/50">
-              <div className="flex items-center gap-2 text-secondary font-accent text-[11px] uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-secondary  text-[11px] uppercase tracking-wider">
                 <User size={14} className="text-accent" /> By{" "}
                 {blog.author || "Admin"}
               </div>
-              <div className="flex items-center gap-2 text-secondary font-accent text-[11px] uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-secondary  text-[11px] uppercase tracking-wider">
                 <Calendar size={14} className="text-accent" />{" "}
                 {new Date(blog.created_at).toLocaleDateString("en-US", {
                   month: "long",
@@ -145,7 +145,7 @@ export default function BlogPost() {
                 {blog.author?.charAt(0) || "S"}
               </div>
               <div className="text-center md:text-left flex-1">
-                <p className="text-[10px] font-accent uppercase tracking-widest text-accent mb-1">
+                <p className="text-[10px]  uppercase tracking-widest text-accent mb-1">
                   Author
                 </p>
                 <h3 className="text-xl font-display font-bold text-primary mb-2">

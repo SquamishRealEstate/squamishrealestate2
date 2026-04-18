@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Trash2,
 } from "lucide-react";
+import { handleUpload } from "@/lib/utils";
 
 type Blog = {
   id: string;
@@ -88,28 +89,29 @@ export default function BlogForm({
     }
   };
 
-  const handleUpload = async (file: File): Promise<string | null> => {
-    try {
-      const formData = new FormData();
-      formData.append("file", file); // Wrap the file in FormData
+  // const handleUpload = async (file: File): Promise<string | null> => {
+  //   try {
+  //     const formData = new FormData();
+  //     formData.append("file", file); // Wrap the file in FormData
+  //     formData.append("folderType", "blogs");
 
-      const response = await fetch("/api/upload-drive", {
-        method: "POST",
-        body: formData,
-      });
+  //     const response = await fetch("/api/upload-drive", {
+  //       method: "POST",
+  //       body: formData,
+  //     });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Upload failed");
-      }
+  //     if (!response.ok) {
+  //       const errorData = await response.json();
+  //       throw new Error(errorData.error || "Upload failed");
+  //     }
 
-      const data = await response.json();
-      return data.url; // Returns the direct image link for Supabase
-    } catch (err) {
-      console.error("Upload error:", err);
-      throw err;
-    }
-  };
+  //     const data = await response.json();
+  //     return data.url; // Returns the direct image link for Supabase
+  //   } catch (err) {
+  //     console.error("Upload error:", err);
+  //     throw err;
+  //   }
+  // };
 
   const generateSlug = (text: string) => {
     return text
@@ -128,7 +130,7 @@ export default function BlogForm({
       let finalImageUrl = formData.image;
 
       if (uploadMethod === "upload" && imageFile) {
-        const uploadedUrl = await handleUpload(imageFile);
+        const [uploadedUrl] = await handleUpload(imageFile, "blogs");
         if (uploadedUrl) finalImageUrl = uploadedUrl;
       }
 
