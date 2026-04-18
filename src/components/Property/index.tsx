@@ -364,11 +364,12 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           {/* Social Interactions Wrapper - ADD relative z-50 */}
           <div className="absolute bottom-6 left-6 right-auto md:bottom-12 md:left-auto md:right-12 flex flex-col items-start md:items-end gap-3 z-10">
             <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden pointer-events-auto">
-              <AuthGuard message="Sign in to interact with this property.">
+              {/* <AuthGuard message="Sign in to interact with this property.">
                 {(user) => (
                   <SocialInteractions pid={property.pid} user={user} />
                 )}
-              </AuthGuard>
+              </AuthGuard> */}
+              <SocialInteractions pid={property.pid} />
             </div>
 
             {/* Reviews Summary */}

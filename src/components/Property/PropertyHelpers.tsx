@@ -14,6 +14,8 @@ import {
   Mail,
   MapPin,
   X,
+  Lock,
+  ArrowRight,
 } from "lucide-react";
 import {
   cn,
@@ -26,6 +28,7 @@ import { Slider } from "@/components/ui/slider"; // Assuming a Radix-based UI sl
 import { Star, Upload, Send, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/config/supabaseClient"; // Ensure this import
 import { Button } from "../ui/button";
+import { AuthGuard } from "@/components/Auth/authGuard"; // Import your existing guard
 
 /** 1. Back to Map Button **/
 export const BackToMapButton = ({ onClick }: { onClick: () => void }) => (
@@ -64,50 +67,168 @@ export const PropertyStat = ({ label, value, suffix }: StatProps) => (
 
 // export const SocialInteractions = ({
 //   pid,
-//   user,
 // }: {
 //   pid: string;
-//   user: any;
-// }) =>
-//   (
+// }) => {
+//   const [stats, setStats] = useState({ likes: 0, saves: 0, views: 0 });
+//   const [userStatus, setUserStatus] = useState({ liked: false, saved: false });
+//   const hasIncrementedView = useRef(false);
 
-//   <div className="flex items-center gap-4 px-4 py-2">
-//     <div className="flex items-center gap-2 text-white group">
-//       <Heart size={16} className="text-white/60" />
-//       <span className="text-xs font-bold">{}</span>
-//     </div>
-//     <div className="h-4 w-px bg-white/20" />
-//     <div className="flex items-center gap-2 text-white">
-//       <ThumbsUp size={16} className="text-white/60" />
-//       <span className="text-xs font-bold">{}</span>
-//     </div>
-//     <div className="h-4 w-px bg-white/20" />
-//     <div className="flex items-center gap-2 text-white/80">
-//       <Eye size={16} className="text-white/40" />
-//       <span className="text-xs font-bold">{}</span>
-//     </div>
-//   </div>
-// );
+//   const loadData = async () => {
+//     // 1. Initial Stats Fetch
+//     const { data: counts } = await supabase
+//       .from("property_stats")
+//       .select("*")
+//       .eq("pid", pid)
+//       .single();
 
-export const SocialInteractions = ({
-  pid,
-  user,
-}: {
-  pid: string;
-  user: any;
-}) => {
+//     if (counts) {
+//       setStats({
+//         likes: counts.likes_count || 0,
+//         saves: counts.saves_count || 0,
+//         views: counts.views_count || 0,
+//       });
+//     }
+
+//     // 2. Initial View Increment (Only once)
+//     if (!hasIncrementedView.current) {
+//       hasIncrementedView.current = true;
+//       await supabase.rpc("handle_property_interaction", {
+//         target_pid: pid,
+//         action_type: "view",
+//       });
+//       // Refresh views after increment
+//       setStats((prev) => ({ ...prev, views: prev.views + 1 }));
+//     }
+
+//     // 3. User Interaction Fetch
+//     if (user) {
+//       const { data: actions } = await supabase
+//         .from("user_interactions")
+//         .select("interaction_type")
+//         .eq("pid", pid)
+//         .eq("user_id", user.id);
+
+//       setUserStatus({
+//         liked: actions?.some((a) => a.interaction_type === "like") ?? false,
+//         saved: actions?.some((a) => a.interaction_type === "save") ?? false,
+//       });
+//     }
+//   };
+
+//   useEffect(() => {
+//     loadData();
+//   }, [pid, user?.id]);
+
+//   const toggleAction = async (type: "like" | "save") => {
+//     if (!user) return;
+
+//     const isActive = type === "like" ? userStatus.liked : userStatus.saved;
+
+//     // --- OPTIMISTIC UPDATE ---
+//     // Update the heart/thumbs up immediately so user sees the click
+//     setUserStatus((prev) => ({
+//       ...prev,
+//       [type === "like" ? "liked" : "saved"]: !isActive,
+//     }));
+//     setStats((prev) => ({
+//       ...prev,
+//       [type === "like" ? "likes" : "saves"]: isActive
+//         ? Math.max(0, prev[type === "like" ? "likes" : "saves"] - 1)
+//         : prev[type === "like" ? "likes" : "saves"] + 1,
+//     }));
+
+//     // --- DATABASE SYNC ---
+//     const { error } = await supabase.rpc("handle_property_interaction", {
+//       target_pid: pid,
+//       target_user_id: user.id,
+//       action_type: type,
+//     });
+
+//     if (error) {
+//       console.error("Interaction error:", error.message);
+//       // Revert UI if the database rejected it (likely RLS error)
+//       loadData();
+//     }
+//   };
+
+//   return (
+//     <div className="flex items-center gap-4 px-4 py-2">
+//       <button
+//         onClick={() => toggleAction("save")}
+//         className="flex items-center gap-2 text-white cursor-pointer hover:opacity-70 transition-all"
+//       >
+//         <Heart
+//           size={16}
+//           className={
+//             userStatus.saved ? "text-red-500 fill-red-500" : "text-white/60"
+//           }
+//         />
+//         <span className="text-xs font-bold">{stats.saves}</span>
+//       </button>
+
+//       <div className="h-4 w-px bg-white/20" />
+
+//       <button
+//         onClick={() => toggleAction("like")}
+//         className="flex items-center gap-2 text-white cursor-pointer hover:opacity-70 transition-all"
+//       >
+//         <ThumbsUp
+//           size={16}
+//           className={
+//             userStatus.liked ? "text-blue-500 fill-blue-500" : "text-white/60"
+//           }
+//         />
+//         <span className="text-xs font-bold">{stats.likes}</span>
+//       </button>
+
+//       <div className="h-4 w-px bg-white/20" />
+
+//       <div className="flex items-center gap-2 text-white/80">
+//         <Eye size={16} className="text-white/40" />
+//         <span className="text-xs font-bold">{stats.views}</span>
+//       </div>
+//     </div>
+//   );
+// };
+
+import { useRouter } from "next/navigation";
+
+export const SocialInteractions = ({ pid }: { pid: string }) => {
   const [stats, setStats] = useState({ likes: 0, saves: 0, views: 0 });
   const [userStatus, setUserStatus] = useState({ liked: false, saved: false });
-  const hasIncrementedView = useRef(false);
+  const [user, setUser] = useState<any>(null);
+  const [showInlinePrompt, setShowInlinePrompt] = useState(false);
 
-  const loadData = async () => {
-    // 1. Initial Stats Fetch
+  const hasIncrementedView = useRef(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      loadData(session?.user);
+    };
+    init();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) setShowInlinePrompt(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [pid]);
+
+  const loadData = async (currentUser: any) => {
     const { data: counts } = await supabase
       .from("property_stats")
       .select("*")
       .eq("pid", pid)
       .single();
-
     if (counts) {
       setStats({
         likes: counts.likes_count || 0,
@@ -116,25 +237,21 @@ export const SocialInteractions = ({
       });
     }
 
-    // 2. Initial View Increment (Only once)
     if (!hasIncrementedView.current) {
       hasIncrementedView.current = true;
       await supabase.rpc("handle_property_interaction", {
         target_pid: pid,
         action_type: "view",
       });
-      // Refresh views after increment
       setStats((prev) => ({ ...prev, views: prev.views + 1 }));
     }
 
-    // 3. User Interaction Fetch
-    if (user) {
+    if (currentUser) {
       const { data: actions } = await supabase
         .from("user_interactions")
         .select("interaction_type")
         .eq("pid", pid)
-        .eq("user_id", user.id);
-
+        .eq("user_id", currentUser.id);
       setUserStatus({
         liked: actions?.some((a) => a.interaction_type === "like") ?? false,
         saved: actions?.some((a) => a.interaction_type === "save") ?? false,
@@ -142,17 +259,14 @@ export const SocialInteractions = ({
     }
   };
 
-  useEffect(() => {
-    loadData();
-  }, [pid, user?.id]);
-
   const toggleAction = async (type: "like" | "save") => {
-    if (!user) return;
+    if (!user) {
+      setShowInlinePrompt(true);
+      return;
+    }
 
     const isActive = type === "like" ? userStatus.liked : userStatus.saved;
 
-    // --- OPTIMISTIC UPDATE ---
-    // Update the heart/thumbs up immediately so user sees the click
     setUserStatus((prev) => ({
       ...prev,
       [type === "like" ? "liked" : "saved"]: !isActive,
@@ -164,54 +278,76 @@ export const SocialInteractions = ({
         : prev[type === "like" ? "likes" : "saves"] + 1,
     }));
 
-    // --- DATABASE SYNC ---
-    const { error } = await supabase.rpc("handle_property_interaction", {
+    await supabase.rpc("handle_property_interaction", {
       target_pid: pid,
       target_user_id: user.id,
       action_type: type,
     });
-
-    if (error) {
-      console.error("Interaction error:", error.message);
-      // Revert UI if the database rejected it (likely RLS error)
-      loadData();
-    }
   };
 
+  // --- COMPACT INLINE PROMPT ---
+  if (showInlinePrompt && !user) {
+    return (
+      <div className="flex items-center justify-between gap-4 px-3 py-2 min-w-[280px] animate-in fade-in slide-in-from-right-4 duration-300">
+        <div className="flex items-center gap-2">
+          <div className="bg-white/10 p-1.5 rounded-full">
+            <Lock size={14} className="text-white" />
+          </div>
+          <p className="text-[11px] text-white/90 font-medium leading-tight">
+            Sign in to <br /> save / like
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => router.push("/login")}
+            className="bg-white text-black text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-white/90 flex items-center gap-1 transition-colors"
+          >
+            Login <ArrowRight size={12} />
+          </button>
+
+          <button
+            onClick={() => setShowInlinePrompt(false)}
+            className="p-1.5 text-white/40 hover:text-white"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- STANDARD INTERACTION BAR ---
   return (
-    <div className="flex items-center gap-4 px-4 py-2">
+    <div className="flex items-center gap-4 px-4 py-2 animate-in fade-in duration-300">
       <button
         onClick={() => toggleAction("save")}
-        className="flex items-center gap-2 text-white cursor-pointer hover:opacity-70 transition-all"
+        className="flex items-center gap-2 text-white group"
       >
         <Heart
           size={16}
-          className={
-            userStatus.saved ? "text-red-500 fill-red-500" : "text-white/60"
-          }
+          className={`${userStatus.saved ? "text-red-500 fill-red-500" : "text-white/60 group-hover:text-white"} transition-colors`}
         />
         <span className="text-xs font-bold">{stats.saves}</span>
       </button>
 
-      <div className="h-4 w-px bg-white/20" />
+      <div className="h-4 w-px bg-white/10" />
 
       <button
         onClick={() => toggleAction("like")}
-        className="flex items-center gap-2 text-white cursor-pointer hover:opacity-70 transition-all"
+        className="flex items-center gap-2 text-white group"
       >
         <ThumbsUp
           size={16}
-          className={
-            userStatus.liked ? "text-blue-500 fill-blue-500" : "text-white/60"
-          }
+          className={`${userStatus.liked ? "text-blue-500 fill-blue-500" : "text-white/60 group-hover:text-white"} transition-colors`}
         />
         <span className="text-xs font-bold">{stats.likes}</span>
       </button>
 
-      <div className="h-4 w-px bg-white/20" />
+      <div className="h-4 w-px bg-white/10" />
 
       <div className="flex items-center gap-2 text-white/80">
-        <Eye size={16} className="text-white/40" />
+        <Eye size={16} className="text-white/30" />
         <span className="text-xs font-bold">{stats.views}</span>
       </div>
     </div>
