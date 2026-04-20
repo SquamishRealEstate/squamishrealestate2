@@ -194,33 +194,22 @@ export const PropertyStat = ({ label, value, suffix }: StatProps) => (
 
 import { useRouter } from "next/navigation";
 
-export const SocialInteractions = ({ pid }: { pid: string }) => {
+export const SocialInteractions = ({
+  pid,
+  user,
+}: {
+  pid: string;
+  user: any;
+}) => {
   const [stats, setStats] = useState({ likes: 0, saves: 0, views: 0 });
   const [userStatus, setUserStatus] = useState({ liked: false, saved: false });
-  const [user, setUser] = useState<any>(null);
   const [showInlinePrompt, setShowInlinePrompt] = useState(false);
 
   const hasIncrementedView = useRef(false);
   const router = useRouter();
 
   useEffect(() => {
-    const init = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      loadData(session?.user);
-    };
-    init();
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) setShowInlinePrompt(false);
-    });
-
-    return () => subscription.unsubscribe();
+    loadData(user);
   }, [pid]);
 
   const loadData = async (currentUser: any) => {
@@ -874,7 +863,7 @@ export const BCAssessment = ({
           <table className="w-full text-left text-sm">
             <thead className="bg-muted border-b border-border">
               <tr className="uppercase tracking-[0.15em] text-[10px] text-muted-foreground">
-                <th className="px-6 py-4 font-bold">Tax Year</th>
+                <th className="px-6 py-4 font-bold">July 1</th>
                 <th className="px-6 py-4 font-bold text-right">Land Value</th>
                 <th className="px-6 py-4 font-bold text-right">
                   Building Value
@@ -944,7 +933,7 @@ export const Taxes = ({ property, type }: { property: any; type: string }) => {
           <table className="w-full text-left text-sm">
             <thead className="bg-muted border-b border-border">
               <tr className="uppercase tracking-[0.12em] text-[10px] text-muted-foreground font-bold">
-                <th className="px-6 py-4">Year</th>
+                <th className="px-6 py-4">Tax Year</th>
                 <th className="px-6 py-4 text-right">Gross Tax</th>
                 <th className="px-6 py-4 text-right">Annual Change</th>
               </tr>
@@ -1052,10 +1041,12 @@ export const ReviewForm = ({
   property: any;
   user: any;
 }) => {
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [validateMessage, setValidateMessage] = useState("");
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
 
   const [formData, setFormData] = useState({
     estimateValue: "",
@@ -1117,11 +1108,61 @@ export const ReviewForm = ({
     Object.values(sliderValues).reduce((a, b) => a + b, 0) / 4
   ).toFixed(1);
 
+  useEffect(() => {
+    // Use the specific property ID to ensure we don't load a review for the wrong house
+    const storageKey = `pending_review_${property.pid}`;
+    const saved = localStorage.getItem(storageKey);
+
+    if (saved && user) {
+      try {
+        const { formData: savedForm, sliderValues: savedSliders } =
+          JSON.parse(saved);
+
+        // Restore text and sliders
+        setFormData((prev) => ({
+          ...prev,
+          estimateValue: savedForm.estimateValue,
+          reviewText: savedForm.reviewText,
+          // Note: Files cannot be restored from localStorage,
+          // so we prompt them to re-upload if needed.
+        }));
+        setSliderValues(savedSliders);
+
+        // 1. Success Message
+        setMessage(
+          "Welcome back! Your review has been restored. Please re-attach any photos.",
+        );
+
+        // 2. Clean up
+        localStorage.removeItem(storageKey);
+
+        // 3. Optional: Automatically trigger the submit function if you want it to be seamless
+        // handleSubmit();
+      } catch (e) {
+        console.error("Failed to parse saved review", e);
+      }
+    }
+  }, [user, property.pid]); // Dependency on 'user' is key!
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setTriedToSubmit(true);
 
     if (!isFormValid || validateMessage) return;
+
+    setIsSubmitting(true);
+    console.log(user);
+
+    if (!user) {
+      const cache = { formData, sliderValues };
+      localStorage.setItem(
+        `pending_review_${property.pid}`,
+        JSON.stringify(cache),
+      );
+      setShowAuthPrompt(true);
+      setIsSubmitting(false);
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -1188,136 +1229,189 @@ export const ReviewForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="antialiased font-body">
-      {/* RATING GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 border-t border-l border-border bg-white">
-        {Object.entries(sliderValues).map(([name, value]) => (
-          <div
-            key={name}
-            className="p-6 border-r border-b border-border space-y-4"
-          >
-            <div className="flex justify-between items-center">
-              <span className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground">
-                {name}
-              </span>
-              <span className="text-sm font-bold text-primary">{value}</span>
-            </div>
-            <Slider
-              value={[value]}
-              max={5}
-              step={0.1}
-              onValueChange={(val) => handleSliderChange(name, val)}
-              className="py-4"
-            />
-          </div>
-        ))}
-        <div className="md:col-span-2 p-8 border-r border-b border-border bg-muted/20 flex flex-col items-center justify-center text-center">
-          <span className="uppercase tracking-[0.2em] text-[10px] font-bold text-muted-foreground mb-1">
-            Property Score
-          </span>
-          <span className="text-5xl font-bold text-foreground tabular-nums tracking-tighter">
-            {averageScore}
-          </span>
-        </div>
-      </div>
-
-      <div className="mt-8 space-y-6">
-        {/* Estimated Value */}
-        <div className="space-y-2">
-          <label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground ml-1 block">
-            Estimated Value
-          </label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">
-              $
-            </span>
-            <input
-              name="estimateValue"
-              value={formData.estimateValue}
-              onChange={handleInputChange}
-              placeholder="0,000,000"
-              className={`${getFieldStatus(validations.estimateValue, formData.estimateValue).className} pl-8 font-bold font-mono`}
-            />
-          </div>
-          {(getFieldStatus(validations.estimateValue, formData.estimateValue)
-            .showError ||
-            validateMessage) && (
-            <p className="text-[10px] text-destructive mt-1 ml-1 font-bold flex items-center gap-1">
-              <X size={12} /> {validateMessage || "Please provide an estimate"}
-            </p>
-          )}
-        </div>
-
-        {/* Comments */}
-        <div className="space-y-2">
-          <label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground ml-1 block">
-            Comments
-          </label>
-          <textarea
-            name="reviewText"
-            value={formData.reviewText}
-            onChange={handleInputChange}
-            rows={4}
-            placeholder="Layout, neighborhood, condition..."
-            className={
-              getFieldStatus(validations.reviewText, formData.reviewText)
-                .className
-            }
-          />
-          {getFieldStatus(validations.reviewText, formData.reviewText)
-            .showError && (
-            <p className="text-[10px] text-destructive mt-1 ml-1 font-bold flex items-center gap-1">
-              <X size={12} /> Minimum 10 characters required
-            </p>
-          )}
-        </div>
-
-        {/* File Upload */}
-        <label className="group relative border-2 border-dashed border-border p-8 text-center hover:border-primary transition-colors cursor-pointer bg-muted/5 block">
-          <input
-            type="file"
-            multiple
-            onChange={handleFileChange}
-            className="sr-only"
-          />
-          <Upload
-            className="mx-auto mb-3 text-muted-foreground group-hover:text-primary"
-            size={20}
-          />
-          <p className="text-[10px] uppercase tracking-widest font-bold text-foreground">
-            {formData.files.length > 0
-              ? `${formData.files.length} Files Selected`
-              : "Upload Photos"}
-          </p>
-        </label>
-
-        {message && (
-          <div className="p-4 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100 animate-in fade-in zoom-in-95 flex items-center gap-2">
-            <AlertCircle size={16} /> {message}
-          </div>
-        )}
-
-        <Button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full h-14 bg-[#204933] hover:bg-[#1a3d2b] transition-all group"
-        >
-          {isSubmitting ? (
-            <Loader2 className="animate-spin" size={16} />
-          ) : (
-            <div className="flex items-center gap-3">
-              <span className="uppercase tracking-[0.3em] text-[10px] font-bold">
-                Submit Review
-              </span>
-              <Send
-                size={14}
-                className="group-hover:translate-x-1 transition-transform"
+    <div className="relative">
+      <form onSubmit={handleSubmit} className="antialiased font-body">
+        {/* RATING GRID */}
+        <div className="grid grid-cols-1 md:grid-cols-2 border-t border-l border-border bg-white">
+          {Object.entries(sliderValues).map(([name, value]) => (
+            <div
+              key={name}
+              className="p-6 border-r border-b border-border space-y-4"
+            >
+              <div className="flex justify-between items-center">
+                <span className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground">
+                  {name}
+                </span>
+                <span className="text-sm font-bold text-primary">{value}</span>
+              </div>
+              <Slider
+                value={[value]}
+                max={5}
+                step={0.1}
+                onValueChange={(val) => handleSliderChange(name, val)}
+                className="py-4"
               />
             </div>
+          ))}
+          <div className="md:col-span-2 p-8 border-r border-b border-border bg-muted/20 flex flex-col items-center justify-center text-center">
+            <span className="uppercase tracking-[0.2em] text-[10px] font-bold text-muted-foreground mb-1">
+              Property Score
+            </span>
+            <span className="text-5xl font-bold text-foreground tabular-nums tracking-tighter">
+              {averageScore}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-6">
+          {/* Estimated Value */}
+          <div className="space-y-2">
+            <label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground ml-1 block">
+              Estimated Value
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">
+                $
+              </span>
+              <input
+                name="estimateValue"
+                value={formData.estimateValue}
+                onChange={handleInputChange}
+                placeholder="0,000,000"
+                className={`${getFieldStatus(validations.estimateValue, formData.estimateValue).className} pl-8 font-bold font-mono`}
+              />
+            </div>
+            {(getFieldStatus(validations.estimateValue, formData.estimateValue)
+              .showError ||
+              validateMessage) && (
+              <p className="text-[10px] text-destructive mt-1 ml-1 font-bold flex items-center gap-1">
+                <X size={12} />{" "}
+                {validateMessage || "Please provide an estimate"}
+              </p>
+            )}
+          </div>
+
+          {/* Comments */}
+          <div className="space-y-2">
+            <label className="uppercase tracking-widest text-[10px] font-bold text-muted-foreground ml-1 block">
+              Comments
+            </label>
+            <textarea
+              name="reviewText"
+              value={formData.reviewText}
+              onChange={handleInputChange}
+              rows={4}
+              placeholder="Layout, neighborhood, condition..."
+              className={
+                getFieldStatus(validations.reviewText, formData.reviewText)
+                  .className
+              }
+            />
+            {getFieldStatus(validations.reviewText, formData.reviewText)
+              .showError && (
+              <p className="text-[10px] text-destructive mt-1 ml-1 font-bold flex items-center gap-1">
+                <X size={12} /> Minimum 10 characters required
+              </p>
+            )}
+          </div>
+
+          {/* File Upload */}
+          <label className="group relative border-2 border-dashed border-border p-8 text-center hover:border-primary transition-colors cursor-pointer bg-muted/5 block">
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="sr-only"
+            />
+            <Upload
+              className="mx-auto mb-3 text-muted-foreground group-hover:text-primary"
+              size={20}
+            />
+            <p className="text-[10px] uppercase tracking-widest font-bold text-foreground">
+              {formData.files.length > 0
+                ? `${formData.files.length} Files Selected`
+                : "Upload Photos"}
+            </p>
+          </label>
+
+          {message && (
+            <div className="p-4 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100 animate-in fade-in zoom-in-95 flex items-center gap-2">
+              <AlertCircle size={16} /> {message}
+            </div>
           )}
-        </Button>
-      </div>
-    </form>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-14 bg-[#204933] hover:bg-[#1a3d2b] transition-all group"
+          >
+            {isSubmitting ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <div className="flex items-center gap-3">
+                <span className="uppercase tracking-[0.3em] text-[10px] font-bold">
+                  Submit Review
+                </span>
+                <Send
+                  size={14}
+                  className="group-hover:translate-x-1 transition-transform"
+                />
+              </div>
+            )}
+          </Button>
+        </div>
+      </form>
+      {showAuthPrompt && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowAuthPrompt(false)}
+          />
+          <div className="relative w-full max-w-sm bg-white rounded-none border border-border shadow-2xl p-8 animate-in zoom-in-95 duration-300 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-muted border border-border flex items-center justify-center">
+                <Lock size={28} className="text-primary" strokeWidth={1.5} />
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2 uppercase tracking-tighter">
+              Great Review!
+            </h3>
+            <p className="text-muted-foreground text-[11px] mb-8 leading-relaxed uppercase tracking-wider">
+              To publish your feedback for{" "}
+              <span className="text-foreground font-bold">
+                {property.civic_address}
+              </span>
+              , please sign in.
+            </p>
+            <div className="space-y-3">
+              <Button
+                className="w-full bg-primary"
+                onClick={() =>
+                  router.push(
+                    `/login?callback=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+              >
+                Sign In
+              </Button>
+
+              {/* Add a Register option if they don't have an account */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  router.push(
+                    `/register?callback=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+              >
+                Create Account
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -1330,6 +1424,9 @@ export const ReportAnIssueForm = ({
   user: any;
   reportRef: React.RefObject<HTMLDivElement>;
 }) => {
+  const router = useRouter();
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -1361,12 +1458,42 @@ export const ReportAnIssueForm = ({
     };
   };
 
+  useEffect(() => {
+    // Use the specific property ID to ensure we don't load a review for the wrong house
+    const storageKey = `pending_issue_${property.pid}`;
+    const saved = localStorage.getItem(storageKey);
+
+    if (saved && user) {
+      try {
+        const parsed = JSON.parse(saved);
+        setFormData((prev) => ({ ...prev, info: parsed.info }));
+
+        // Cleanup storage
+        localStorage.removeItem(storageKey);
+
+        setMessage("Welcome back! Your report details have been restored.");
+        setTimeout(() => setMessage(null), 5000);
+      } catch (e) {
+        console.error("Failed to restore report", e);
+      }
+    }
+  }, [user, property.pid]); // Dependency on 'user' is key!
+
   const onReport = async (e: React.FormEvent) => {
     e.preventDefault();
     setTriedToSubmit(true);
 
     if (!validations.info) return; // Guard
 
+    if (!user) {
+      // Save the state before leaving
+      localStorage.setItem(
+        `pending_issue_${property.pid}`,
+        JSON.stringify({ info: formData.info }),
+      );
+      setShowAuthPrompt(true);
+      return;
+    }
     setIsSubmitting(true);
     const propertyAddress = property?.civic_address || "Unknown Address";
 
@@ -1483,6 +1610,56 @@ export const ReportAnIssueForm = ({
           </Button>
         </form>
       </div>
+      {showAuthPrompt && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300"
+            onClick={() => setShowAuthPrompt(false)}
+          />
+          <div className="relative w-full max-w-sm bg-white rounded-none border border-border shadow-2xl p-8 animate-in zoom-in-95 duration-300 text-center">
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-muted border border-border flex items-center justify-center">
+                <Lock size={28} className="text-primary" strokeWidth={1.5} />
+              </div>
+            </div>
+            <h3 className="text-lg font-bold text-foreground mb-2 uppercase tracking-tighter">
+              Authentication Required
+            </h3>
+            <p className="text-muted-foreground text-[11px] mb-8 leading-relaxed uppercase tracking-wider">
+              To report your issue for{" "}
+              <span className="text-foreground font-bold">
+                {property.civic_address}
+              </span>
+              , please sign in.
+            </p>
+            <div className="space-y-3">
+              <Button
+                className="w-full bg-primary"
+                onClick={() =>
+                  router.push(
+                    `/login?callback=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+              >
+                Sign In
+              </Button>
+
+              {/* Add a Register option if they don't have an account */}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  router.push(
+                    `/register?callback=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+              >
+                Create Account
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
