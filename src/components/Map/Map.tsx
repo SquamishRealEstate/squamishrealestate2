@@ -1,6 +1,6 @@
-/// <reference types="@types/google.maps" />
+"use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
 import * as mapboxgl from "mapbox-gl";
 import type { LngLatLike } from "mapbox-gl";
@@ -12,11 +12,24 @@ import {
   MapboxStyleSwitcherControl,
 } from "mapbox-gl-style-switcher";
 import "mapbox-gl-style-switcher/styles.css";
-import { cn, formatPid, formatString } from "@/lib/utils";
+import {
+  cn,
+  formatPid,
+  formatString,
+  formatPrice,
+  getBathrooms,
+} from "@/lib/utils";
 import { supabase } from "@/config/supabaseClient";
 import { popupStyles } from "./popupStyles";
+import { AuthGuard } from "../Auth/authGuard";
+import { Lock } from "lucide-react";
+import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
 
 const flyToCenter: LngLatLike = [-123.152797, 49.699331];
+
+// Define property types globally so both components can use it safely
+export type PropertyType = "detached" | "strata" | "multifamily" | "land";
 
 interface MapViewProps {
   className?: string;
@@ -24,8 +37,69 @@ interface MapViewProps {
 }
 
 export function MapView({ className, onMapReady }: MapViewProps) {
-  const mapContainer = useRef<HTMLDivElement | null>(null); // Ref for map container
+  return (
+    <AuthGuard renderPrivate={false}>
+      {(user) => {
+        const isLoggedIn = !!user;
+
+        return (
+          <MapInnerLayout
+            isLoggedIn={isLoggedIn}
+            className={className}
+            onMapReady={onMapReady}
+          />
+        );
+      }}
+    </AuthGuard>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Sub-Component cleanly handling the UI layout and Live Map Sync
+// ----------------------------------------------------------------------
+
+interface MapInnerLayoutProps {
+  isLoggedIn: boolean;
+  className?: string;
+  onMapReady?: (map: mapboxgl.Map) => void;
+}
+
+function MapInnerLayout({
+  isLoggedIn,
+  className,
+  onMapReady,
+}: MapInnerLayoutProps) {
+  const router = useRouter();
+  const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+
+  const [lockedListing, setLockedListing] = useState<any | null>(null);
+
+  const tableMapping: Record<PropertyType, string> = {
+    detached: "detached_listings",
+    strata: "strata_listings",
+    multifamily: "multifamily_listings",
+    land: "land_listings",
+  };
+
+  const [allUniqueListings, setAllUniqueListings] = useState<
+    Record<PropertyType, any[]>
+  >({
+    detached: [],
+    strata: [],
+    multifamily: [],
+    land: [],
+  });
+
+  const cachedBoundsRef = useRef<
+    Record<PropertyType, { sw: mapboxgl.LngLat; ne: mapboxgl.LngLat }[]>
+  >({
+    detached: [],
+    strata: [],
+    multifamily: [],
+    land: [],
+  });
 
   const getPropertyData = async (
     pid: string,
@@ -41,9 +115,8 @@ export function MapView({ className, onMapReady }: MapViewProps) {
         .eq("pid", formattedPid)
         .single();
 
-      // If data is not found, just exit silently
       if (error) {
-        if (error.code === "PGRST116") return; // "No rows found" error, ignore
+        if (error.code === "PGRST116") return;
         console.error("Unexpected Supabase error:", error);
         return null;
       }
@@ -72,62 +145,240 @@ export function MapView({ className, onMapReady }: MapViewProps) {
     }
   };
 
-  const createPopupContent = (
-    result: any,
-    type: "detached" | "strata",
-  ): HTMLDivElement => {
+  const getStatusImage = (status: string, type: PropertyType) => {
+    if (type === "strata") {
+      if (status === "Active" || status === "Active Under Contract") {
+        return "url('/images/Strata-Active.png')";
+      } else if (status === "Pending" || status === "Closed") {
+        return "url('/images/Strata-Sold.png')";
+      }
+      return "url('/images/Strata-Others.png')";
+    } else {
+      if (status === "Active" || status === "Active Under Contract") {
+        return "url('/images/Detached-Active.png')";
+      } else if (status === "Pending" || status === "Closed") {
+        return "url('/images/Detached-Sold.png')";
+      }
+      return "url('/images/Detached-Others.png')";
+    }
+  };
+
+  const createMarkerElement = (status: string, type: PropertyType) => {
+    const el = document.createElement("div");
+    el.style.width = "60px";
+    el.style.height = "60px";
+    el.style.backgroundSize = "100%";
+    el.style.cursor = "pointer";
+    el.style.zIndex = "0";
+    el.style.backgroundImage = getStatusImage(status, type);
+    return el;
+  };
+
+  const addClickListener = (
+    el: HTMLElement,
+    listing: any,
+    listingType: PropertyType,
+    isLoggedIn: boolean,
+    onAccessDenied: (clickedItem: any) => void,
+  ) => {
+    el.addEventListener("click", async (event: MouseEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+
+      console.log(listing);
+      const status = listing.market_status;
+      const isAccessDenied =
+        !isLoggedIn && !["Active", "Active Under Contract"].includes(status);
+
+      if (isAccessDenied) {
+        onAccessDenied(listing);
+        return;
+      }
+
+      console.log(`Access Granted for PID: ${listing.pid}`);
+
+      const popupContent = await createListingPopupContent(
+        listing,
+        listingType,
+      );
+
+      const map = mapRef.current;
+      if (!map) return;
+
+      new mapboxgl.Popup({ offset: 15 })
+        .setLngLat([Number(listing.longitude), Number(listing.latitude)])
+        .setDOMContent(popupContent)
+        .addTo(map);
+
+      // Open standard popup logic here if applicable
+    });
+  };
+
+  const renderMarkers = (
+    listings: any[],
+    isLoggedIn: boolean,
+    onAccessDenied: (item: any) => void,
+  ) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+
+    listings.forEach((listing) => {
+      const lat = parseFloat(listing.latitude);
+      const lng = parseFloat(listing.longitude);
+
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const listingType: PropertyType = listing.property_type || "detached";
+      const markerEl = createMarkerElement(listing.market_status, listingType);
+
+      addClickListener(
+        markerEl,
+        listing,
+        listingType,
+        isLoggedIn,
+        onAccessDenied,
+      );
+
+      const marker = new mapboxgl.Marker(markerEl)
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+      markersRef.current.push(marker);
+    });
+  };
+
+  const getAllListings = async (type: PropertyType) => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const bounds = map.getBounds();
+    if (!bounds) {
+      console.error("Unable to get map bounds");
+      return;
+    }
+    const sw = bounds.getSouthWest();
+    const ne = bounds.getNorthEast();
+
+    const activeCache = cachedBoundsRef.current[type];
+    const isAlreadyCached = activeCache.some((cached) => {
+      return (
+        sw.lat >= cached.sw.lat &&
+        ne.lat <= cached.ne.lat &&
+        sw.lng >= cached.sw.lng &&
+        ne.lng <= cached.ne.lng
+      );
+    });
+
+    if (isAlreadyCached) {
+      console.log(
+        `ℹ️ View area already queried for [${type}]. Using existing markers.`,
+      );
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc("get_listings_in_bounds", {
+        min_lat: sw.lat.toString(),
+        max_lat: ne.lat.toString(),
+        min_lng: sw.lng.toString(),
+        max_lng: ne.lng.toString(),
+        table_name: tableMapping[type],
+      });
+
+      if (error) throw error;
+
+      const fetchedData = (data as any[]) || [];
+      cachedBoundsRef.current[type].push({ sw, ne });
+
+      setAllUniqueListings((prevMap) => {
+        const targetCategoryData = prevMap[type];
+        const existingIds = new Set(
+          targetCategoryData.map((item: any) => item.pid || item.id),
+        );
+
+        const freshListings = fetchedData
+          .filter((item: any) => !existingIds.has(item.pid || item.id))
+          .map((item: any) => ({
+            ...item,
+            property_type: type,
+          }));
+
+        return {
+          ...prevMap,
+          [type]: [...targetCategoryData, ...freshListings],
+        };
+      });
+    } catch (err) {
+      console.error(`Fetch error on category [${type}]:`, err);
+    }
+  };
+
+  const createListingPopupContent = async (
+    listing: any,
+    type: PropertyType,
+  ): Promise<HTMLDivElement> => {
     const container = document.createElement("div");
     container.className = "popup-clickable-container";
     container.style.cursor = "pointer";
+    let specsLine = "";
+    if (type !== "land") {
+      // Show Beds and Baths for residential structures
+      const beds = listing.bedrooms || 0;
+      const baths = getBathrooms(listing.full_baths, listing.half_baths);
+      specsLine = `Beds ${beds} | Baths ${baths} | `;
+    }
 
-    // Inner content HTML depending on type
     let innerHTML = "";
-    if (type === "detached") {
-      const property = result.property;
-      const targetUrl = `/property/landing/detached/${property.pid}/${formatString(property.civic_address)}`;
+    if (type === "detached" || type === "multifamily" || type === "land") {
+      const targetUrl = `/listing/landing/${type}/${listing.pid}/${formatString(listing.civic_address)}`;
       innerHTML = `
-        <img 
-        src="/images/Default-Card.jpg" 
-        alt="Property Image" 
-        width="1000" 
-        height="600"
-        />
+        <img src="/images/Default-Card.jpg" alt="Property Image" width="1000" height="600" />
         <div class="bottom-left">
         <p>
-          ${property.civic_address}<br/>
-          ${property.neighbourhood} | ${property.postal_code}<br/>
-          Beds ${property.bedrooms} | Baths ${property.bathrooms} | Floor Area ${property.floor_area}<br/>
-          Lot Size ${property.lot_size}
+         ${formatPrice(listing.asking_price)}<br/>
+          ${listing.civic_address}<br/>
+          ${listing.neighbourhood} | ${listing.postal_code}<br/>
+          ${specsLine} Floor Area ${listing.total_floor_area}<br/>
+          Lot Size ${listing.lot_size}<br/>
+          MLS® ${listing.mls_number}<br/>
+          Listing By ${listing.listing_office}<br/>
         </p>
         </div>
-    `;
-
+      `;
       container.addEventListener("click", () => {
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       });
     } else if (type === "strata") {
-      const { property, relatedStrata } = result;
-      const dropdownOptions = relatedStrata
-        .map((unit: any) => {
-          return `<option value="${unit.pid}|${unit.civic_address}">
-                  ${unit.civic_address}
-                </option>`;
-        })
-        .join("");
+      if (listing.gis_id) {
+        const { data: relatedStrata, error: strataError } = await supabase
+          .from("strata_listings")
+          .select("*")
+          .eq("gis_id", listing.gis_id);
 
-      innerHTML = `
+        if (strataError) {
+          console.error("Error fetching related strata:", strataError);
+        }
+
+        const units = relatedStrata ?? [];
+
+        const dropdownOptions = units
+          .map((unit: any) => {
+            return `<option value="${unit.pid}|${unit.civic_address}">${unit.civic_address}</option>`;
+          })
+          .join("");
+
+        innerHTML = `
       <div class="popup-card default-cursor">
-        <img src="/images/Default-Card.jpg" alt="Strata Property" class="popup-image" />
+        <img src="/images/Default-Card.jpg" alt="Strata Listing" class="popup-image" />
         <div class="popup-content">
-          <p class="popup-address">${property.neighbourhood} | ${property.postal_code}</p>
-          
+          <p class="popup-address">${listing.neighbourhood || "Squamish"} | ${listing.postal_code}</p>
           <div class="field-group">
             <label class="popup-label">Select Unit:</label>
-            <select id="strata-unit-select" class="popup-select">
-              ${dropdownOptions}
-            </select>
+            <select id="strata-unit-select" class="popup-select">${dropdownOptions}</select>
           </div>
-
           <button id="view-unit-btn" class="popup-btn-primary">
             View Property Details
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -137,44 +388,152 @@ export function MapView({ className, onMapReady }: MapViewProps) {
           </button>
         </div>
       </div>
-    `;
+      `;
 
-      // ADD CLICK HANDLER ONLY TO THE BUTTON
+        setTimeout(() => {
+          const viewBtn = container.querySelector(
+            "#view-unit-btn",
+          ) as HTMLButtonElement;
+          viewBtn.addEventListener("click", () => {
+            const select = container.querySelector(
+              "#strata-unit-select",
+            ) as HTMLSelectElement;
+            const [selectedPid, selectedAddress] = select.value.split("|");
+            const formattedAddress = formatString(selectedAddress);
+            const targetUrl = `/listing/landing/strata/${selectedPid}/${formattedAddress}`;
+            window.open(targetUrl, "_blank", "noopener,noreferrer");
+          });
+        }, 0);
+      }
+    }
+
+    container.innerHTML = `<style>${popupStyles}</style>${innerHTML}`;
+
+    return container;
+  };
+
+  const createPropertyPopupContent = (
+    result: any,
+    type: "detached" | "strata",
+  ): HTMLDivElement => {
+    const container = document.createElement("div");
+    container.className = "popup-clickable-container";
+    container.style.cursor = "pointer";
+
+    let innerHTML = "";
+    if (type === "detached") {
+      const property = result.property;
+      const targetUrl = `/property/landing/detached/${property.pid}/${formatString(property.civic_address)}`;
+      innerHTML = `
+        <img src="/images/Default-Card.jpg" alt="Property Image" width="1000" height="600" />
+        <div class="bottom-left">
+        <p>
+          ${property.civic_address}<br/>
+          ${property.neighbourhood} | ${property.postal_code}<br/>
+          Beds ${property.bedrooms} | Baths ${property.bathrooms} | Floor Area ${property.floor_area}<br/>
+          Lot Size ${property.lot_size}
+        </p>
+        </div>
+      `;
+      container.addEventListener("click", () => {
+        window.open(targetUrl, "_blank", "noopener,noreferrer");
+      });
+    } else if (type === "strata") {
+      const { property, relatedStrata } = result;
+      const dropdownOptions = relatedStrata
+        .map((unit: any) => {
+          return `<option value="${unit.pid}|${unit.civic_address}">${unit.civic_address}</option>`;
+        })
+        .join("");
+
+      innerHTML = `
+      <div class="popup-card default-cursor">
+        <img src="/images/Default-Card.jpg" alt="Strata Property" class="popup-image" />
+        <div class="popup-content">
+          <p class="popup-address">${property.neighbourhood} | ${property.postal_code}</p>
+          <div class="field-group">
+            <label class="popup-label">Select Unit:</label>
+            <select id="strata-unit-select" class="popup-select">${dropdownOptions}</select>
+          </div>
+          <button id="view-unit-btn" class="popup-btn-primary">
+            View Property Details
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14"></path>
+              <path d="m12 5 7 7-7 7"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      `;
+
       setTimeout(() => {
         const viewBtn = container.querySelector(
           "#view-unit-btn",
         ) as HTMLButtonElement;
-
         viewBtn.addEventListener("click", () => {
           const select = container.querySelector(
             "#strata-unit-select",
           ) as HTMLSelectElement;
           const [selectedPid, selectedAddress] = select.value.split("|");
-
           const formattedAddress = formatString(selectedAddress);
           const targetUrl = `/property/landing/strata/${selectedPid}/${formattedAddress}`;
-
           window.open(targetUrl, "_blank", "noopener,noreferrer");
         });
       }, 0);
     }
 
-    container.innerHTML = `
-    <style>${popupStyles}</style>
-    ${innerHTML}
-  `;
-
+    container.innerHTML = `<style>${popupStyles}</style>${innerHTML}`;
     return container;
   };
 
+  const addDataLayer = () => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    map.addSource("property-parcels", {
+      type: "vector",
+      url: "mapbox://nmandiveyi.bpay4n4t",
+      hover: true,
+    });
+
+    map.addLayer({
+      id: "parcel-outline",
+      type: "line",
+      source: "property-parcels",
+      "source-layer": "BCGW_Squamish-81aj2l",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "black", "line-width": 2, "line-blur": 2 },
+    });
+
+    map.addLayer({
+      id: "parcels-fill",
+      type: "fill",
+      source: "property-parcels",
+      "source-layer": "BCGW_Squamish-81aj2l",
+      layout: {},
+      paint: {
+        "fill-color": "transparent",
+        "fill-opacity": 0.3,
+        "fill-outline-color": "black",
+      },
+    });
+
+    map.addLayer({
+      id: "houses-highlighted",
+      type: "line",
+      source: "property-parcels",
+      "source-layer": "BCGW_Squamish-81aj2l",
+      layout: { "line-join": "round", "line-cap": "round" },
+      paint: { "line-color": "blue", "line-width": 3, "line-blur": 2 },
+      filter: ["in", "OBJECTID", ""],
+    });
+  };
+
   const init = usePersistFn(async () => {
-    if (mapRef.current) return; // initialize map only once
+    if (mapRef.current) return;
 
     (mapboxgl as any).accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-    if (!mapContainer.current) {
-      console.error("Map container not found");
-      return;
-    }
+    if (!mapContainer.current) return;
 
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -222,12 +581,23 @@ export function MapView({ className, onMapReady }: MapViewProps) {
     const styleSwitcher = new MapboxStyleSwitcherControl(styles, "Satellite");
     map.addControl(new mapboxgl.FullscreenControl());
     map.addControl(styleSwitcher as unknown as mapboxgl.IControl);
-
     map.addControl(new mapboxgl.NavigationControl());
     map.scrollZoom.disable();
     map.dragPan.enable();
+
     map.on("style.load", () => {
       addDataLayer();
+      getAllListings("detached");
+      getAllListings("strata");
+      getAllListings("multifamily");
+      getAllListings("land");
+    });
+
+    map.on("moveend", () => {
+      getAllListings("detached");
+      getAllListings("strata");
+      getAllListings("multifamily");
+      getAllListings("land");
     });
 
     map.on("click", "parcels-fill", async (e) => {
@@ -240,32 +610,30 @@ export function MapView({ className, onMapReady }: MapViewProps) {
       const raw_pid = props.PID;
       const propertyType =
         props.CLASS === "Building Strata" ? "strata" : "detached";
-
-      // Fetch property data
       const getProperty = await getPropertyData(raw_pid, propertyType);
 
-      if (!getProperty) return; // silently skip if not found
+      if (!getProperty) return;
 
-      const popupContent = createPopupContent(getProperty, propertyType);
+      const popupContent = createPropertyPopupContent(
+        getProperty,
+        propertyType,
+      );
 
       new mapboxgl.Popup({ offset: 15 })
         .setLngLat([
           Number(getProperty.property.longitude),
           Number(getProperty.property.latitude),
         ])
-        .setDOMContent(popupContent) // TypeScript now knows it's a Node
+        .setDOMContent(popupContent)
         .addTo(map);
 
-      // Highlight the clicked parcel
       map.setFilter("houses-highlighted", ["in", "OBJECTID", props.OBJECTID]);
     });
 
-    // Change the cursor to a pointer when the mouse is over the states layer.
     map.on("mouseenter", "parcels-fill", function () {
       map.getCanvas().style.cursor = "pointer";
     });
 
-    // Change it back to a pointer when it leaves.
     map.on("mouseleave", "parcels-fill", function () {
       map.getCanvas().style.cursor = "";
     });
@@ -275,133 +643,94 @@ export function MapView({ className, onMapReady }: MapViewProps) {
     }
   });
 
-  const addDataLayer = () => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    map.addSource("property-parcels", {
-      type: "vector",
-      url: "mapbox://nmandiveyi.bpay4n4t",
-      hover: true,
-    });
-
-    map.addSource("points", {
-      type: "geojson",
-      data: {
-        type: "FeatureCollection",
-        features: [
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.142436, 49.76105],
-            },
-          },
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.132769, 49.739052],
-            },
-          },
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.152797, 49.699331],
-            },
-          },
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.140778, 49.723844],
-            },
-          },
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.133609, 49.700974],
-            },
-          },
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.098531, 49.73718],
-            },
-          },
-          {
-            type: "Feature",
-            properties: {},
-            geometry: {
-              type: "Point",
-              coordinates: [-123.112242, 49.740384],
-            },
-          },
-        ],
-      },
-    });
-
-    map.addLayer({
-      id: "parcel-outline",
-      type: "line",
-      source: "property-parcels",
-      "source-layer": "BCGW_Squamish-81aj2l",
-      layout: {
-        "line-join": "round",
-        "line-cap": "round",
-      },
-      paint: {
-        "line-color": "black",
-        "line-width": 2,
-        "line-blur": 2,
-      },
-    });
-
-    map.addLayer({
-      id: "parcels-fill",
-      type: "fill",
-      source: "property-parcels",
-      "source-layer": "BCGW_Squamish-81aj2l",
-      layout: {},
-      paint: {
-        "fill-color": "transparent",
-        "fill-opacity": 0.3,
-        "fill-outline-color": "black",
-      },
-    });
-
-    map.addLayer({
-      id: "houses-highlighted",
-      type: "line",
-      source: "property-parcels",
-      "source-layer": "BCGW_Squamish-81aj2l",
-      layout: {
-        "line-join": "round",
-        "line-cap": "round",
-      },
-      paint: {
-        "line-color": "blue",
-        "line-width": 3,
-        "line-blur": 2,
-      },
-      filter: ["in", "OBJECTID", ""],
-    });
-  };
-
+  // Base map init trigger
   useEffect(() => {
     init();
   }, [init]);
 
+  useEffect(() => {
+    const combinedPool = [
+      ...allUniqueListings.detached,
+      ...allUniqueListings.strata,
+      ...allUniqueListings.multifamily,
+      ...allUniqueListings.land,
+    ];
+
+    if (combinedPool.length > 0) {
+      renderMarkers(combinedPool, isLoggedIn, setLockedListing);
+    }
+  }, [allUniqueListings, isLoggedIn, renderMarkers, setLockedListing]);
+
   return (
-    <div ref={mapContainer} className={cn("w-full h-[500px]", className)} />
+    <div className={cn("relative w-full h-screen")}>
+      {/* Your Map Canvas Element */}
+      <div ref={mapContainer} className="w-full h-full" />
+
+      {/* USER LOCKED MODAL OVERLAY */}
+      {lockedListing && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+          {/* Backdrop Overlay */}
+          <div
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300 cursor-pointer"
+            onClick={() => setLockedListing(null)}
+          />
+
+          {/* Modal Core Container */}
+          <div className="relative w-full max-w-sm bg-white rounded-none border border-border shadow-2xl p-8 animate-in zoom-in-95 duration-300 text-center">
+            <button
+              onClick={() => setLockedListing(null)}
+              className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors p-1 text-sm font-semibold tracking-wide"
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+
+            <div className="flex justify-center mb-6">
+              <div className="w-16 h-16 bg-muted border border-border flex items-center justify-center">
+                <Lock size={28} className="text-primary" strokeWidth={1.5} />
+              </div>
+            </div>
+
+            <h3 className="text-lg font-bold text-foreground mb-2 uppercase tracking-tighter">
+              Member Access Required
+            </h3>
+
+            <p className="text-muted-foreground text-[11px] mb-8 leading-relaxed uppercase tracking-wider">
+              To view historical data for{" "}
+              <span className="text-foreground font-bold">
+                {lockedListing.civic_address || "this property"}
+              </span>
+              , please sign in. Real Estate Board rules require user
+              registration.
+            </p>
+
+            <div className="space-y-3">
+              <Button
+                className="w-full bg-primary"
+                onClick={() =>
+                  router.push(
+                    `/login?callback=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+              >
+                Sign In
+              </Button>
+
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() =>
+                  router.push(
+                    `/register?callback=${encodeURIComponent(window.location.pathname)}`,
+                  )
+                }
+              >
+                Create Account
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

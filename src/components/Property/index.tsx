@@ -25,6 +25,7 @@ import {
   CircleDollarSign,
   Briefcase,
   Home,
+  ChevronDown,
 } from "lucide-react";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -87,6 +88,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const [reviews, setReviews] = useState<any[]>([]);
   const [propertyAverageRating, setPropertyAverageRating] = useState<number>(0);
   const [fetchingReviews, setFetchingReviews] = useState(false);
+  const [openReviews, setOpenReviews] = useState(false);
 
   const [openAccordions, setOpenAccordions] = useState<{
     [key: number]: boolean;
@@ -345,16 +347,16 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
     <div className="bg-background min-h-screen flex flex-col">
       <Navbar />
 
-      <main className="relative flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col pt-20">
         <BackToMapButton onClick={() => router.push("/")} />
 
-        <div className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden">
+        <div className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden ">
           <Image
             src="/images/landing.jpg"
             alt={property.civic_address}
             fill
             priority
-            className="object-cover"
+            className="object-cover object-top"
           />
 
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent h-40" />
@@ -364,12 +366,12 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           {/* Social Interactions Wrapper - ADD relative z-50 */}
           <div className="absolute bottom-6 left-6 right-auto md:bottom-12 md:left-auto md:right-12 flex flex-col items-start md:items-end gap-3 z-10">
             <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden pointer-events-auto">
-              {/* <AuthGuard message="Sign in to interact with this property.">
-                {(user) => (
+              {/* <SocialInteractions pid={property.pid} /> */}
+              <AuthGuard renderPrivate={false}>
+                {(user, loginUI) => (
                   <SocialInteractions pid={property.pid} user={user} />
                 )}
-              </AuthGuard> */}
-              <SocialInteractions pid={property.pid} />
+              </AuthGuard>
             </div>
 
             {/* Reviews Summary */}
@@ -449,7 +451,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
               <div
                 className={`relative flex items-center whitespace-nowrap gap-2 px-4 py-2.5 m-1 cursor-pointer transition-all rounded-full ${
                   selectedItem === value
-                    ? "bg-brand bg-opacity-10 text-brand font-bold"
+                    ? "bg-opacity-10 font-bold"
                     : "text-slate-500 font-semibold hover:bg-gray-100 hover:text-slate-700"
                 }`}
                 id={value}
@@ -473,7 +475,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
           <div
             ref={detailsRef}
-            className="grid grid-cols-2 md:grid-cols-3 bg-white border border-gray-100 shadow-sm p-8 gap-y-10 gap-x-6 rounded-none mt-4"
+            className="grid grid-flow-col grid-rows-6 md:grid-rows-4 bg-white border border-gray-100 shadow-sm p-8 gap-y-10 gap-x-6 rounded-none mt-4"
           >
             {propertyDetails.map((detail, index) => (
               <div
@@ -645,11 +647,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                           >
                             <div className="overflow-x-auto">
                               {info.name.includes("Floor Plans") ? (
-                                // floorPlanDocs && React.createElement(FloorPlans, {
-                                //   getProperty,
-                                //   propertyType,
-                                //   floorPlanDocs,
-                                // })
                                 <div>Coming Soon</div>
                               ) : (
                                 React.createElement(info.component, {
@@ -669,35 +666,52 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           </div>
 
           <div className="bg-white border border-border shadow-sm rounded-none antialiased font-body mb-8">
-            {/* Header: Matching the Tab/Accordion style */}
-            <div className="px-6 py-4 border-b border-border bg-muted/30">
-              <h4 className="uppercase tracking-[0.15em] text-[10px] text-primary font-bold">
-                Property Reviews ({reviews?.length || 0})
-              </h4>
-            </div>
+            <button
+              onClick={() => setOpenReviews(!openReviews)} // Assuming you have this state
+              className="w-full flex items-center justify-between p-6 bg-white hover:bg-slate-50 transition-colors group"
+            >
+              <div className="flex items-center gap-3">
+                <MessageSquare
+                  size={18}
+                  className="text-slate-400 group-hover:text-brand"
+                />
+                <h3 className="text-xs font-bold uppercase tracking-[0.12em] text-slate-800">
+                  Property Reviews ({reviews?.length || 0})
+                </h3>
+              </div>
+              <div
+                className={`transition-transform duration-300 ${openReviews ? "rotate-180" : ""}`}
+              >
+                <ChevronDown size={18} className="text-slate-400" />
+              </div>
+            </button>
 
-            {/* Content: Clean and Focused */}
-            <div className="divide-y divide-border border-x border-border">
-              {reviews && reviews.length > 0 ? (
-                <PropertyReviews reviews={reviews} />
-              ) : (
-                /* Empty State */
-                <div className="p-16 text-center flex flex-col items-center justify-center">
-                  <div className="w-12 h-12 bg-muted flex items-center justify-center mb-4">
-                    <MessageSquare
-                      className="text-muted-foreground/40"
-                      size={20}
-                    />
+            {/* Accordion Content */}
+            {openReviews && (
+              <div className="p-6 border-t border-border bg-white animate-in slide-in-from-top-2 duration-300">
+                {reviews && reviews.length > 0 ? (
+                  <div className="divide-y divide-border">
+                    <PropertyReviews reviews={reviews} />
                   </div>
-                  <p className="text-sm font-bold text-foreground mb-1 uppercase tracking-widest">
-                    No reviews yet.
-                  </p>
-                  <p className="text-[11px] text-muted-foreground italic leading-relaxed max-w-[200px]">
-                    Be the first to share your insights about this property!
-                  </p>
-                </div>
-              )}
-            </div>
+                ) : (
+                  /* Empty State */
+                  <div className="py-12 text-center flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 bg-muted flex items-center justify-center mb-4">
+                      <MessageSquare
+                        className="text-muted-foreground/40"
+                        size={20}
+                      />
+                    </div>
+                    <p className="text-[11px] font-bold text-foreground mb-1 uppercase tracking-widest leading-none">
+                      No reviews yet.
+                    </p>
+                    <p className="text-[10px] text-muted-foreground italic leading-relaxed max-w-[200px]">
+                      Be the first to share your insights about this property!
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div
@@ -714,11 +728,10 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
             <div className="p-0">
               {" "}
               {/* Removed padding here so AuthGuard can fill the width */}
-              <AuthGuard message="Sign in to write a review for this property.">
-                {(user) => (
+              <AuthGuard renderPrivate={false}>
+                {(user, loginUI) => (
                   <div className="p-6">
-                    {/* user is now accessible here! */}
-                    <ReviewForm property={property} user={user} />
+                    <ReviewForm user={user} property={property} />
                   </div>
                 )}
               </AuthGuard>
@@ -739,9 +752,10 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           <div className="bg-white flex justify-center mb-5">
             <HDWidgetComponent />
           </div>
-          <AuthGuard message="Sign in to report an issue with this property listing.">
-            {(user) => (
-              <div ref={reportRef}>
+          <ThinkingOfSelling />
+          <AuthGuard renderPrivate={false}>
+            {(user, loginUI) => (
+              <div className="p-6">
                 <ReportAnIssueForm
                   user={user}
                   property={property}
@@ -750,7 +764,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
               </div>
             )}
           </AuthGuard>
-          <ThinkingOfSelling />
           <Image
             src="/images/REMAX-Masters.jpg"
             alt="Squamish Real Estate Logo"

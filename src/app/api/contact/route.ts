@@ -20,6 +20,12 @@ export async function POST(req: Request) {
       photo_urls,
       issueDetails,
       propertyOwner,
+      date,
+      time,
+      phone,
+      query,
+      purchasePrice,
+      deposit,
     } = body;
 
     const transporter = nodemailer.createTransport({
@@ -134,7 +140,77 @@ export async function POST(req: Request) {
         break;
       }
 
-      case "CONTACT_FORM":
+      case "SCHEDULE_TOUR": {
+        adminSubject = `Tour Request: ${name}`;
+        userSubject = "We've received your tour request - Squamish Real Estate";
+
+        const details = {
+          Name: name,
+          Email: email,
+          Property: propertyAddress,
+          Date: date,
+          Time: time,
+          Phone: phone || "N/A",
+        };
+
+        const sharedHtml = masterDynamicTemplate(
+          "Tour Request Received",
+          "Thank you for your interest! We have received your tour request and will confirm the details with you shortly.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
+      case "REQUEST_INFO": {
+        adminSubject = `Info Request: ${name}`;
+        userSubject =
+          "We've received your information request - Squamish Real Estate";
+
+        const details = {
+          Name: name,
+          Email: email,
+          Property: propertyAddress,
+          Query: query || "N/A",
+        };
+
+        const sharedHtml = masterDynamicTemplate(
+          "Information Request Received",
+          "We have received your request for more information. Our team will review your query and get back to you shortly.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
+      case "START_OFFER": {
+        adminSubject = `Offer Submission: ${name}`;
+        userSubject = "We've received your offer - Squamish Real Estate";
+
+        const details = {
+          Name: name,
+          Email: email,
+          Property: propertyAddress,
+          Purchase_Price: purchasePrice,
+          Deposit: deposit,
+          Message: message || "N/A",
+        };
+
+        const sharedHtml = masterDynamicTemplate(
+          "Offer Submission Received",
+          "Thank you for submitting your offer. We have received the details and will review them shortly.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
       default: {
         adminSubject = `New Inquiry: ${name}`;
         userSubject = "We've received your message - Squamish Real Estate";

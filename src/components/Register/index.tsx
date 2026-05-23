@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, Suspense } from "react";
 import {
   Eye,
   EyeOff,
@@ -10,15 +10,21 @@ import {
   X,
   Loader2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import VowModal from "@/components/Register/vowModal";
 import HomeButton from "../ui/homeButton";
 
-export default function Register() {
+function RegisterContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 1. Capture the callback URL (e.g., /property/123)
+  const callbackUrl = searchParams.get("callback") || "/";
+  const redirectTo = `${window.location.origin}${callbackUrl}`;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
@@ -95,6 +101,7 @@ export default function Register() {
       email: formData.email,
       password: formData.password,
       options: {
+        emailRedirectTo: redirectTo,
         data: {
           full_name: `${formData.firstName} ${formData.lastName}`,
           vow_agreed: true,
@@ -400,5 +407,19 @@ export default function Register() {
         onDisagree={handleDisagree}
       />
     </div>
+  );
+}
+
+export default function Register() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen flex items-center justify-center font-bold text-xs uppercase tracking-widest animate-pulse">
+          Initializing Security...
+        </div>
+      }
+    >
+      <RegisterContent />
+    </Suspense>
   );
 }

@@ -7,12 +7,19 @@ import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
 
 interface AuthGuardProps {
-  // Updated to accept a function that receives the user object
-  children: React.ReactNode | ((user: any) => React.ReactNode);
+  // Can be a standard node or a function that receives (user, showLockScreen)
+  children:
+    | React.ReactNode
+    | ((user: any, loginUI: React.ReactNode) => React.ReactNode);
   message?: string;
+  renderPrivate?: boolean; // NEW: If false, it won't force the lock screen
 }
 
-export const AuthGuard = ({ children, message }: AuthGuardProps) => {
+export const AuthGuard = ({
+  children,
+  message,
+  renderPrivate = true,
+}: AuthGuardProps) => {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -37,23 +44,7 @@ export const AuthGuard = ({ children, message }: AuthGuardProps) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="py-16 flex justify-center items-center text-muted-foreground font-bold uppercase tracking-widest text-[10px] animate-pulse">
-        Verifying Access...
-      </div>
-    );
-  }
-
-  if (user) {
-    // If children is a function, we execute it and pass the user
-    if (typeof children === "function") {
-      return <>{children(user)}</>;
-    }
-    return <>{children}</>;
-  }
-
-  return (
+  const loginUI = (
     <div className="py-16 px-4 flex flex-col items-center text-center bg-card">
       <div className="bg-background p-5 border border-border shadow-sm mb-6 rounded-none">
         <Lock size={24} className="text-primary" strokeWidth={1.5} />
@@ -70,4 +61,27 @@ export const AuthGuard = ({ children, message }: AuthGuardProps) => {
       </Button>
     </div>
   );
+
+  if (loading) {
+    return (
+      <div className="py-16 flex justify-center items-center text-muted-foreground font-bold uppercase tracking-widest text-[10px] animate-pulse">
+        Verifying Access...
+      </div>
+    );
+  }
+
+  // If children is a function, we pass the user AND the loginUI
+  // so the child component can choose WHERE to show the login screen.
+  if (typeof children === "function") {
+    return <>{children(user, loginUI)}</>;
+  }
+
+  // Standard Behavior:
+  if (user) return <>{children}</>;
+
+  // If no user and renderPrivate is true, show the lock screen
+  if (renderPrivate) return loginUI;
+
+  // Otherwise, just render the children anyway (useful for "Guest" views)
+  return <>{children}</>;
 };

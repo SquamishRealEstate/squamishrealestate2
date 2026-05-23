@@ -321,7 +321,7 @@ export default function Contact() {
 }
 
 // Sub-components for cleaner code
-function ContactItem({
+export function ContactItem({
   icon,
   label,
   info,
