@@ -451,7 +451,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
               <div
                 className={`relative flex items-center whitespace-nowrap gap-2 px-4 py-2.5 m-1 cursor-pointer transition-all rounded-full ${
                   selectedItem === value
-                    ? "bg-brand bg-opacity-10 text-brand font-bold"
+                    ? "bg-opacity-10 font-bold"
                     : "text-slate-500 font-semibold hover:bg-gray-100 hover:text-slate-700"
                 }`}
                 id={value}
@@ -647,11 +647,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                           >
                             <div className="overflow-x-auto">
                               {info.name.includes("Floor Plans") ? (
-                                // floorPlanDocs && React.createElement(FloorPlans, {
-                                //   getProperty,
-                                //   propertyType,
-                                //   floorPlanDocs,
-                                // })
                                 <div>Coming Soon</div>
                               ) : (
                                 React.createElement(info.component, {

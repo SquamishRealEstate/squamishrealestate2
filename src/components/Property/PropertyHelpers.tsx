@@ -32,7 +32,7 @@ import { AuthGuard } from "@/components/Auth/authGuard"; // Import your existing
 
 /** 1. Back to Map Button **/
 export const BackToMapButton = ({ onClick }: { onClick: () => void }) => (
-  <div className="absolute top-28 left-0 z-20 w-full px-6 md:px-12 max-w-7xl mx-auto right-0">
+  <div className="absolute top-28 left-0 z-20 w-full px-6 md:px-12 max-w-7xl right-0">
     <button
       onClick={onClick}
       className="flex items-center gap-1 text-white/90 hover:text-white transition-all bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-black/50"
@@ -193,6 +193,7 @@ export const PropertyStat = ({ label, value, suffix }: StatProps) => (
 // };
 
 import { useRouter } from "next/navigation";
+import { ListingGallery } from "../Listing/listingHelpers";
 
 export const SocialInteractions = ({
   pid,
@@ -669,6 +670,7 @@ export const LastSold = ({
   property: any;
   type: string;
 }) => {
+  console.log("Property MLS Data:", property);
   const propertyInfoArray: any[] = property.mls_data || [];
   const isListing = type.includes("Listing");
   const isLandListing = type.includes("land");
@@ -698,7 +700,7 @@ export const LastSold = ({
   const data = [
     {
       name: "Year Built",
-      value: isListing ? property.year_built : property.year_constructed,
+      value: isListing ? property.year_built || "-" : property.year_constructed,
     },
     { name: "Lot Size", value: `${numberWithCommas(property.lot_size)} sf` },
     {
@@ -707,32 +709,38 @@ export const LastSold = ({
         ? `${numberWithCommas(property.total_floor_area)} sf`
         : `${numberWithCommas(property.floor_area)} sf`,
     },
-    { name: "Beds", value: property.bedrooms },
+    { name: "Beds", value: property.bedrooms || "-" },
     {
       name: "Baths",
       value:
         isListing && !isLandListing
           ? getBathrooms(property.full_baths, property.half_baths)
-          : property.bathrooms,
+          : property.bathrooms || "-",
     },
     {
       name: "Garage",
       value:
         isListing && !isLandListing
           ? getGarageSituation(property.parking)
-          : property.garage || "N/A",
+          : property.garage || "-",
     },
     {
       name: "First Floor",
-      value: `${numberWithCommas(property.first_floor)} sf`,
+      value: property.first_floor
+        ? `${numberWithCommas(property.first_floor)} sf`
+        : "-",
     },
     {
       name: "Second Floor",
-      value: `${numberWithCommas(property.second_floor)} sf`,
+      value: property.second_floor
+        ? `${numberWithCommas(property.second_floor)} sf`
+        : "-",
     },
     {
       name: "Third Floor",
-      value: `${numberWithCommas(property.third_floor)} sf`,
+      value: property.third_floor
+        ? `${numberWithCommas(property.third_floor)} sf`
+        : "-",
     },
   ];
 
@@ -801,7 +809,18 @@ export const LastSold = ({
   );
 };
 
-export const Photos = () => <div>Photos Component</div>;
+export const Photos = ({ photos }: { photos: any[] }) => {
+  console.log("Property Photos:", photos);
+  if (!photos || photos.length === 0) return null;
+
+  return (
+    <ListingGallery
+      photos={photos}
+      singlePhotoOnly={true} // Reuses carousel layout with single preview layout
+    />
+  );
+};
+
 export const FloorPlans = () => <div>Floor Plans Component</div>;
 export const NearbyPhotos = () => <div>Nearby Photos Component</div>;
 export const BCAssessment = ({
@@ -918,7 +937,7 @@ export const Taxes = ({ property, type }: { property: any; type: string }) => {
     { name: "PID", value: property.pid },
     {
       name: "Zone Description",
-      value: type.includes("strata") ? "N/A" : property.zone_desc,
+      value: type.includes("strata") ? "-" : property.zone_desc,
     },
     { name: "Legal Description", value: property.legal_detail },
   ];
@@ -1123,8 +1142,6 @@ export const ReviewForm = ({
           ...prev,
           estimateValue: savedForm.estimateValue,
           reviewText: savedForm.reviewText,
-          // Note: Files cannot be restored from localStorage,
-          // so we prompt them to re-upload if needed.
         }));
         setSliderValues(savedSliders);
 

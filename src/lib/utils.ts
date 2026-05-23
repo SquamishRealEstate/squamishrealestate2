@@ -5,13 +5,14 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(price: number): string {
+export function formatPrice(price: number | string): string {
+  const priceNum = typeof price === "string" ? parseFloat(price) : price;
   return new Intl.NumberFormat("en-CA", {
     style: "currency",
     currency: "CAD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(price);
+  }).format(priceNum);
 }
 
 export function formatNumber(num: number): string {
@@ -42,18 +43,18 @@ export const numberWithCommas = (input: string | number) => {
   return number.toLocaleString("en-US");
 };
 
-export function getBathrooms(FULL_BATH: string, HALF_BATH: string) {
-  const halfBathExists = Boolean(HALF_BATH.trim().replace("-", ""));
-  const fullBathExists = Boolean(FULL_BATH.trim().replace("-", ""));
+export function getBathrooms(
+  FULL_BATH: number | null | undefined,
+  HALF_BATH: number | null | undefined,
+) {
+  // Fallback to 0 if the value is null, undefined, or NaN
+  const fullBathCount = FULL_BATH && !isNaN(FULL_BATH) ? FULL_BATH : 0;
+  const halfBathCount = HALF_BATH && !isNaN(HALF_BATH) ? HALF_BATH : 0;
 
-  const halfBathCount = halfBathExists ? parseInt(HALF_BATH) : 0;
-  const fullBathCount = fullBathExists ? parseInt(FULL_BATH) : 0;
+  const totalBathrooms = fullBathCount + halfBathCount * 0.5;
 
-  if (fullBathCount || halfBathCount) {
-    return fullBathCount + halfBathCount * 0.5;
-  } else {
-    return "−";
-  }
+  // Return the total if it's greater than 0, otherwise return your fallback dash
+  return totalBathrooms > 0 ? totalBathrooms : "−";
 }
 
 export const handleUpload = async (
@@ -86,4 +87,174 @@ export const handleUpload = async (
     console.error("Upload error:", err);
     throw err;
   }
+};
+
+export function getElapsedTime(listDate: Date): string {
+  if (!listDate) return "—";
+
+  // Ensure we have a valid Date object instance
+  const listingDate =
+    typeof listDate === "string" ? new Date(listDate) : listDate;
+
+  // Check if the date object is valid (e.g., handles invalid string formats safely)
+  if (isNaN(listingDate.getTime())) {
+    return "Invalid date format";
+  }
+
+  const todayDate = new Date();
+  const deltaT = todayDate.getTime() - listingDate.getTime();
+
+  // Handle case where listing date is set in the future due to timezone mismatches
+  if (deltaT < 0) return "New Listing";
+
+  const listingDays = Math.floor(deltaT / (1000 * 60 * 60 * 24));
+
+  if (listingDays === 0) {
+    return "Listed today";
+  }
+
+  if (listingDays < 30) {
+    return listingDays === 1 ? "1 day ago" : `${listingDays} days ago`;
+  } else {
+    const months = Math.floor(listingDays / 30);
+    const days = listingDays % 30;
+
+    const monthStr = months === 1 ? "1 month" : `${months} months`;
+    const dayStr = days === 0 ? "" : days === 1 ? ", 1 day" : `, ${days} days`;
+
+    return `${monthStr}${dayStr} ago`;
+  }
+}
+
+// export const formatDate = (inputDate: Date): string => {
+//   if (!inputDate) return "N/A";
+
+//   const date = typeof inputDate === "string" ? new Date(inputDate) : inputDate;
+//   if (isNaN(date.getTime())) return "Invalid Date";
+
+//   const months = [
+//     "January",
+//     "February",
+//     "March",
+//     "April",
+//     "May",
+//     "June",
+//     "July",
+//     "August",
+//     "September",
+//     "October",
+//     "November",
+//     "December",
+//   ];
+
+//   // Use UTC or local methods depending on your database timezone preferences
+//   const day = date.getDate();
+//   const monthIndex = date.getMonth();
+//   const year = date.getFullYear();
+
+//   return `${day} ${months[monthIndex]}, ${year}`;
+// };
+
+export function formatDate(
+  dateObject: Date | string | null | undefined,
+): string {
+  if (!dateObject) return "";
+
+  const date = new Date(dateObject);
+
+  if (isNaN(date.getTime())) {
+    return "Invalid Date";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC", // Optional: locks the day to match the DB exactly
+  }).format(date);
+}
+
+export function getGarageSituation(availableParking: any): string {
+  const answer: string = "Other";
+  if (!availableParking) return answer;
+
+  // Typo fixed: 'Carpot' updated to 'Carport'
+  const rank: string[] = [
+    "Triple",
+    "Double",
+    "Single",
+    "Carport",
+    "Carpot",
+    "Open",
+    "Parking Available",
+    "Underground",
+  ];
+
+  try {
+    let parkingList: string[] = [];
+
+    // 1. If Supabase returns it as a native array of items/strings
+    if (Array.isArray(availableParking)) {
+      parkingList = availableParking.map((item) => String(item));
+    }
+    // 2. Fallback: If it's saved as a stringified JSON array or standard string
+    else if (typeof availableParking === "string") {
+      if (availableParking.startsWith("[") && availableParking.endsWith("]")) {
+        parkingList = JSON.parse(availableParking).map((item: any) =>
+          String(item),
+        );
+      } else {
+        parkingList = availableParking.split(",");
+      }
+    }
+
+    // Run the prioritization hierarchy matrix evaluation match
+    for (const parkingType of rank) {
+      for (const word of parkingList) {
+        if (word.toLowerCase().includes(parkingType.toLowerCase())) {
+          // Normalize spelling output for the client UI layer
+          return parkingType === "Carpot" ? "Carport" : parkingType;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error parsing parking JSONB metadata field:", error);
+  }
+
+  return answer;
+}
+
+export function formatTime(timestamp: string): string {
+  const options = {
+    hour: "numeric",
+    minute: "numeric",
+  } as const;
+
+  const date = new Date(timestamp);
+
+  return date.toLocaleString("en-US", {
+    ...options,
+    timeZone: "America/Los_Angeles",
+  });
+}
+
+export const formatDatePST = (timestamp: string): string => {
+  const date = new Date(timestamp);
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+};
+
+export const formatTimePST = (timestamp: string): string => {
+  const date = new Date(timestamp);
+
+  return new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Los_Angeles",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
 };
