@@ -258,3 +258,44 @@ export const formatTimePST = (timestamp: string): string => {
     minute: "2-digit",
   }).format(date);
 };
+
+import { FilterState } from "@/components/ListingFilters";
+
+export function serializeFilters(filters: FilterState): string {
+  const params = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (key === "propertiesOnly" && value === true) {
+      params.set(key, "true");
+    } else if (Array.isArray(value)) {
+      if (value.length > 0) params.set(key, value.join(","));
+    } else if (value && typeof value !== "boolean") {
+      params.set(key, value);
+    }
+  });
+  return params.toString();
+}
+
+export function deserializeFilters(searchParams: any, user: any): FilterState {
+  return {
+    propertiesOnly: searchParams.get("propertiesOnly") === "true", // Add this
+    searchQuery: searchParams.get("searchQuery") || "",
+    category: searchParams.get("category")
+      ? searchParams.get("category").split(",")
+      : [],
+    status: searchParams.get("status")
+      ? searchParams.get("status").split(",")
+      : user
+        ? []
+        : ["Active"],
+    bedrooms: searchParams.get("bedrooms") || "",
+    bathrooms: searchParams.get("bathrooms") || "",
+    minPrice: searchParams.get("minPrice") || "",
+    maxPrice: searchParams.get("maxPrice") || "",
+    minLot: searchParams.get("minLot") || "",
+    maxLot: searchParams.get("maxLot") || "",
+    minArea: searchParams.get("minArea") || "",
+    maxArea: searchParams.get("maxArea") || "",
+    minYear: searchParams.get("minYear") || "",
+    maxYear: searchParams.get("maxYear") || "",
+  };
+}

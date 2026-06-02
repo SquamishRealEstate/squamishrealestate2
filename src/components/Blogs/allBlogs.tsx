@@ -58,7 +58,7 @@ export const AllBlogs = () => {
   const paginatedBlogs = filteredBlogs.slice(startIdx, startIdx + itemsPerPage);
 
   return (
-    <div className="bg-background min-h-screen selection:bg-primary/20 selection:text-primary">
+    <div className="bg-background min-h-screen">
       <Navbar />
 
       {/* PNW Naturalism Hero Header */}

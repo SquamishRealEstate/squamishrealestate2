@@ -54,6 +54,7 @@ import {
   getGarageSituation,
   checkIfEmpty,
   formatTime,
+  formatNumber,
 } from "@/lib/utils";
 
 export const ListingDetailPage = ({ type }: { type: string }) => {
@@ -72,12 +73,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
     [key: number]: boolean;
   }>({});
   const [openReviews, setOpenReviews] = useState(false);
-
-  const listingExplorer = [
-    { name: "Schedule Tour", component: ScheduleTour },
-    { name: "Request Info", component: RequestInfo },
-    { name: "Start Offer", component: StartOffer },
-  ];
 
   const toggleAccordion = (index: number) => {
     setOpenAccordions((prev) => ({
@@ -106,7 +101,9 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       },
       {
         name: "Sqft",
-        value: listing.total_floor_area || "-",
+        value: listing.total_floor_area
+          ? `${formatNumber(listing.total_floor_area)} sf`
+          : "-",
         icon: Maximize,
       },
       {
@@ -130,7 +127,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       },
       {
         name: "Lot Size",
-        value: listing.lot_size ? `${listing.lot_size} sf` : "-",
+        value: listing.lot_size ? `${formatNumber(listing.lot_size)} sf` : "-",
         icon: Layers,
       },
       ...(type === "strata"
@@ -154,7 +151,28 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
         .select("*")
         .eq("pid", pid)
         .single();
-      if (data) setListing(data);
+
+      let civicAddress = data.civic_address;
+
+      // 2. Run your specific conditional formatting rule
+      if (
+        type === "detached" &&
+        data.zone_desc === "Bare Land Strata" &&
+        data.legal_detail
+      ) {
+        // Regex looks for the word "Lot" followed by spaces, and captures the digits (\d+) right after it
+        const lotMatch = data.legal_detail.match(/Lot\s+(\d+)/i);
+
+        if (lotMatch) {
+          const lotNumber = lotMatch[1]; // Extracts the captured digits (e.g., "7")
+          civicAddress = `${lotNumber}-${data.civic_address}`;
+        }
+      }
+
+      if (data) {
+        data.civic_address = civicAddress; // Override with formatted address
+        setListing(data);
+      }
       setLoading(false);
     };
     if (pid) fetchListing();
