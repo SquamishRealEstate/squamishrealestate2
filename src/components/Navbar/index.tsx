@@ -51,7 +51,7 @@ export default function Navbar() {
         </Link>
         <div className="hidden lg:flex items-center gap-6">
           <a
-            href="#properties"
+            href="/properties"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Properties

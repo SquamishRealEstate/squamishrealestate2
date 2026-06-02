@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, use } from "react";
 import {
   ChevronLeft,
   Heart,
@@ -23,12 +23,15 @@ import {
   numberWithCommas,
   getBathrooms,
   handleUpload,
+  formatPrice,
+  formatString,
+  formatNumber,
 } from "@/lib/utils";
 import { Slider } from "@/components/ui/slider"; // Assuming a Radix-based UI slider
 import { Star, Upload, Send, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/config/supabaseClient"; // Ensure this import
 import { Button } from "../ui/button";
-import { AuthGuard } from "@/components/Auth/authGuard"; // Import your existing guard
+import Link from "next/link";
 
 /** 1. Back to Map Button **/
 export const BackToMapButton = ({ onClick }: { onClick: () => void }) => (
@@ -65,133 +68,6 @@ export const PropertyStat = ({ label, value, suffix }: StatProps) => (
   </div>
 );
 
-// export const SocialInteractions = ({
-//   pid,
-// }: {
-//   pid: string;
-// }) => {
-//   const [stats, setStats] = useState({ likes: 0, saves: 0, views: 0 });
-//   const [userStatus, setUserStatus] = useState({ liked: false, saved: false });
-//   const hasIncrementedView = useRef(false);
-
-//   const loadData = async () => {
-//     // 1. Initial Stats Fetch
-//     const { data: counts } = await supabase
-//       .from("property_stats")
-//       .select("*")
-//       .eq("pid", pid)
-//       .single();
-
-//     if (counts) {
-//       setStats({
-//         likes: counts.likes_count || 0,
-//         saves: counts.saves_count || 0,
-//         views: counts.views_count || 0,
-//       });
-//     }
-
-//     // 2. Initial View Increment (Only once)
-//     if (!hasIncrementedView.current) {
-//       hasIncrementedView.current = true;
-//       await supabase.rpc("handle_property_interaction", {
-//         target_pid: pid,
-//         action_type: "view",
-//       });
-//       // Refresh views after increment
-//       setStats((prev) => ({ ...prev, views: prev.views + 1 }));
-//     }
-
-//     // 3. User Interaction Fetch
-//     if (user) {
-//       const { data: actions } = await supabase
-//         .from("user_interactions")
-//         .select("interaction_type")
-//         .eq("pid", pid)
-//         .eq("user_id", user.id);
-
-//       setUserStatus({
-//         liked: actions?.some((a) => a.interaction_type === "like") ?? false,
-//         saved: actions?.some((a) => a.interaction_type === "save") ?? false,
-//       });
-//     }
-//   };
-
-//   useEffect(() => {
-//     loadData();
-//   }, [pid, user?.id]);
-
-//   const toggleAction = async (type: "like" | "save") => {
-//     if (!user) return;
-
-//     const isActive = type === "like" ? userStatus.liked : userStatus.saved;
-
-//     // --- OPTIMISTIC UPDATE ---
-//     // Update the heart/thumbs up immediately so user sees the click
-//     setUserStatus((prev) => ({
-//       ...prev,
-//       [type === "like" ? "liked" : "saved"]: !isActive,
-//     }));
-//     setStats((prev) => ({
-//       ...prev,
-//       [type === "like" ? "likes" : "saves"]: isActive
-//         ? Math.max(0, prev[type === "like" ? "likes" : "saves"] - 1)
-//         : prev[type === "like" ? "likes" : "saves"] + 1,
-//     }));
-
-//     // --- DATABASE SYNC ---
-//     const { error } = await supabase.rpc("handle_property_interaction", {
-//       target_pid: pid,
-//       target_user_id: user.id,
-//       action_type: type,
-//     });
-
-//     if (error) {
-//       console.error("Interaction error:", error.message);
-//       // Revert UI if the database rejected it (likely RLS error)
-//       loadData();
-//     }
-//   };
-
-//   return (
-//     <div className="flex items-center gap-4 px-4 py-2">
-//       <button
-//         onClick={() => toggleAction("save")}
-//         className="flex items-center gap-2 text-white cursor-pointer hover:opacity-70 transition-all"
-//       >
-//         <Heart
-//           size={16}
-//           className={
-//             userStatus.saved ? "text-red-500 fill-red-500" : "text-white/60"
-//           }
-//         />
-//         <span className="text-xs font-bold">{stats.saves}</span>
-//       </button>
-
-//       <div className="h-4 w-px bg-white/20" />
-
-//       <button
-//         onClick={() => toggleAction("like")}
-//         className="flex items-center gap-2 text-white cursor-pointer hover:opacity-70 transition-all"
-//       >
-//         <ThumbsUp
-//           size={16}
-//           className={
-//             userStatus.liked ? "text-blue-500 fill-blue-500" : "text-white/60"
-//           }
-//         />
-//         <span className="text-xs font-bold">{stats.likes}</span>
-//       </button>
-
-//       <div className="h-4 w-px bg-white/20" />
-
-//       <div className="flex items-center gap-2 text-white/80">
-//         <Eye size={16} className="text-white/40" />
-//         <span className="text-xs font-bold">{stats.views}</span>
-//       </div>
-//     </div>
-//   );
-// };
-
 import { useRouter } from "next/navigation";
 import { ListingGallery } from "../Listing/listingHelpers";
 
@@ -214,11 +90,24 @@ export const SocialInteractions = ({
   }, [pid]);
 
   const loadData = async (currentUser: any) => {
+    // 1. Run view interaction FIRST so the database decides whether to increment or skip
+    if (!hasIncrementedView.current) {
+      console.log("Incrementing view count for PID:", pid);
+      hasIncrementedView.current = true;
+      await supabase.rpc("handle_property_interaction", {
+        target_pid: pid,
+        target_user_id: currentUser?.id || null, // Pass user UUID if signed in
+        action_type: "view",
+      });
+    }
+
+    // 2. Fetch the up-to-date counts (this now naturally reflects the accurate DB changes)
     const { data: counts } = await supabase
       .from("property_stats")
       .select("*")
       .eq("pid", pid)
-      .single();
+      .maybeSingle();
+
     if (counts) {
       setStats({
         likes: counts.likes_count || 0,
@@ -227,15 +116,7 @@ export const SocialInteractions = ({
       });
     }
 
-    if (!hasIncrementedView.current) {
-      hasIncrementedView.current = true;
-      await supabase.rpc("handle_property_interaction", {
-        target_pid: pid,
-        action_type: "view",
-      });
-      setStats((prev) => ({ ...prev, views: prev.views + 1 }));
-    }
-
+    // 3. Check if the current user has already liked or saved the property
     if (currentUser) {
       const { data: actions } = await supabase
         .from("user_interactions")
@@ -248,6 +129,42 @@ export const SocialInteractions = ({
       });
     }
   };
+
+  // const loadData = async (currentUser: any) => {
+  //   const { data: counts } = await supabase
+  //     .from("property_stats")
+  //     .select("*")
+  //     .eq("pid", pid)
+  //     .single();
+  //   if (counts) {
+  //     setStats({
+  //       likes: counts.likes_count || 0,
+  //       saves: counts.saves_count || 0,
+  //       views: counts.views_count || 0,
+  //     });
+  //   }
+
+  //   if (!hasIncrementedView.current) {
+  //     hasIncrementedView.current = true;
+  //     await supabase.rpc("handle_property_interaction", {
+  //       target_pid: pid,
+  //       action_type: "view",
+  //     });
+  //     setStats((prev) => ({ ...prev, views: prev.views + 1 }));
+  //   }
+
+  //   if (currentUser) {
+  //     const { data: actions } = await supabase
+  //       .from("user_interactions")
+  //       .select("interaction_type")
+  //       .eq("pid", pid)
+  //       .eq("user_id", currentUser.id);
+  //     setUserStatus({
+  //       liked: actions?.some((a) => a.interaction_type === "like") ?? false,
+  //       saved: actions?.some((a) => a.interaction_type === "save") ?? false,
+  //     });
+  //   }
+  // };
 
   const toggleAction = async (type: "like" | "save") => {
     if (!user) {
@@ -563,8 +480,296 @@ export const PropertyActions = ({ onWriteReview, onReport }: any) => (
   </div>
 );
 
-export const NewListings = () => <div>Coming soon</div>;
-export const RecentSolds = () => <div>Recent Solds Component</div>;
+export const NewListings = () => {
+  const [listings, setListings] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    async function fetchLatestListings() {
+      setIsLoading(true);
+      try {
+        // Direct call to the unified 'all_listings' source ordered by listing_date
+        const { data, error } = await supabase
+          .from("all_listings")
+          .select("*")
+          .order("listing_date", { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        setListings((data as any[]) || []);
+      } catch (error) {
+        console.error(
+          "Error fetching latest listings from all_listings union:",
+          error,
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchLatestListings();
+  }, []);
+
+  return (
+    <div className="w-full py-2">
+      <div className="overflow-x-auto border border-gray-200/60 rounded-xl bg-white shadow-xs">
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3">
+                Address
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Bed
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Bath
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Living Area
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Lot Size
+              </th>
+              <th scope="col" className="px-6 py-3 text-right">
+                Asking Price
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 text-gray-700">
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-3/4" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-8" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-8" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-16" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-16" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-20 ml-auto" />
+                  </td>
+                </tr>
+              ))
+            ) : listings.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-10 text-center text-gray-400 font-medium"
+                >
+                  No recent listing records found.
+                </td>
+              </tr>
+            ) : (
+              listings.map((item) => {
+                const isLand = item.property_type === "land";
+                const totalBaths = getBathrooms(
+                  item.full_baths,
+                  item.half_baths,
+                );
+
+                return (
+                  <tr
+                    key={`${item.property_type}-${item.pid}`}
+                    className="hover:bg-gray-50/80 transition-colors"
+                  >
+                    <td className="px-6 py-3.5 font-medium text-gray-900">
+                      <div className="flex flex-col">
+                        <Link
+                          className="truncate max-w-[180px] sm:max-w-xs hover:text-blue-500 transition-colors"
+                          href={`/listing/landing/${item.property_category}/${item.pid}/${formatString(item.civic_address)}`}
+                        >
+                          {item.civic_address}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {isLand ? "—" : (item.bedrooms ?? 0)}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {isLand ? "—" : totalBaths}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {isLand || !item.total_floor_area
+                        ? "—"
+                        : `${formatNumber(item.total_floor_area)} sf`}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {formatNumber(item.lot_size)
+                        ? `${formatNumber(item.lot_size)} sf`
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-3.5 text-right font-semibold text-primary">
+                      {formatPrice(item.asking_price)}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export const RecentSolds = ({ type }: { type: string }) => {
+  const [solds, setSolds] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    async function fetchRecentSolds() {
+      setIsLoading(true);
+      try {
+        if (type === "strata") {
+          const { data, error } = await supabase
+            .from("strata_duplicate")
+            .select("*")
+            .eq("market_status", "Closed")
+            .order("last_mls_date", { ascending: false })
+            .limit(10);
+
+          setSolds((data as any[]) || []);
+        } else {
+          const { data, error } = await supabase
+            .from("parcels_duplicate")
+            .select("*")
+            .eq("market_status", "Closed")
+            .order("last_mls_date", { ascending: false })
+            .limit(10);
+
+          setSolds((data as any[]) || []);
+        }
+      } catch (error) {
+        console.error(
+          "Error fetching latest listings from all_listings union:",
+          error,
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchRecentSolds();
+  }, []);
+
+  return (
+    <div className="w-full py-2">
+      <div className="overflow-x-auto border border-gray-200/60 rounded-xl bg-white shadow-xs">
+        <table className="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3">
+                Address
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Bed
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Bath
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Living Area
+              </th>
+              <th scope="col" className="hidden md:table-cell px-6 py-3">
+                Lot Size
+              </th>
+              <th scope="col" className="px-6 py-3 text-right">
+                Sold Price
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 text-gray-700">
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="animate-pulse">
+                  <td className="px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-3/4" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-8" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-8" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-16" />
+                  </td>
+                  <td className="hidden md:table-cell px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-16" />
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="h-3.5 bg-gray-100 rounded-sm w-20 ml-auto" />
+                  </td>
+                </tr>
+              ))
+            ) : solds.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-6 py-10 text-center text-gray-400 font-medium"
+                >
+                  No recent sold records found.
+                </td>
+              </tr>
+            ) : (
+              solds.map((item) => {
+                return (
+                  <tr
+                    key={`${item.property_type}-${item.pid}`}
+                    className="hover:bg-gray-50/80 transition-colors"
+                  >
+                    <td className="px-6 py-3.5 font-medium text-gray-900">
+                      <div className="flex flex-col">
+                        <Link
+                          className="truncate max-w-[180px] sm:max-w-xs hover:text-blue-500 transition-colors"
+                          href={`/property/landing/${type}/${item.pid}/${formatString(item.civic_address)}`}
+                        >
+                          {item.civic_address}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {item.bedrooms ?? 0}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {item.bathrooms ?? 0}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {item.floor_area
+                        ? `${formatNumber(item.floor_area)} sf`
+                        : "—"}
+                    </td>
+                    <td className="hidden md:table-cell px-6 py-3.5 text-gray-600">
+                      {formatNumber(item.lot_size)
+                        ? `${formatNumber(item.lot_size)} sf`
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-3.5 text-right font-semibold text-primary">
+                      {item.mls_data[0].price
+                        ? formatPrice(item.mls_data[0]?.price)
+                        : "—"}
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
 
 export const PropertyReport = ({
   property,

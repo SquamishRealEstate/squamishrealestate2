@@ -25,3 +25,7 @@
 - Implemented property detail page
 - Implemented RETS Script
 - Implemented listing detail page
+- Added Filter by market status on Map
+- Implemented Featured Property Component and Search Component on Home Page
+- Implemented All Listings Page with Filters and Pagination
+- Added Recent Solds and Latest Listings under Property Detail Page

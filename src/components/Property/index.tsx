@@ -557,7 +557,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                         <AuthGuard message="Sign in to view historical sold data for this property.">
                           {(user) =>
                             info.name === "Recent Solds" ? (
-                              <RecentSolds />
+                              <RecentSolds type={type} />
                             ) : (
                               <PropertyReport property={property} user={user} />
                             )

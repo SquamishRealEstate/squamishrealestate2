@@ -2,241 +2,255 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/config/supabaseClient";
-import {
-  Search,
-  Star,
-  Home,
-  Building2,
-  Loader2,
-  MapPin,
-  Hash,
-  Sparkles,
-  Mountain,
-  ArrowUpRight,
-} from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+
+const SLOTS = [
+  { id: 1, label: "Detached Slot 1", type: "detached" },
+  { id: 2, label: "Detached Slot 2", type: "detached" },
+  { id: 3, label: "Detached Slot 3", type: "detached" },
+  { id: 4, label: "Townhouse 1", type: "townhouse" },
+  { id: 5, label: "Townhouse 2", type: "townhouse" },
+  { id: 6, label: "Apartment 1", type: "apartment" },
+];
+
+const fixCivicAddress = (listing: any) => {
+  console.log("Checking listing for civic address fix:", listing.legal_detail);
+  const lotMatch = listing.legal_detail.match(/Lot\s+(\d+)/i);
+
+  if (lotMatch) {
+    const lotNumber = lotMatch[1]; // Extracts the captured digits (e.g., "7")
+    listing.civic_address = `${lotNumber}-${listing.civic_address}`;
+  }
+
+  return listing;
+};
 
 export default function FeaturedManager() {
   const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [featured, setFeatured] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const fetchInitialFeatured = async () => {
+  const fetchFeatured = async () => {
     setLoading(true);
-    const [parcelsRes, strataRes] = await Promise.all([
-      supabase
-        .from("parcels")
-        .select("pid, civic_address, neighbourhood, is_featured")
-        .eq("is_featured", true),
-      supabase
-        .from("strata")
-        .select("pid, civic_address, neighbourhood, is_featured")
-        .eq("is_featured", true),
-    ]);
+    const { data, error } = await supabase
+      .from("all_listings")
+      .select(
+        "pid, civic_address, featured_position, property_category, dwell_type, zone_desc, legal_detail",
+      )
+      .gt("featured_position", 0) // Only get items 1-6
+      .order("featured_position", { ascending: true });
 
-    const combined = [
-      ...(parcelsRes.data || []).map((p) => ({ ...p, table: "parcels" })),
-      ...(strataRes.data || []).map((s) => ({ ...s, table: "strata" })),
-    ];
+    if (error) console.error("Fetch Error:", error);
 
-    setResults(combined);
+    const processedData = (data || []).map((listing) => {
+      if (
+        listing.property_category === "detached" &&
+        listing.zone_desc === "Bare Land Strata" &&
+        listing.legal_detail
+      ) {
+        return fixCivicAddress(listing);
+      } else {
+        return listing;
+      }
+    });
+
+    setFeatured(processedData);
     setLoading(false);
-    setIsInitialLoad(false);
   };
 
   useEffect(() => {
-    fetchInitialFeatured();
+    fetchFeatured();
   }, []);
 
   const handleSearch = async (query: string) => {
-    if (query.length < 2) {
-      fetchInitialFeatured();
-      return;
-    }
+    if (query.length < 2) return;
     setLoading(true);
+    const { data } = await supabase
+      .from("all_listings")
+      .select(
+        "pid, civic_address, property_category, dwell_type, zone_desc, legal_detail",
+      )
+      .ilike("civic_address", `%${query}%`)
+      .limit(10);
 
-    const [parcelsRes, strataRes] = await Promise.all([
-      supabase
-        .from("parcels")
-        .select("pid, civic_address, neighbourhood, is_featured")
-        .ilike("civic_address", `%${query}%`)
-        .limit(15),
-      supabase
-        .from("strata")
-        .select("pid, civic_address, neighbourhood, is_featured")
-        .ilike("civic_address", `%${query}%`)
-        .limit(15),
-    ]);
+    const processedResults = (data || []).map((listing) => {
+      if (
+        listing.property_category === "detached" &&
+        listing.zone_desc === "Bare Land Strata" &&
+        listing.legal_detail
+      ) {
+        return fixCivicAddress(listing);
+      } else {
+        return listing;
+      }
+    });
 
-    const combined = [
-      ...(parcelsRes.data || []).map((p) => ({ ...p, table: "parcels" })),
-      ...(strataRes.data || []).map((s) => ({ ...s, table: "strata" })),
-    ];
-
-    setResults(
-      combined.sort((a, b) =>
-        (a.civic_address || "").localeCompare(
-          b.civic_address || "",
-          undefined,
-          { numeric: true },
-        ),
-      ),
-    );
+    setResults(processedResults || []);
     setLoading(false);
   };
 
-  useEffect(() => {
-    if (isInitialLoad) return;
-    const timer = setTimeout(() => handleSearch(search), 400);
-    return () => clearTimeout(timer);
-  }, [search]);
+  const assignSlot = async (pid: string, slotId: number, category: string) => {
+    const tableName =
+      category === "detached" ? "detached_listings" : "strata_listings";
 
-  const toggleFeatured = async (
-    pid: string,
-    table: string,
-    currentState: boolean,
-  ) => {
-    const isRemoving = currentState === true;
-    if (search.length < 2 && isRemoving) {
-      setResults((prev) => prev.filter((item) => item.pid !== pid));
-    } else {
-      setResults((prev) =>
-        prev.map((item) =>
-          item.pid === pid ? { ...item, is_featured: !currentState } : item,
-        ),
-      );
-    }
+    console.log(`Assigning PID ${pid} to slot ${slotId} in table ${tableName}`);
 
-    await supabase
-      .from(table)
-      .update({ is_featured: !currentState })
+    // Use 0 to clear the position, as your schema defines it as smallint
+    await Promise.all([
+      supabase
+        .from("detached_listings")
+        .update({ featured_position: 0 })
+        .eq("featured_position", slotId),
+      supabase
+        .from("strata_listings")
+        .update({ featured_position: 0 })
+        .eq("featured_position", slotId),
+    ]);
+
+    const { error } = await supabase
+      .from(tableName)
+      .update({ featured_position: slotId })
       .eq("pid", pid);
+
+    if (error) console.error("Update failed:", error);
+    else fetchFeatured();
+  };
+  const clearSlot = async (slotId: number) => {
+    // We need to know which table to target,
+    // or just run an update on all tables involved in featured logic
+    await Promise.all([
+      supabase
+        .from("detached_listings")
+        .update({ featured_position: null })
+        .eq("featured_position", slotId),
+      supabase
+        .from("strata_listings")
+        .update({ featured_position: null })
+        .eq("featured_position", slotId),
+    ]);
+    fetchFeatured();
   };
 
   return (
-    <div className="space-y-6 font-body">
-      {/* Header - Matching User Management Layout */}
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-2xl font-display font-bold text-slate-900">
-            {search.length < 2 ? "Currently Featured" : "Property Search"}
-          </h3>
-          <p className="text-slate-500 text-sm">
-            {search.length < 2
-              ? `Showcasing ${results.length} properties on the landing page.`
-              : "Search the database to feature new properties."}
-          </p>
+    <div className="space-y-8 p-6 max-w-5xl mx-auto">
+      {/* SLOT OVERVIEW - Improved Layout */}
+      <div>
+        <h3 className="text-lg font-bold text-slate-800 mb-4">
+          Featured Slots Management
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {SLOTS.map((slot) => {
+            const occupant = featured.find(
+              (f) => f.featured_position === slot.id,
+            );
+            return (
+              <div
+                key={slot.id}
+                className="p-4 border border-slate-200 rounded-xl bg-white shadow-sm"
+              >
+                <div className="flex justify-between items-start mb-2">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                    {slot.label}
+                  </p>
+                  {occupant && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-slate-400 hover:text-red-500"
+                      onClick={() => clearSlot(slot.id)}
+                    >
+                      <Trash2 size={14} />
+                    </Button>
+                  )}
+                </div>
+                {occupant ? (
+                  <p className="text-sm font-semibold text-slate-900 truncate">
+                    {occupant.civic_address}
+                  </p>
+                ) : (
+                  <p className="text-sm text-slate-300 italic">Empty Slot</p>
+                )}
+              </div>
+            );
+          })}
         </div>
-        <div className="relative w-full md:max-w-sm">
-          <Input
-            className="w-full bg-white shadow-sm pl-10"
-            placeholder="Search civic address..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            size={16}
-          />
-          {loading && (
-            <Loader2
-              className="absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-primary"
-              size={16}
-            />
-          )}
-        </div>
-      </header>
+      </div>
 
-      {/* Table Card - Matching User Management Styling */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
+      {/* SEARCH SECTION */}
+      <div>
+        <h3 className="text-lg font-bold text-slate-800 mb-4">
+          Assign Property
+        </h3>
+        <Input
+          placeholder="Search by civic address..."
+          className="mb-4 max-w-md"
+          onChange={(e) => {
+            setSearch(e.target.value);
+            handleSearch(e.target.value);
+          }}
+        />
+
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <table className="w-full text-left">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Property Details
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">
+                  Address
                 </th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                  Neighbourhood
-                </th>
-                <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">
-                  Action
+                <th className="px-6 py-3 text-xs font-semibold text-slate-500 text-right">
+                  Available Slots
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {loading && results.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-6 py-10 text-center">
-                    <Loader2 className="animate-spin mx-auto text-primary/30" />
-                  </td>
-                </tr>
-              ) : results.length > 0 ? (
+              {results.length > 0 ? (
                 results.map((prop) => (
                   <tr
                     key={prop.pid}
-                    className="hover:bg-slate-50/50 transition-colors group"
+                    className="hover:bg-slate-50 transition-colors"
                   >
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-4">
-                        <div
-                          className={`h-10 w-10 rounded-xl flex items-center justify-center shrink-0 ${prop.table === "strata" ? "bg-indigo-50 text-indigo-600" : "bg-emerald-50 text-emerald-600"}`}
+                    <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                      {prop.civic_address}
+                    </td>
+                    <td className="px-6 py-4 text-right flex justify-end gap-2">
+                      {SLOTS.filter((s) => {
+                        if (s.type === "detached")
+                          return prop.property_category === "detached";
+                        if (s.type === "townhouse")
+                          return prop.dwell_type === "Townhouse";
+                        if (s.type === "apartment")
+                          return prop.dwell_type === "Apartment/Condo";
+                        return false;
+                      }).map((slot) => (
+                        <Button
+                          key={slot.id}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs"
+                          onClick={() =>
+                            assignSlot(
+                              prop.pid,
+                              slot.id,
+                              prop.property_category,
+                            )
+                          }
                         >
-                          {prop.table === "strata" ? (
-                            <Building2 size={18} />
-                          ) : (
-                            <Home size={18} />
-                          )}
-                        </div>
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-sm font-bold text-slate-900 truncate group-hover:text-primary transition-colors">
-                            {prop.civic_address}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[10px] text-slate-400 font-mono uppercase">
-                              PID: {prop.pid}
-                            </span>
-                            <span
-                              className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${prop.table === "strata" ? "bg-indigo-100 text-indigo-700" : "bg-emerald-100 text-emerald-700"}`}
-                            >
-                              {prop.table}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-500">
-                      <div className="flex items-center gap-1.5">
-                        <MapPin size={14} className="text-accent" />
-                        {prop.neighbourhood || "Squamish"}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          toggleFeatured(prop.pid, prop.table, prop.is_featured)
-                        }
-                        className={`transition-all ${prop.is_featured ? "text-amber-500 hover:text-amber-600 hover:bg-amber-50" : "text-slate-300 hover:text-primary hover:bg-slate-50"}`}
-                      >
-                        <Star
-                          size={18}
-                          fill={prop.is_featured ? "currentColor" : "none"}
-                        />
-                      </Button>
+                          Slot {slot.id}
+                        </Button>
+                      ))}
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
                   <td
-                    colSpan={3}
-                    className="px-6 py-10 text-center text-slate-400 text-sm italic font-display"
+                    colSpan={2}
+                    className="px-6 py-8 text-center text-slate-400 text-sm"
                   >
-                    No properties
+                    Use the search to find properties
                   </td>
                 </tr>
               )}

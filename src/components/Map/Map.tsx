@@ -18,6 +18,7 @@ import {
   formatString,
   formatPrice,
   getBathrooms,
+  formatNumber,
 } from "@/lib/utils";
 import { supabase } from "@/config/supabaseClient";
 import { popupStyles } from "./popupStyles";
@@ -30,6 +31,12 @@ const flyToCenter: LngLatLike = [-123.152797, 49.699331];
 
 // Define property types globally so both components can use it safely
 export type PropertyType = "detached" | "strata" | "multifamily" | "land";
+export type MarketStatusType =
+  | "Active"
+  | "Pending"
+  | "Expired"
+  | "Terminated"
+  | "Closed";
 
 interface MapViewProps {
   className?: string;
@@ -75,6 +82,15 @@ function MapInnerLayout({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
 
   const [lockedListing, setLockedListing] = useState<any | null>(null);
+
+  // --- MARKET STATUS FILTER STATE ---
+  const [selectedStatuses, setSelectedStatuses] = useState<MarketStatusType[]>([
+    "Active",
+    "Pending",
+    "Expired",
+    "Terminated",
+    "Closed",
+  ]);
 
   const tableMapping: Record<PropertyType, string> = {
     detached: "detached_listings",
@@ -316,6 +332,23 @@ function MapInnerLayout({
     }
   };
 
+  const getCardImage = (listing: any) => {
+    var civic_address = listing.civic_address.split(" ");
+    civic_address[1] =
+      civic_address[1][0].toUpperCase() +
+      civic_address[1].slice(1).toLowerCase();
+    var bucket =
+      "https://sr-webimages-002.s3.us-west-2.amazonaws.com/Streetview/";
+    var card_image =
+      bucket +
+      civic_address[1] +
+      "/card/" +
+      civic_address[0] +
+      "-" +
+      civic_address[1] +
+      ".webp";
+  };
+
   const createListingPopupContent = async (
     listing: any,
     type: PropertyType,
@@ -341,8 +374,8 @@ function MapInnerLayout({
          ${formatPrice(listing.asking_price)}<br/>
           ${listing.civic_address}<br/>
           ${listing.neighbourhood} | ${listing.postal_code}<br/>
-          ${specsLine} Floor Area ${listing.total_floor_area}<br/>
-          Lot Size ${listing.lot_size}<br/>
+          ${specsLine} Floor Area ${listing.total_floor_area ? `${formatNumber(listing.total_floor_area)} sf` : "—"}<br/>
+          Lot Size ${listing.lot_size ? `${formatNumber(listing.lot_size)} sf` : "—"}<br/>
           MLS® ${listing.mls_number}<br/>
           Listing By ${listing.listing_office}<br/>
         </p>
@@ -430,8 +463,8 @@ function MapInnerLayout({
         <p>
           ${property.civic_address}<br/>
           ${property.neighbourhood} | ${property.postal_code}<br/>
-          Beds ${property.bedrooms} | Baths ${property.bathrooms} | Floor Area ${property.floor_area}<br/>
-          Lot Size ${property.lot_size}
+          Beds ${property.bedrooms} | Baths ${property.bathrooms} | Floor Area ${property.floor_area ? `${formatNumber(property.floor_area)} sf` : "—"}<br/>
+          Lot Size ${property.lot_size ? `${formatNumber(property.lot_size)} sf` : "—"}
         </p>
         </div>
       `;
@@ -648,23 +681,119 @@ function MapInnerLayout({
     init();
   }, [init]);
 
+  // useEffect(() => {
+  //   const combinedPool = [
+  //     ...allUniqueListings.detached,
+  //     ...allUniqueListings.strata,
+  //     ...allUniqueListings.multifamily,
+  //     ...allUniqueListings.land,
+  //   ];
+
+  //   if (combinedPool.length > 0) {
+  //     renderMarkers(combinedPool, isLoggedIn, setLockedListing);
+  //   }
+  // }, [allUniqueListings, isLoggedIn, renderMarkers, setLockedListing]);
+
+  // --- RE-BUILT REACTIVE PIPELINE FILTERING MARKERS BY STATUS ---
   useEffect(() => {
-    const combinedPool = [
+    // Gather all listings from the raw sub-tables
+    const absolutePool = [
       ...allUniqueListings.detached,
       ...allUniqueListings.strata,
       ...allUniqueListings.multifamily,
       ...allUniqueListings.land,
     ];
 
-    if (combinedPool.length > 0) {
-      renderMarkers(combinedPool, isLoggedIn, setLockedListing);
-    }
-  }, [allUniqueListings, isLoggedIn, renderMarkers, setLockedListing]);
+    // Filter current viewport pool based on active status toggles
+    const activeMarkersPool = absolutePool.filter((listing) => {
+      const status = listing.market_status;
 
+      // Unauthenticated users only see "Active" listings on map
+      if (!isLoggedIn) {
+        return ["Active", "Active Under Contract"].includes(status);
+      }
+
+      // Authenticated users follow the checked filter keys array
+      if (
+        selectedStatuses.includes("Active") &&
+        ["Active", "Active Under Contract"].includes(status)
+      )
+        return true;
+      if (selectedStatuses.includes("Pending") && status === "Pending")
+        return true;
+      if (selectedStatuses.includes("Expired") && status === "Expired")
+        return true;
+      if (selectedStatuses.includes("Terminated") && status === "Terminated")
+        return true;
+      if (selectedStatuses.includes("Closed") && status === "Closed")
+        return true;
+
+      return false;
+    });
+
+    renderMarkers(activeMarkersPool, isLoggedIn, setLockedListing);
+  }, [allUniqueListings, selectedStatuses, isLoggedIn]);
+
+  const toggleStatusFilter = (status: MarketStatusType) => {
+    if (!isLoggedIn) return; // Prevent selection mutations if logged out
+
+    setSelectedStatuses((prev) =>
+      prev.includes(status)
+        ? prev.filter((s) => s !== status)
+        : [...prev, status],
+    );
+  };
   return (
     <div className={cn("relative w-full h-screen")}>
       {/* Your Map Canvas Element */}
       <div ref={mapContainer} className="w-full h-full" />
+
+      {/* FLOATING STATUS PILLS FILTER PANEL - ULTRA COMPACT */}
+      <div className="absolute top-4 left-4 z-50 bg-white/95 backdrop-blur-md p-1.5 rounded-lg border border-gray-200/60 shadow-md w-[115px]">
+        <div className="flex flex-col gap-1">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 block px-1">
+            Status
+          </span>
+          {[
+            { id: "Active" as MarketStatusType, label: "Active" },
+            { id: "Pending" as MarketStatusType, label: "Pending" },
+            { id: "Expired" as MarketStatusType, label: "Expired" },
+            { id: "Terminated" as MarketStatusType, label: "Terminated" },
+            { id: "Closed" as MarketStatusType, label: "Closed" },
+          ].map((pill) => {
+            const isSelected = isLoggedIn
+              ? selectedStatuses.includes(pill.id)
+              : pill.id === "Active";
+
+            return (
+              <button
+                key={pill.id}
+                type="button"
+                disabled={!isLoggedIn}
+                onClick={() => toggleStatusFilter(pill.id)}
+                className={cn(
+                  "w-full px-2 py-1 text-[11px] font-medium rounded-md border transition-all flex items-center justify-between gap-1 cursor-pointer select-none",
+                  isSelected
+                    ? "bg-primary border-primary text-white font-semibold"
+                    : "bg-transparent border-transparent text-gray-500 hover:bg-gray-100/80 hover:text-gray-800",
+                  !isLoggedIn &&
+                    (pill.id === "Active"
+                      ? "opacity-100 cursor-not-allowed"
+                      : "opacity-40 bg-transparent text-gray-400 cursor-not-allowed hover:bg-transparent"),
+                )}
+              >
+                <span className="truncate">{pill.label}</span>
+                {!isLoggedIn && pill.id !== "Active" && (
+                  <Lock
+                    className="size-2.5 shrink-0 opacity-60"
+                    strokeWidth={2.5}
+                  />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       {/* USER LOCKED MODAL OVERLAY */}
       {lockedListing && (
