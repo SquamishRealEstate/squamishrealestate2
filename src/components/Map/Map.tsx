@@ -332,23 +332,6 @@ function MapInnerLayout({
     }
   };
 
-  const getCardImage = (listing: any) => {
-    var civic_address = listing.civic_address.split(" ");
-    civic_address[1] =
-      civic_address[1][0].toUpperCase() +
-      civic_address[1].slice(1).toLowerCase();
-    var bucket =
-      "https://sr-webimages-002.s3.us-west-2.amazonaws.com/Streetview/";
-    var card_image =
-      bucket +
-      civic_address[1] +
-      "/card/" +
-      civic_address[0] +
-      "-" +
-      civic_address[1] +
-      ".webp";
-  };
-
   const createListingPopupContent = async (
     listing: any,
     type: PropertyType,
