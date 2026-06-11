@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { supabase } from "@/config/supabaseClient";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -260,6 +261,7 @@ export const formatTimePST = (timestamp: string): string => {
 };
 
 import { FilterState } from "@/components/ListingFilters";
+import { Console } from "console";
 
 export function serializeFilters(filters: FilterState): string {
   const params = new URLSearchParams();
@@ -299,3 +301,151 @@ export function deserializeFilters(searchParams: any, user: any): FilterState {
     maxYear: searchParams.get("maxYear") || "",
   };
 }
+
+// Helper to clean suffix and convert to Title Case (e.g., "ALDER PL" -> "Alder")
+export function cleanStreetName(streetPhrase: string) {
+  if (!streetPhrase) return "";
+
+  const words = streetPhrase.trim().split(/\s+/);
+  // Common suffixes to identify and remove from the end of the path
+  const suffixes = [
+    "PL",
+    "ST",
+    "AVE",
+    "RD",
+    "DR",
+    "BLVD",
+    "WAY",
+    "LN",
+    "CRT",
+    "CT",
+    "CRES",
+    "CIR",
+    "GATE",
+  ];
+
+  // Remove the suffix if it's the last word
+  if (
+    words.length > 1 &&
+    suffixes.includes(words[words.length - 1].toUpperCase())
+  ) {
+    words.pop();
+  }
+
+  // Format to Title Case (capitalize first letter, lowercase the rest)
+  return words
+    .map((word) => {
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+export const preloadImage = (src: string) => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.src = src;
+    img.onload = resolve;
+    img.onerror = resolve;
+  });
+};
+
+export const fetchFloorPlans = async (
+  property: any,
+  type: string,
+): Promise<string[]> => {
+  let bucketName = "";
+  let folderPath = "";
+  let targetPrefix = "";
+
+  console.log(property);
+  const isDetachedOrLand = ["detached", "multifamily", "land"].some((t) =>
+    type.includes(t),
+  );
+  const isStrata = type.includes("strata");
+
+  // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
+  // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
+  if (isDetachedOrLand) {
+    if (!property.civic_address) return [];
+
+    bucketName = "streetview";
+
+    const rawAddress = property.civic_address.trim();
+    const firstSpace = rawAddress.indexOf(" ");
+    if (firstSpace === -1) return [];
+
+    const streetNumber = rawAddress.substring(0, firstSpace).trim(); // "1855"
+    const rawStreetPhrase = rawAddress.substring(firstSpace + 1).trim(); // "ALDER PL"
+
+    // Clean and explicitly force trim to remove hidden newlines/spaces
+    const cleanedStreet = cleanStreetName(rawStreetPhrase).trim(); // "Alder"
+
+    // FIX: Ensure no trailing or double slashes are built into this string path
+    folderPath = `${cleanedStreet}/fp`;
+
+    // Target prefix for filtering files inside that folder
+    targetPrefix = `${streetNumber}-${cleanedStreet}-Floor-Plan`;
+  }
+
+  // --- CASE 2: STRATA ---
+  else if (isStrata) {
+    bucketName = "strata";
+
+    // Keep this safe so it doesn't break if you pass a strata type
+    console.warn(
+      "Strata floor plan matching logic has not been configured yet.",
+    );
+    return [];
+  } else {
+    return [];
+  }
+
+  // --- CORE UTILITY: EXECUTE STORAGE LOOKUP ---
+  try {
+    // Clean and explicitly trim the target prefix to prevent invisible spaces from breaking matches
+    const searchPrefix = targetPrefix.trim();
+
+    // FIX 1: Pass the search option directly to Supabase.
+    // This instructs Supabase to only return files matching "1855-Alder-Floor-Plan" inside "Alder/fp"
+    const { data: files, error } = await supabase.storage
+      .from(bucketName)
+      .list(folderPath, {
+        limit: 100,
+        search: searchPrefix,
+        sortBy: { column: "name", order: "asc" },
+      });
+
+    if (error) {
+      console.error("Supabase Storage error:", error.message);
+      return [];
+    }
+
+    if (!files || files.length === 0) {
+      console.log(
+        `No assets returned by Supabase API for path: ${bucketName}/${folderPath} with search prefix: ${searchPrefix}`,
+      );
+      return [];
+    }
+
+    // FIX 2: Relax validation using case-insensitive extension matching (.png vs .PNG)
+    const matchedUrls = files
+      .filter((file) => {
+        const lowerName = file.name.toLowerCase();
+        return lowerName.endsWith(".png") || lowerName.endsWith(".webp");
+      })
+      .map((file) => {
+        // Build absolute public URLs safely
+        const fullPath = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${folderPath}/${file.name}`;
+        return encodeURI(fullPath);
+      });
+
+    console.log("Successfully matched floor plan assets:", matchedUrls);
+    return matchedUrls;
+  } catch (err) {
+    console.error(
+      "Critical failure during floor plan recovery execution:",
+      err,
+    );
+    return [];
+  }
+};

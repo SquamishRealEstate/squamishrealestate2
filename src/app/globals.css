@@ -230,6 +230,17 @@
   }
 }
 
+@keyframes marqueeSmooth {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  } /* -50% moves exactly one screen width */
+}
+.animate-marqueeSmooth {
+  animation: marqueeSmooth 25s linear infinite;
+}
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;

@@ -41,19 +41,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
     listing.property_category === "strata_property";
 
   // 2. Run your specific conditional formatting rule
-  if (
-    listing.property_category === "detached" &&
-    listing.zone_desc === "Bare Land Strata" &&
-    listing.legal_detail
-  ) {
-    // Regex looks for the word "Lot" followed by spaces, and captures the digits (\d+) right after it
-    const lotMatch = listing.legal_detail.match(/Lot\s+(\d+)/i);
-
-    if (lotMatch) {
-      const lotNumber = lotMatch[1]; // Extracts the captured digits (e.g., "7")
-      civicAddress = `${lotNumber}-${listing.civic_address}`;
-    }
-  }
+  // listing = fixCivicAddress(listing, listing.property_category);
 
   let detailPageUrl = "";
   if (propertiesOnly) {

@@ -1,260 +1,628 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
     }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var supabaseClient_1 = require("../src/config/supabaseClient");
-var axios_1 = require("axios");
-var accessToken = "eb98d22ad5fe985ba14d26eee09f40ab";
-// --- HELPERS ---
-var formatArrayToString = function (arr) { return (arr && Array.isArray(arr) ? arr.join(", ") : ""); };
-var formatParcelNumber = function (pid) { return (pid === null || pid === void 0 ? void 0 : pid.replace(/^(\d{3})(\d{3})(\d{3})$/, "$1-$2-$3")) || ""; };
-function getBathrooms(full, half) {
-    var f = parseInt(full) || 0;
-    var h = parseInt(half) || 0;
-    return (f + h) > 0 ? (f + (h * 0.5)).toString() : '−';
+exports.supabase = void 0;
+const axios_1 = __importDefault(require("axios"));
+const dns = __importStar(require("node:dns")); // 🌟 Changed to wildcard import
+const dotenv = __importStar(require("dotenv"));
+// 1. Initialize dotenv immediately
+dotenv.config();
+// 2. Apply DNS fix
+dns.setDefaultResultOrder("ipv4first");
+// 3. Access your variable
+const accessToken = process.env.BRIDGE_API_TOKEN;
+// src/supabaseClient.ts
+const supabase_js_1 = require("@supabase/supabase-js");
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error("Missing Supabase URL or Anon Key in environment variables");
 }
+exports.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
+// --- HELPERS ---
+const formatArrayToString = (arr) => arr && Array.isArray(arr) ? arr.join(", ") : "";
+const formatParcelNumber = (pid) => pid?.replace(/^(\d{3})(\d{3})(\d{3})$/, "$1-$2-$3") || "";
+function getBathrooms(full, half) {
+    const f = parseInt(full) || 0;
+    const h = parseInt(half) || 0;
+    return f + h > 0 ? (f + h * 0.5).toString() : "−";
+}
+const toDate = (val) => (val && val !== "" ? val : null);
+const toNum = (val) => {
+    if (val === "" || val === null || val === undefined)
+        return null;
+    const n = Number(val);
+    return isNaN(n) ? null : n;
+};
+const toArr = (val) => (Array.isArray(val) ? val : []);
+const detachedFields = [
+    "ParcelNumber",
+    "ListingId",
+    "StreetNumber",
+    "StreetName",
+    "StreetSuffix",
+    "ListingContractDate",
+    "ListingKeyNumeric",
+    "MlsStatus",
+    "OriginalListPrice",
+    "BuildingAreaTotal",
+    "LotSizeArea",
+    "PublicRemarks",
+    "AssociationAmenities",
+    "Appliances",
+    "Heating",
+    "ListOfficeKey",
+    "ParkingFeatures",
+    "MLSAreaMinor",
+    "PropertySubType",
+    "BathroomsHalf",
+    "BathroomsFull",
+    "BedroomsTotal",
+    "YearBuilt",
+    "ModificationTimestamp",
+    "BCRES_SubjectRemovalDate",
+    "ClosePrice",
+    "CloseDate",
+    "BCRES_Age",
+    "VirtualTourURLBranded",
+    "Stories",
+    "BCRES_MainFloorFinishedArea",
+    "BCRES_AboveMainFinishedArea",
+    "BCRES_AboveMain2FinishedArea",
+    "BCRES_BasementFinishedArea",
+    "BCRES_LivingAreaFinished",
+    "BCRES_TotalFloorUnfinishedArea",
+    "Media",
+];
+const strataFields = [
+    "ParcelNumber",
+    "ListingId",
+    "StreetNumber",
+    "UnitNumber",
+    "StreetName",
+    "StreetSuffix",
+    "ListingContractDate",
+    "ListingKeyNumeric",
+    "MlsStatus",
+    "OriginalListPrice",
+    "BuildingAreaTotal",
+    "PublicRemarks",
+    "AssociationFee",
+    "AssociationAmenities",
+    "Appliances",
+    "Heating",
+    "ListOfficeKey",
+    "ParkingFeatures",
+    "MLSAreaMinor",
+    "PropertySubType",
+    "BathroomsHalf",
+    "BathroomsFull",
+    "BedroomsTotal",
+    "YearBuilt",
+    "ModificationTimestamp",
+    "BCRES_SubjectRemovalDate",
+    "ClosePrice",
+    "CloseDate",
+    "BCRES_Age",
+    "VirtualTourURLBranded",
+    "Stories",
+    "BCRES_MainFloorFinishedArea",
+    "BCRES_AboveMainFinishedArea",
+    "BCRES_AboveMain2FinishedArea",
+    "BCRES_BasementFinishedArea",
+    "BCRES_LivingAreaFinished",
+    "BCRES_TotalFloorUnfinishedArea",
+    "Media",
+];
+const landFields = [
+    "ParcelNumber",
+    "ListingId",
+    "StreetNumber",
+    "StreetName",
+    "StreetSuffix",
+    "ListingContractDate",
+    "ListingKeyNumeric",
+    "MlsStatus",
+    "OriginalListPrice",
+    "BuildingAreaTotal",
+    "LotSizeArea",
+    "PublicRemarks",
+    "Appliances",
+    "ListOfficeKey",
+    "MLSAreaMinor",
+    "PropertySubType",
+    "YearBuilt",
+    "ModificationTimestamp",
+    "BCRES_SubjectRemovalDate",
+    "ClosePrice",
+    "CloseDate",
+    "VirtualTourURLBranded",
+    "Media",
+];
+const multifamilyFields = [
+    "ParcelNumber",
+    "ListingId",
+    "StreetNumber",
+    "StreetName",
+    "StreetSuffix",
+    "ListingContractDate",
+    "ListingKeyNumeric",
+    "MlsStatus",
+    "OriginalListPrice",
+    "BuildingAreaTotal",
+    "LotSizeArea",
+    "PublicRemarks",
+    "AssociationAmenities",
+    "Appliances",
+    "Heating",
+    "ListOfficeKey",
+    "ParkingFeatures",
+    "MLSAreaMinor",
+    "PropertySubType",
+    "BathroomsHalf",
+    "BathroomsFull",
+    "BedroomsTotal",
+    "YearBuilt",
+    "ModificationTimestamp",
+    "BCRES_SubjectRemovalDate",
+    "ClosePrice",
+    "CloseDate",
+    "BCRES_Age",
+    "VirtualTourURLBranded",
+    "Stories",
+    "BCRES_MainFloorFinishedArea",
+    "BCRES_AboveMainFinishedArea",
+    "BCRES_AboveMain2FinishedArea",
+    "BCRES_BasementFinishedArea",
+    "BCRES_LivingAreaFinished",
+    "BCRES_TotalFloorUnfinishedArea",
+    "Media",
+];
 /**
  * Fetches data from Bridge API with pagination
  */
-function fetchFromBridge(structureType) {
-    return __awaiter(this, void 0, void 0, function () {
-        var fields, fieldsQuery, allListings, skip, url, response, data;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    fields = [
-                        'ParcelNumber', 'ListingId', 'StreetNumber', 'StreetName', 'StreetSuffix', 'ListingContractDate',
-                        'ListingKeyNumeric', 'MlsStatus', 'OriginalListPrice', 'BuildingAreaTotal', 'LotSizeArea',
-                        'PublicRemarks', 'AssociationAmenities', 'Appliances', 'Heating', 'ListOfficeKey',
-                        'ParkingFeatures', 'MLSAreaMinor', 'PropertySubType', 'BathroomsHalf', 'BathroomsFull',
-                        'BedroomsTotal', 'YearBuilt', 'ModificationTimestamp', 'BCRES_SubjectRemovalDate',
-                        'ClosePrice', 'CloseDate', 'BCRES_Age', 'VirtualTourURLBranded', 'Stories',
-                        'BCRES_MainFloorFinishedArea', 'BCRES_AboveMainFinishedArea', 'BCRES_AboveMain2FinishedArea',
-                        'BCRES_BasementFinishedArea', 'BCRES_LivingAreaFinished', 'BCRES_TotalFloorUnfinishedArea', 'Media'
-                    ];
-                    fieldsQuery = fields.join(',');
-                    allListings = [];
-                    skip = 0;
-                    console.log("\uD83D\uDCE1 Starting fetch for: ".concat(structureType));
-                    _a.label = 1;
-                case 1:
-                    if (!true) return [3 /*break*/, 3];
-                    url = "https://api.bridgedataoutput.com/api/v2/OData/bcres/Property?access_token=".concat(accessToken, "&$filter=StructureType/any(a: a eq '").concat(structureType, "') and MLSAreaMajor eq 'Squamish'&$select=").concat(fieldsQuery, "&$top=200&$skip=").concat(skip, "&$expand=ListOffice");
-                    return [4 /*yield*/, axios_1.default.get(url)];
-                case 2:
-                    response = _a.sent();
-                    data = response.data.value;
-                    allListings = allListings.concat(data);
-                    console.log("\u2705 Fetched ".concat(allListings.length, " total..."));
-                    if (data.length < 200)
-                        return [3 /*break*/, 3];
-                    skip += 200;
-                    return [3 /*break*/, 1];
-                case 3: return [2 /*return*/, allListings];
-            }
-        });
-    });
+async function fetchFromBridge(structureType, fields) {
+    const fieldsQuery = fields.join(",");
+    let allListings = [];
+    let skip = 0;
+    let url = " ";
+    console.log(`📡 Starting fetch for: ${structureType}`);
+    while (true) {
+        if (structureType === "MultiFamily Only") {
+            url = `https://api.bridgedataoutput.com/api/v2/OData/bcres/Property?access_token=${accessToken}&$filter= StructureType eq 'Multi Family' and StructureType ne 'Residential Attached' and MLSAreaMajor eq 'Squamish'&$select=${fieldsQuery}&$top=200&$skip=${skip}&$expand=ListOffice`;
+        }
+        else {
+            url = `https://api.bridgedataoutput.com/api/v2/OData/bcres/Property?access_token=${accessToken}&$filter=StructureType/any(a: a eq '${structureType}') and MLSAreaMajor eq 'Squamish'&$select=${fieldsQuery}&$top=200&$skip=${skip}&$expand=ListOffice`;
+        }
+        const response = await axios_1.default.get(url);
+        const data = response.data.value;
+        allListings = allListings.concat(data);
+        console.log(`✅ Fetched ${allListings.length} total...`);
+        if (data.length < 200)
+            break;
+        skip += 200;
+    }
+    return allListings;
 }
-/**
- * Main Sync Process
- */
-function syncDetachedListings() {
-    return __awaiter(this, void 0, void 0, function () {
-        var rawListings, latestByPid_1, processedListings, finalListingUploads, parcelUpdateBatch, _loop_1, _i, processedListings_1, listing, insErr, upsertErr, err_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 11, , 12]);
-                    return [4 /*yield*/, fetchFromBridge('Residential Detached')];
-                case 1:
-                    rawListings = _a.sent();
-                    latestByPid_1 = {};
-                    rawListings.forEach(function (raw) {
-                        var _a;
-                        var pid = formatParcelNumber(raw.ParcelNumber);
-                        if (!latestByPid_1[pid] || new Date(raw.ListingContractDate) > new Date(latestByPid_1[pid].ListingDate)) {
-                            latestByPid_1[pid] = {
-                                PID: pid,
-                                MLSNumber: raw.ListingId || "",
-                                ListingDate: raw.ListingContractDate || "",
-                                ListingID: String(raw.ListingKeyNumeric || ""),
-                                Status: raw.MlsStatus || "",
-                                AskingPrice: String(raw.OriginalListPrice || ""),
-                                TotalFloorArea: String(raw.BuildingAreaTotal || ""),
-                                ListingRemarks: raw.PublicRemarks || "",
-                                Features: formatArrayToString(raw.Appliances),
-                                SubArea: raw.MLSAreaMinor || "",
-                                DwellType: raw.PropertySubType || "",
-                                YearBuilt: String(raw.YearBuilt || ""),
-                                ListingOffice: ((_a = raw.ListOffice) === null || _a === void 0 ? void 0 : _a.OfficeName) || "",
-                                UpdateTime: raw.ModificationTimestamp || "",
-                                SubjectRemovalDate: raw.BCRES_SubjectRemovalDate || "",
-                                SoldPrice: String(raw.ClosePrice || ""),
-                                CompletedDate: raw.CloseDate || "",
-                                VirtualTour: raw.VirtualTourURLBranded || "",
-                                Photos: raw.Media ? raw.Media.map(function (media) { return media.MediaURL; }) : [],
-                                CivicAddress: "".concat(raw.StreetNumber || "", " ").concat(raw.StreetName || "", " ").concat(raw.StreetSuffix || "").trim(),
-                                LotSize: String(raw.LotSizeArea || ""),
-                                Amenities: formatArrayToString(raw.AssociationAmenities),
-                                Heating: formatArrayToString(raw.Heating),
-                                Parking: formatArrayToString(raw.ParkingFeatures),
-                                HalfBaths: String(raw.BathroomsHalf || ""),
-                                FullBaths: String(raw.BathroomsFull || ""),
-                                Bedrooms: String(raw.BedroomsTotal || ""),
-                                YearsConstructed: String(raw.BCRES_Age || ""),
-                                Stories: String(raw.Stories || ""),
-                                FirstFloor: String(raw.BCRES_MainFloorFinishedArea || ""),
-                                SecondFloor: String(raw.BCRES_AboveMainFinishedArea || ""),
-                                ThirdFloor: String(raw.BCRES_AboveMain2FinishedArea || ""),
-                                FourthFloor: String(raw.BCRES_BasementFinishedArea || ""),
-                                Finished: String(raw.BCRES_LivingAreaFinished || ""),
-                                Unfinished: String(raw.BCRES_TotalFloorUnfinishedArea || "")
-                            };
-                        }
+function processAndTransformListings(rawListings, listingType) {
+    const latestByPid = {};
+    rawListings.forEach((raw) => {
+        const pid = formatParcelNumber(raw.ParcelNumber);
+        const existingListing = latestByPid[pid];
+        const isNewer = !existingListing ||
+            new Date(raw.ListingContractDate) >
+                new Date(existingListing.listing_date);
+        if (isNewer) {
+            // 1. Base Mapping (Fields in ALL tables)
+            const base = {
+                pid: pid,
+                listing_id: toNum(raw.ListingKeyNumeric),
+                mls_number: raw.ListingId,
+                listing_date: toDate(raw.ListingContractDate),
+                market_status: raw.MlsStatus,
+                asking_price: toNum(raw.OriginalListPrice),
+                total_floor_area: toNum(raw.BuildingAreaTotal),
+                listing_remarks: raw.PublicRemarks,
+                features: toArr(raw.Appliances),
+                sub_area: raw.MLSAreaMinor,
+                dwell_type: raw.PropertySubType,
+                year_built: toNum(raw.YearBuilt),
+                listing_office: raw.ListOffice?.OfficeName || "",
+                update_time: toDate(raw.ModificationTimestamp),
+                subject_removal_date: toDate(raw.BCRES_SubjectRemovalDate),
+                sold_price: toNum(raw.ClosePrice),
+                completed_date: toDate(raw.CloseDate),
+                virtual_tour: raw.VirtualTourURLBranded,
+                photos: raw.Media ? raw.Media.map((m) => m.MediaURL) : [],
+            };
+            // 2. Build Address
+            const addressParts = [
+                listingType === "strata" ? raw.UnitNumber : null,
+                raw.StreetNumber,
+                raw.StreetName,
+                raw.StreetSuffix,
+            ].filter(Boolean);
+            base.civic_address = addressParts.join(" ").trim();
+            // 3. Conditional: Lot Size (ONLY for Detached and Land)
+            if (listingType === "detached" ||
+                listingType === "land" ||
+                listingType === "multifamily") {
+                base.lot_size = toNum(raw.LotSizeArea);
+            }
+            // 3. Conditional Fields (Only add what the table supports)
+            if (listingType !== "land") {
+                Object.assign(base, {
+                    amenities: toArr(raw.AssociationAmenities),
+                    heating: toArr(raw.Heating),
+                    parking: toArr(raw.ParkingFeatures),
+                    half_baths: toNum(raw.BathroomsHalf),
+                    full_baths: toNum(raw.BathroomsFull),
+                    bedrooms: toNum(raw.BedroomsTotal),
+                    years_constructed: toNum(raw.BCRES_Age),
+                    stories: toNum(raw.Stories),
+                    first_floor: toNum(raw.BCRES_MainFloorFinishedArea),
+                    second_floor: toNum(raw.BCRES_AboveMainFinishedArea),
+                    third_floor: toNum(raw.BCRES_AboveMain2FinishedArea),
+                    fourth_floor: toNum(raw.BCRES_BasementFinishedArea),
+                    finished: toNum(raw.BCRES_LivingAreaFinished),
+                    unfinished: toNum(raw.BCRES_TotalFloorUnfinishedArea),
+                });
+            }
+            // 4. Strata ONLY fields
+            if (listingType === "strata") {
+                base.strata_fee = toNum(raw.AssociationFee);
+            }
+            latestByPid[pid] = base;
+        }
+    });
+    return Object.values(latestByPid);
+}
+async function enrichAndSyncListings(processedListings, listingType) {
+    // 1. Determine which tables to use
+    let targetListingTable;
+    let sourceParcelTable;
+    switch (listingType) {
+        case "detached":
+            targetListingTable = "detached_listings";
+            sourceParcelTable = "parcels_duplicate";
+            break;
+        case "strata":
+            targetListingTable = "strata_listings";
+            sourceParcelTable = "strata_duplicate";
+            break;
+        case "land":
+            targetListingTable = "land_listings";
+            sourceParcelTable = "parcels_duplicate"; // Land usually uses the main parcel table
+            break;
+        case "multifamily":
+            targetListingTable = "multifamily_listings";
+            sourceParcelTable = "parcels_duplicate"; // Land usually uses the main parcel table
+            break;
+    }
+    const finalListingUploads = [];
+    const parcelUpdateBatch = [];
+    console.log(`🔍 Enriching ${processedListings.length} ${listingType} listings using ${sourceParcelTable}...`);
+    for (const listing of processedListings) {
+        // 2. Pull parcel data from the specific duplicate table
+        const { data: parcel } = await exports.supabase
+            .from(sourceParcelTable)
+            .select("*")
+            .eq("pid", listing.pid)
+            .single();
+        if (parcel) {
+            let mlsHistory = Array.isArray(parcel.mls_data) ? parcel.mls_data : [];
+            let lastMlsDate = parcel.last_mls_date;
+            // 3. History Logic (Pending / Closed)
+            if (listing.market_status === "Pending") {
+                const exists = mlsHistory.some((h) => String(h.price) === String(listing.sold_price) &&
+                    h.type === "Pending");
+                if (!exists) {
+                    mlsHistory.unshift({
+                        date: listing.subject_removal_date,
+                        price: listing.sold_price,
+                        type: "Pending",
                     });
-                    processedListings = Object.values(latestByPid_1);
-                    // 2. Clear current table
-                    console.log("🧹 Cleaning old listings...");
-                    return [4 /*yield*/, supabaseClient_1.supabase.from('detached_listings').delete().neq('PID', '0')];
-                case 2:
-                    _a.sent();
-                    finalListingUploads = [];
-                    parcelUpdateBatch = [];
-                    console.log("🔍 Enriching with Parcel data...");
-                    _loop_1 = function (listing) {
-                        var parcel, mlsHistory, exists;
-                        return __generator(this, function (_b) {
-                            switch (_b.label) {
-                                case 0: return [4 /*yield*/, supabaseClient_1.supabase
-                                        .from('parcels')
-                                        .select('*')
-                                        .eq('PID', listing.PID)
-                                        .single()];
-                                case 1:
-                                    parcel = (_b.sent()).data;
-                                    if (parcel) {
-                                        mlsHistory = Array.isArray(parcel.MLSData) ? parcel.MLSData : [];
-                                        if (listing.Status === 'Pending') {
-                                            exists = mlsHistory.some(function (h) { return String(h.Price) === String(listing.SoldPrice) && h.Type === 'Pending'; });
-                                            if (!exists) {
-                                                mlsHistory.unshift({
-                                                    Date: listing.SubjectRemovalDate,
-                                                    Price: listing.SoldPrice,
-                                                    Type: 'Pending'
-                                                });
-                                            }
-                                        }
-                                        finalListingUploads.push(__assign(__assign({}, listing), { MLSData: mlsHistory }));
-                                        parcelUpdateBatch.push({
-                                            PID: listing.PID,
-                                            Status: listing.Status,
-                                            Bedrooms: listing.Bedrooms,
-                                            Bathrooms: getBathrooms(listing.FullBaths, listing.HalfBaths),
-                                            YearsConstructed: listing.YearsConstructed,
-                                            Stories: listing.Stories,
-                                            FirstFloor: listing.FirstFloor,
-                                            SecondFloor: listing.SecondFloor,
-                                            ThirdFloor: listing.ThirdFloor,
-                                            FourthFloor: listing.FourthFloor,
-                                            Finished: listing.Finished,
-                                            Unfinished: listing.Unfinished,
-                                            VirtualTour: listing.VirtualTour,
-                                            LastMLS: listing.MLSNumber,
-                                            FloorArea: listing.TotalFloorArea,
-                                            Photos: listing.Photos,
-                                            MLSData: mlsHistory,
-                                            LastMLSDate: listing.Status === 'Closed' ? listing.CompletedDate : (parcel.LastMLSDate || null)
-                                        });
-                                    }
-                                    return [2 /*return*/];
-                            }
-                        });
-                    };
-                    _i = 0, processedListings_1 = processedListings;
-                    _a.label = 3;
-                case 3:
-                    if (!(_i < processedListings_1.length)) return [3 /*break*/, 6];
-                    listing = processedListings_1[_i];
-                    return [5 /*yield**/, _loop_1(listing)];
-                case 4:
-                    _a.sent();
-                    _a.label = 5;
-                case 5:
-                    _i++;
-                    return [3 /*break*/, 3];
-                case 6:
-                    if (!(finalListingUploads.length > 0)) return [3 /*break*/, 8];
-                    console.log("\uD83D\uDCE4 Uploading ".concat(finalListingUploads.length, " listings..."));
-                    return [4 /*yield*/, supabaseClient_1.supabase.from('detached_listings').insert(finalListingUploads)];
-                case 7:
-                    insErr = (_a.sent()).error;
-                    if (insErr)
-                        throw insErr;
-                    _a.label = 8;
-                case 8:
-                    if (!(parcelUpdateBatch.length > 0)) return [3 /*break*/, 10];
-                    console.log("\uD83D\uDD04 Updating ".concat(parcelUpdateBatch.length, " parcels..."));
-                    return [4 /*yield*/, supabaseClient_1.supabase.from('parcels').upsert(parcelUpdateBatch, { onConflict: 'PID' })];
-                case 9:
-                    upsertErr = (_a.sent()).error;
-                    if (upsertErr)
-                        throw upsertErr;
-                    _a.label = 10;
-                case 10:
-                    console.log("🚀 Sync Complete!");
-                    return [3 /*break*/, 12];
-                case 11:
-                    err_1 = _a.sent();
-                    console.error("❌ Critical Sync Error:", err_1.message);
-                    return [3 /*break*/, 12];
-                case 12: return [2 /*return*/];
+                }
             }
-        });
-    });
+            else if (listing.market_status === "Closed") {
+                const index = mlsHistory.findIndex((item) => item.date === listing.subject_removal_date);
+                const newEntry = {
+                    date: listing.completed_date,
+                    price: listing.sold_price,
+                    type: "Improved Single Property",
+                };
+                if (index !== -1 ||
+                    (mlsHistory[0]?.type === "Pending" &&
+                        String(mlsHistory[0]?.price) === String(listing.sold_price))) {
+                    const updateIndex = index !== -1 ? index : 0;
+                    mlsHistory[updateIndex] = newEntry;
+                }
+                else {
+                    const closedIndex = mlsHistory.findIndex((item) => item.date === listing.completed_date);
+                    if (closedIndex === -1)
+                        mlsHistory.unshift(newEntry);
+                }
+                lastMlsDate = listing.completed_date;
+            }
+            // 4. Calculate total bathrooms
+            const totalBaths = (toNum(listing.full_baths) || 0) +
+                (toNum(listing.half_baths) || 0) * 0.5;
+            // 5. Mapping for the Listings Table
+            const listingRecord = {
+                ...listing,
+                latitude: parcel.latitude,
+                longitude: parcel.longitude,
+                bc_assessment_data: parcel.bc_assessment_data,
+                gross_tax_data: parcel.gross_tax_data,
+                elementary_school: parcel.elementary_school,
+                postal_code: parcel.postal_code,
+                neighbourhood: parcel.neighbourhood,
+                legal_detail: parcel.legal_detail,
+                bc_assessment_desc: parcel.bc_assessment_desc,
+                last_mls_date: lastMlsDate,
+                mls_data: mlsHistory,
+                lot_size: parcel.lot_size,
+            };
+            if (listingType === "detached" ||
+                listingType === "land" ||
+                listingType === "multifamily") {
+                listingRecord.zone_code = parcel.zone_code;
+                listingRecord.zone_desc = parcel.zone_desc;
+                listingRecord.civic_address = parcel.civic_address; // Use the formatted civic address
+            }
+            else if (listingType === "strata") {
+                listingRecord.zoning = parcel.zoning; // Strata uses 'zoning'
+                listingRecord.gis_id = parcel.gis_id; // Added GISID for strata
+            }
+            finalListingUploads.push(listingRecord);
+            // 6. Mapping for the Parcel/Strata Table update
+            let updateRecord;
+            if (listingType === "land") {
+                // Specifically for Land: Fill specific specs with '0' as requested
+                updateRecord = {
+                    pid: listing.pid,
+                    market_status: listing.market_status,
+                    bedrooms: "0",
+                    bathrooms: "0",
+                    year_constructed: "0",
+                    stories: "0",
+                    first_floor: "0",
+                    second_floor: "0",
+                    third_floor: "0",
+                    fourth_floor: "0",
+                    finished: "0",
+                    unfinished: "0",
+                    virtual_tour: listing.virtual_tour,
+                    last_mls: listing.mls_number,
+                    floor_area: listing.total_floor_area,
+                    photos: listing.photos,
+                    mls_data: mlsHistory,
+                    last_mls_date: lastMlsDate,
+                };
+            }
+            else {
+                // For Detached and Strata: Use actual calculated values
+                updateRecord = {
+                    pid: listing.pid,
+                    market_status: listing.market_status,
+                    bedrooms: listing.bedrooms,
+                    bathrooms: totalBaths,
+                    year_constructed: listing.year_built,
+                    stories: listing.stories,
+                    first_floor: listing.first_floor,
+                    second_floor: listing.second_floor,
+                    third_floor: listing.third_floor,
+                    fourth_floor: listing.fourth_floor,
+                    finished: listing.finished,
+                    unfinished: listing.unfinished,
+                    virtual_tour: listing.virtual_tour,
+                    last_mls: listing.mls_number,
+                    floor_area: listing.total_floor_area,
+                    photos: listing.photos,
+                    mls_data: mlsHistory,
+                    last_mls_date: lastMlsDate,
+                    // Add strata_fee only if it's a strata type
+                    ...(listingType === "strata" && { strata_fee: listing.strata_fee }),
+                };
+            }
+            parcelUpdateBatch.push(updateRecord);
+        }
+    }
+    // 7. Bulk Upload / Upsert
+    if (finalListingUploads.length > 0) {
+        await exports.supabase.from(targetListingTable).delete().neq("pid", "0");
+        const { error } = await exports.supabase
+            .from(targetListingTable)
+            .insert(finalListingUploads);
+        if (error) {
+            console.log("Error in listinsg upload");
+            console.log(error);
+            throw error;
+        }
+        console.log(`✅ ${targetListingTable} updated.`);
+    }
+    if (parcelUpdateBatch.length > 0) {
+        const { error } = await exports.supabase
+            .from(sourceParcelTable)
+            .upsert(parcelUpdateBatch, { onConflict: "pid" });
+        if (error) {
+            console.log("Error in properties upload");
+            console.log(error);
+            throw error;
+        }
+        console.log(`✅ ${sourceParcelTable} updated.`);
+    }
 }
-syncDetachedListings();
+const fetchOpenHouseListings = async (allListings) => {
+    const batchSize = 200;
+    let allOpenHouseListings = [];
+    // Helper to chunk the data to stay within Bridge API URL limits
+    const chunkArray = (array, size) => {
+        const result = [];
+        for (let i = 0; i < array.length; i += size)
+            result.push(array.slice(i, i + size));
+        return result;
+    };
+    const batches = chunkArray(allListings, batchSize);
+    for (let batch of batches) {
+        // 1. Prepare MLS list for the API filter
+        const mlsList = batch.map((l) => l.mls_number);
+        const listingIdsString = `'${mlsList.join("','")}'`;
+        console.log(`📡 Fetching Open Houses for batch of ${mlsList.length} listings...`);
+        try {
+            const response = await fetch(`https://api.bridgedataoutput.com/api/v2/OData/bcres/OpenHouse?access_token=${accessToken}&$filter=ListingId in (${listingIdsString})`);
+            if (!response.ok) {
+                console.error(`❌ Bridge API Error: ${response.statusText}`);
+                continue;
+            }
+            const data = await response.json();
+            if (!data.value || data.value.length === 0) {
+                console.log("ℹ️ No open houses found in this batch.");
+                continue;
+            }
+            // 2. Map the data and ENRICH with Photos/Type from memory
+            const mappedBatch = data.value.map((oh) => {
+                // Find the original listing in our master list using the ListingId
+                const original = allListings.find((l) => l.mls_number === oh.ListingId);
+                return {
+                    // Standard Fields from Bridge
+                    mls_number: oh.ListingId,
+                    listing_id: oh.ListingKeyNumeric,
+                    status: oh.OpenHouseStatus,
+                    status_date: oh.ModificationTimestamp
+                        ? oh.ModificationTimestamp.split("T")[0]
+                        : null,
+                    comments: oh.OpenHouseRemarks,
+                    end_timestamp: oh.OpenHouseEndTime,
+                    start_timestamp: oh.OpenHouseStartTime,
+                    start_date: oh.OpenHouseDate,
+                    // Enriched Fields (from our local memory)
+                    photos: original?.photos || [],
+                    type: original?.type || "",
+                };
+            });
+            allOpenHouseListings = [...allOpenHouseListings, ...mappedBatch];
+            console.log(`✅ Found ${mappedBatch.length} Open Houses.`);
+        }
+        catch (error) {
+            console.error("❌ Error in Open House batch processing:", error.message);
+        }
+    }
+    console.log(`🏁 Total Open Houses gathered: ${allOpenHouseListings.length}`);
+    return allOpenHouseListings;
+};
+async function postOpenHouseListings(openhouseListings) {
+    if (!openhouseListings || openhouseListings.length === 0) {
+        console.log("ℹ️ No Open Houses to post.");
+        return;
+    }
+    try {
+        console.log(`🧹 Clearing old open houses from Supabase...`);
+        // Use a filter that catches everything, like 'mls_number' is not null
+        const { error: delErr } = await exports.supabase
+            .from("openhouse_listings")
+            .delete()
+            .neq("mls_number", "0");
+        if (delErr)
+            throw delErr;
+        console.log(`📤 Inserting ${openhouseListings.length} open houses into Supabase...`);
+        const { data, error: insErr } = await exports.supabase
+            .from("openhouse_listings")
+            .insert(openhouseListings);
+        if (insErr)
+            throw insErr;
+        console.log("🚀 Open Houses synced successfully to Supabase!");
+    }
+    catch (error) {
+        console.error("❌ Error updating Open Houses in Supabase:", error.message);
+    }
+}
+async function syncAllListings() {
+    try {
+        // 1. Define your sync configurations
+        const syncConfigs = [
+            {
+                type: "detached",
+                apiFilter: "Residential Detached",
+                fields: detachedFields,
+            },
+            {
+                type: "strata",
+                apiFilter: "Residential Attached",
+                fields: strataFields,
+            },
+            { type: "land", apiFilter: "Land Only", fields: landFields },
+            {
+                type: "multifamily",
+                apiFilter: "MultiFamily Only",
+                fields: multifamilyFields,
+            },
+        ];
+        let allProcessed = [];
+        console.log("🚀 Starting Full Property Sync...");
+        // 2. Loop through each configuration
+        for (const config of syncConfigs) {
+            console.log(`--- Processing ${config.type.toUpperCase()} ---`);
+            // Fetch from Bridge API
+            const rawData = await fetchFromBridge(config.apiFilter, config.fields);
+            if (!rawData || rawData.length === 0) {
+                console.log(`⚠️ No listings found for ${config.type}, skipping...`);
+                continue;
+            }
+            // Transform & Deduplicate
+            const processed = processAndTransformListings(rawData, config.type);
+            if (config.type !== "multifamily") {
+                const tagged = processed.map((l) => ({
+                    mls_number: l.mls_number,
+                    photos: l.photos,
+                    type: config.type,
+                }));
+                allProcessed = [...allProcessed, ...tagged];
+            }
+            await enrichAndSyncListings(processed, config.type);
+            console.log(`✅ Completed sync for ${config.type}`);
+        }
+        const openhouses = await fetchOpenHouseListings(allProcessed);
+        await postOpenHouseListings(openhouses);
+        console.log("🎉 ALL SYNC PROCESSES COMPLETE!");
+    }
+    catch (error) {
+        console.error("❌ Critical Sync Failure:", error.message);
+    }
+}
+syncAllListings();

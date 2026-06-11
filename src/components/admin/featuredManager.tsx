@@ -5,6 +5,7 @@ import { supabase } from "@/config/supabaseClient";
 import { Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+// import { fixCivicAddress } from "@/lib/utils";
 
 const SLOTS = [
   { id: 1, label: "Detached Slot 1", type: "detached" },
@@ -14,18 +15,6 @@ const SLOTS = [
   { id: 5, label: "Townhouse 2", type: "townhouse" },
   { id: 6, label: "Apartment 1", type: "apartment" },
 ];
-
-const fixCivicAddress = (listing: any) => {
-  console.log("Checking listing for civic address fix:", listing.legal_detail);
-  const lotMatch = listing.legal_detail.match(/Lot\s+(\d+)/i);
-
-  if (lotMatch) {
-    const lotNumber = lotMatch[1]; // Extracts the captured digits (e.g., "7")
-    listing.civic_address = `${lotNumber}-${listing.civic_address}`;
-  }
-
-  return listing;
-};
 
 export default function FeaturedManager() {
   const [search, setSearch] = useState("");
@@ -45,19 +34,11 @@ export default function FeaturedManager() {
 
     if (error) console.error("Fetch Error:", error);
 
-    const processedData = (data || []).map((listing) => {
-      if (
-        listing.property_category === "detached" &&
-        listing.zone_desc === "Bare Land Strata" &&
-        listing.legal_detail
-      ) {
-        return fixCivicAddress(listing);
-      } else {
-        return listing;
-      }
-    });
+    // const processedData = (data || []).map((listing) => {
+    //   return fixCivicAddress(listing, listing.property_category);
+    // });
 
-    setFeatured(processedData);
+    setFeatured(data || []);
     setLoading(false);
   };
 
@@ -76,19 +57,7 @@ export default function FeaturedManager() {
       .ilike("civic_address", `%${query}%`)
       .limit(10);
 
-    const processedResults = (data || []).map((listing) => {
-      if (
-        listing.property_category === "detached" &&
-        listing.zone_desc === "Bare Land Strata" &&
-        listing.legal_detail
-      ) {
-        return fixCivicAddress(listing);
-      } else {
-        return listing;
-      }
-    });
-
-    setResults(processedResults || []);
+    setResults(data || []);
     setLoading(false);
   };
 

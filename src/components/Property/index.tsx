@@ -1,9 +1,16 @@
 "use client";
 
-import React, { useEffect, useState, Fragment, use, useRef } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
-import { numberWithCommas, checkIfEmpty, formatString } from "@/lib/utils";
+import {
+  numberWithCommas,
+  checkIfEmpty,
+  formatString,
+  cleanStreetName,
+  preloadImage,
+  fetchFloorPlans,
+} from "@/lib/utils";
 import {
   MapPin,
   Loader2,
@@ -54,6 +61,7 @@ import {
   PropertyReviews,
   ReportAnIssueForm,
   ThinkingOfSelling,
+  Listing,
 } from "@/components/Property/PropertyHelpers";
 import { ShareMenu } from "../ShareMenu";
 import { AuthGuard } from "../Auth/authGuard";
@@ -66,6 +74,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const router = useRouter();
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  // const [landingImage, setLandingImage] = useState<string>("");
   const salesHistoryRef = React.useRef<HTMLDivElement>(null);
   const photosRef = React.useRef<HTMLDivElement>(null);
   const detailsRef = React.useRef<any>(null);
@@ -84,11 +93,13 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const [HonestDoorURL, setHonestDoorURL] = useState("");
   const [selectedExplorerTab, setSelectedExplorerTab] =
     useState<string>("New Listings");
-  const [propertyInfo, setPropertyInfo] = useState<any[]>([]);
+  // const [propertyInfo, setPropertyInfo] = useState<any[]>([]);
   const [reviews, setReviews] = useState<any[]>([]);
   const [propertyAverageRating, setPropertyAverageRating] = useState<number>(0);
-  const [fetchingReviews, setFetchingReviews] = useState(false);
   const [openReviews, setOpenReviews] = useState(false);
+  const [floorPlanDocs, setFloorPlanDocs] = useState<any[]>([]);
+  const [floorPlansCount, setFloorPlansCount] = useState(0);
+  const [listing, setListing] = useState<any>(null);
 
   const [openAccordions, setOpenAccordions] = useState<{
     [key: number]: boolean;
@@ -131,6 +142,31 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         }
       }, 100);
     }
+  };
+
+  const localDefaultPlaceholder = "/images/landing.jpg";
+
+  const getLandingImage = (property: any, type: string) => {
+    const PARCELS_BUCKET_NAME = "streetview";
+    const STRATA_BUCKET_NAME = "strata";
+    if (!property || !property.civic_address) return localDefaultPlaceholder;
+
+    if (type === "detached" || type === "multifamily" || type === "land") {
+      const rawAddress = property.civic_address.trim();
+      const firstSpace = rawAddress.indexOf(" ");
+      if (firstSpace === -1) return localDefaultPlaceholder;
+
+      const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
+      const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
+
+      const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
+
+      // Construct path with clean title case variables and the .webp extension
+      const landing_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/landing/${streetNumber}-${cleanedStreet}.webp`;
+      console.log("Constructed image path:", landing_image_path);
+      return encodeURI(landing_image_path);
+    }
+    return localDefaultPlaceholder;
   };
 
   useEffect(() => {
@@ -200,54 +236,11 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         { name: "Appreciation/year", value: "Coming Soon", icon: Home },
       ];
 
-      const propertyInfo = [
-        {
-          name: "Last Sold",
-          component: LastSold,
-          ref: salesHistoryRef,
-        },
-        {
-          name: `Photos (${property.photos?.length})`,
-          component: Photos,
-          ref: photosRef,
-        },
-        {
-          name: `Floor Plans (0)`,
-          component: FloorPlans,
-          ref: floorPlansRef,
-        },
-        {
-          name: "Nearby Photos",
-          component: NearbyPhotos,
-          ref: nearbyPhotosRef,
-        },
-        {
-          name: "HonestDoor Price History",
-          component: NearbyPhotos,
-          ref: honestDoorPriceHistoryRef,
-        },
-        {
-          name: "BC Assessment",
-          component: BCAssessment,
-          ref: bcAssessmentRef,
-        },
-        { name: "Taxes", component: Taxes, ref: taxesRef },
-        {
-          name: "School Programs",
-          component: SchoolPrograms,
-          ref: schoolProgramsRef,
-        },
-      ];
-
-      setPropertyInfo(propertyInfo);
-
       console.log("Property Details:", propertyDetails);
       setPropertyDetails(propertyDetails);
 
       const fetchReviews = async () => {
         if (!property?.pid) return;
-
-        setFetchingReviews(true);
 
         const { data, error } = await supabase
           .from("property_reviews")
@@ -275,12 +268,100 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           // 3. Update States
           setPropertyAverageRating(averageRating);
         }
-        setFetchingReviews(false);
       };
 
       fetchReviews();
+
+      const executeExecution = async () => {
+        const floorplans = await fetchFloorPlans(property, type);
+
+        setFloorPlanDocs(floorplans);
+        setFloorPlansCount(floorplans.length);
+      };
+
+      executeExecution();
+
+      const fetchListing = async () => {
+        let { data } = await supabase
+          .from("all_listings")
+          .select("*")
+          .eq("pid", property.pid)
+          .single();
+
+        if (data) {
+          setListing(data);
+        }
+      };
+      fetchListing();
     }
   }, [property]);
+
+  const landingImage = useMemo(() => {
+    if (!property) return "/images/landing.jpg";
+    return getLandingImage(property, type);
+  }, [property, type]);
+
+  useEffect(() => {
+    if (!landingImage) return;
+
+    preloadImage(landingImage);
+  }, [landingImage]);
+
+  const propertyInfo = useMemo(() => {
+    if (!property) return [];
+
+    return [
+      {
+        name: "Last Sold",
+        // Render as a JSX function component returning the tag directly
+        renderComponent: () => <LastSold property={property} type={type} />,
+        ref: salesHistoryRef,
+      },
+      {
+        name: `Photos (${property.photos?.length || 0})`,
+        renderComponent: () => <Photos photos={property.photos || []} />,
+        ref: photosRef,
+      },
+      {
+        name: `Floor Plans (${floorPlansCount})`,
+        renderComponent: () => (
+          <FloorPlans
+            property={property}
+            type={type}
+            floorPlanDocs={floorPlanDocs}
+          />
+        ),
+        ref: floorPlansRef,
+      },
+      {
+        name: "Nearby Photos",
+        renderComponent: () => <NearbyPhotos />,
+        ref: nearbyPhotosRef,
+      },
+      {
+        name: "HonestDoor Price History",
+        renderComponent: () => <NearbyPhotos />,
+        ref: honestDoorPriceHistoryRef,
+      },
+      {
+        name: "BC Assessment",
+        renderComponent: () => <BCAssessment property={property} type={type} />,
+        ref: bcAssessmentRef,
+      },
+      {
+        name: "Taxes",
+        renderComponent: () => <Taxes property={property} type={type} />,
+        ref: taxesRef,
+      },
+      {
+        name: "School Programs",
+        renderComponent: () => (
+          <SchoolPrograms property={property} type={type} />
+        ),
+        ref: schoolProgramsRef,
+      },
+    ];
+  }, [property, floorPlansCount, floorPlanDocs, type]);
 
   const propertyExplorer = [
     { name: "New Listings", component: NewListings },
@@ -352,11 +433,15 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
         <div className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden ">
           <Image
-            src="/images/landing.jpg"
+            src={landingImage}
             alt={property.civic_address}
             fill
             priority
+            unoptimized
             className="object-cover object-top"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = localDefaultPlaceholder;
+            }}
           />
 
           <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent h-40" />
@@ -627,13 +712,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                                 <HDMyHomeWidgetComponent />
                               </div>
                             ) : (
-                              // <div className="py-20 text-center  uppercase tracking-widest text-muted-foreground text-xs">
-                              //   Coming Soon
-                              // </div>
-                              React.createElement(info.component, {
-                                property,
-                                type,
-                              })
+                              info.renderComponent()
                             )}
                           </div>
                         ) : (
@@ -646,14 +725,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                             }.`}
                           >
                             <div className="overflow-x-auto">
-                              {info.name.includes("Floor Plans") ? (
-                                <div>Coming Soon</div>
-                              ) : (
-                                React.createElement(info.component, {
-                                  property,
-                                  type,
-                                })
-                              )}
+                              {info.renderComponent()}
                             </div>
                           </AuthGuard>
                         )}
@@ -752,16 +824,15 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           <div className="bg-white flex justify-center mb-5">
             <HDWidgetComponent />
           </div>
+          {listing && <Listing listing={listing} />}
           <ThinkingOfSelling />
           <AuthGuard renderPrivate={false}>
             {(user, loginUI) => (
-              <div className="p-6">
-                <ReportAnIssueForm
-                  user={user}
-                  property={property}
-                  reportRef={reportRef as React.RefObject<HTMLDivElement>}
-                />
-              </div>
+              <ReportAnIssueForm
+                user={user}
+                property={property}
+                reportRef={reportRef as React.RefObject<HTMLDivElement>}
+              />
             )}
           </AuthGuard>
           <Image
