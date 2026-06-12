@@ -14,7 +14,6 @@ import {
   Linkedin,
   MessageCircle,
   X,
-  Check,
 } from "lucide-react";
 import HomeButton from "../ui/homeButton";
 import { Button } from "../ui/button";
@@ -22,8 +21,6 @@ import { supabase } from "@/config/supabaseClient";
 import { Input } from "../ui/input";
 
 export default function Contact() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -58,7 +55,6 @@ export default function Contact() {
     setTriedToSubmit(true);
 
     if (!isFormValid) {
-      setError("Please complete all fields and accept the terms.");
       return;
     }
 
@@ -81,7 +77,6 @@ export default function Contact() {
       ]);
 
       if (supabaseError) {
-        setError("Failed to save inquiry. Please try again later.");
         return;
       }
 
@@ -100,12 +95,9 @@ export default function Contact() {
         throw new Error("Server error");
       }
     } catch (err) {
-      setError("Could not send email. Please try calling instead.");
-    } finally {
-      setLoading(false);
+      console.error("Error submitting form:", err);
+      setMessage("Failed to submit inquiry. Please try again later.");
     }
-
-    setError(null);
   };
 
   const getFieldStatus = (isValid: boolean, value: string) => {

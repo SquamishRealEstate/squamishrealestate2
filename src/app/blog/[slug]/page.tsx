@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Calendar, User, Loader2, ChevronLeft, Share2 } from "lucide-react";
+import { Calendar, User, Loader2, ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShareMenu } from "@/components/ShareMenu";

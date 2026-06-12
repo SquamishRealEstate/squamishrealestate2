@@ -17,13 +17,10 @@ const SLOTS = [
 ];
 
 export default function FeaturedManager() {
-  const [search, setSearch] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [featured, setFeatured] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const fetchFeatured = async () => {
-    setLoading(true);
     const { data, error } = await supabase
       .from("all_listings")
       .select(
@@ -39,7 +36,6 @@ export default function FeaturedManager() {
     // });
 
     setFeatured(data || []);
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -48,7 +44,6 @@ export default function FeaturedManager() {
 
   const handleSearch = async (query: string) => {
     if (query.length < 2) return;
-    setLoading(true);
     const { data } = await supabase
       .from("all_listings")
       .select(
@@ -58,7 +53,6 @@ export default function FeaturedManager() {
       .limit(10);
 
     setResults(data || []);
-    setLoading(false);
   };
 
   const assignSlot = async (pid: string, slotId: number, category: string) => {
@@ -157,7 +151,6 @@ export default function FeaturedManager() {
           placeholder="Search by civic address..."
           className="mb-4 max-w-md"
           onChange={(e) => {
-            setSearch(e.target.value);
             handleSearch(e.target.value);
           }}
         />

@@ -17,7 +17,7 @@ export default function Home() {
       <Hero />
       <LazySection>
         <AuthGuard renderPrivate={false}>
-          {(user, loginUI) => <HomeListingsSection user={user} />}
+          {(user) => <HomeListingsSection user={user} />}
         </AuthGuard>
       </LazySection>
 
@@ -35,7 +35,7 @@ export default function Home() {
 
       <Footer />
 
-      <CollapsibleMap listings={mockListings} />
+      <CollapsibleMap />
     </>
   );
 }

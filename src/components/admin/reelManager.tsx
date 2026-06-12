@@ -99,6 +99,7 @@ export default function ReelManager() {
       }
       return url;
     } catch (e) {
+      console.error("Error parsing URL:", e);
       return url;
     }
   };

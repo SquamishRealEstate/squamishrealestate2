@@ -12,5 +12,10 @@ export async function checkIsAdmin() {
     .eq("user_id", user.id)
     .single();
 
+  if (error) {
+    console.error("Error fetching user role:", error);
+    return false;
+  }
+
   return data?.role === "admin";
 }

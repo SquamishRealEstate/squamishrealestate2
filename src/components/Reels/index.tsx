@@ -55,6 +55,7 @@ const getEmbedUrl = (url: string) => {
     }
     return url;
   } catch (e) {
+    console.error("Error parsing URL:", e);
     return url;
   }
 };

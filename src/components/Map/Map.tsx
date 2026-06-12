@@ -59,7 +59,6 @@ export function MapView({
         return (
           <MapInnerLayout
             isLoggedIn={isLoggedIn}
-            className={className}
             onMapReady={onMapReady}
             center={center}
           />
@@ -71,14 +70,12 @@ export function MapView({
 
 interface MapInnerLayoutProps {
   isLoggedIn: boolean;
-  className?: string;
   onMapReady?: (map: mapboxgl.Map) => void;
   center?: LngLatLike;
 }
 
 function MapInnerLayout({
   isLoggedIn,
-  className,
   onMapReady,
   center,
 }: MapInnerLayoutProps) {
@@ -340,7 +337,6 @@ function MapInnerLayout({
 
   const getCardImage = (property: any, type: PropertyType) => {
     const PARCELS_BUCKET_NAME = "streetview";
-    const STRATA_BUCKET_NAME = "strata";
 
     const localDefaultPlaceholder = "/images/Default-Card.jpg";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/config/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Film,
-  X,
-  CheckCircle,
-  Loader2,
-  MapPin,
-  PlusCircle,
-} from "lucide-react";
+import { X, CheckCircle, Loader2, MapPin, PlusCircle } from "lucide-react";
 import AddressAutocomplete from "./addressAutocomplete";
 
 type Reel = {

@@ -27,7 +27,6 @@ import {
   BarChart3,
   Ruler,
   TrendingUp,
-  Lock,
   MessageSquare,
   CircleDollarSign,
   Briefcase,
@@ -88,9 +87,9 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const reportRef = React.useRef<HTMLDivElement>(null);
   const [selectedItem, setSelectedItem] = useState<string>("");
   const [propertyDetails, setPropertyDetails] = useState<any[]>([]);
-  const [honestDoorCurrentPrice, setHonestDoorCurrentPrice] =
-    useState("Coming Soon");
-  const [HonestDoorURL, setHonestDoorURL] = useState("");
+  // const [honestDoorCurrentPrice, setHonestDoorCurrentPrice] =
+  //   useState("Coming Soon");
+  // const [HonestDoorURL, setHonestDoorURL] = useState("");
   const [selectedExplorerTab, setSelectedExplorerTab] =
     useState<string>("New Listings");
   // const [propertyInfo, setPropertyInfo] = useState<any[]>([]);
@@ -148,7 +147,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
   const getLandingImage = (property: any, type: string) => {
     const PARCELS_BUCKET_NAME = "streetview";
-    const STRATA_BUCKET_NAME = "strata";
     if (!property || !property.civic_address) return localDefaultPlaceholder;
 
     if (type === "detached" || type === "multifamily" || type === "land") {
@@ -229,7 +227,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         },
         {
           name: "HonestDoor Price",
-          value: honestDoorCurrentPrice,
+          value: "Coming Soon",
           icon: CircleDollarSign,
         },
         { name: "Street Average", value: "Coming Soon", icon: Briefcase },
@@ -282,7 +280,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       executeExecution();
 
       const fetchListing = async () => {
-        let { data } = await supabase
+        const { data } = await supabase
           .from("all_listings")
           .select("*")
           .eq("pid", property.pid)
@@ -325,11 +323,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       {
         name: `Floor Plans (${floorPlansCount})`,
         renderComponent: () => (
-          <FloorPlans
-            property={property}
-            type={type}
-            floorPlanDocs={floorPlanDocs}
-          />
+          <FloorPlans property={property} floorPlanDocs={floorPlanDocs} />
         ),
         ref: floorPlansRef,
       },
@@ -355,9 +349,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       },
       {
         name: "School Programs",
-        renderComponent: () => (
-          <SchoolPrograms property={property} type={type} />
-        ),
+        renderComponent: () => <SchoolPrograms property={property} />,
         ref: schoolProgramsRef,
       },
     ];
@@ -386,10 +378,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       </div>
     );
 
-  const scrollToRef = (
-    ref: React.RefObject<HTMLDivElement> | any,
-    value: string,
-  ) => {
+  const scrollToRef = (ref: React.RefObject<HTMLDivElement> | any) => {
     ref?.current?.scrollIntoView({ behavior: "smooth" });
     if (ref?.current instanceof HTMLInputElement) {
       ref.current.checked = true;
@@ -453,7 +442,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
             <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden pointer-events-auto">
               {/* <SocialInteractions pid={property.pid} /> */}
               <AuthGuard renderPrivate={false}>
-                {(user, loginUI) => (
+                {(user) => (
                   <SocialInteractions pid={property.pid} user={user} />
                 )}
               </AuthGuard>
@@ -519,8 +508,8 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
             {/* Action Buttons */}
             <div className="flex items-center gap-4 py-1">
               <PropertyActions
-                onWriteReview={() => scrollToRef(reviewsRef, "reviews")}
-                onReport={() => scrollToRef(reportRef, "report an issue")}
+                onWriteReview={() => scrollToRef(reviewsRef)}
+                onReport={() => scrollToRef(reportRef)}
               />
               <div className="h-4 w-px bg-gray-200" />
               <ShareMenu title={property?.civic_address} />
@@ -801,7 +790,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
               {" "}
               {/* Removed padding here so AuthGuard can fill the width */}
               <AuthGuard renderPrivate={false}>
-                {(user, loginUI) => (
+                {(user) => (
                   <div className="p-6">
                     <ReviewForm user={user} property={property} />
                   </div>
@@ -827,7 +816,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           {listing && <Listing listing={listing} />}
           <ThinkingOfSelling />
           <AuthGuard renderPrivate={false}>
-            {(user, loginUI) => (
+            {(user) => (
               <ReportAnIssueForm
                 user={user}
                 property={property}

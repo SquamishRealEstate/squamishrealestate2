@@ -9,7 +9,6 @@ import {
   ChevronRight,
   Home,
   Map,
-  Video,
   Info,
   Building2,
 } from "lucide-react";
@@ -111,8 +110,8 @@ export const Neighborhood = () => {
             Missing
           </h2>
           <p className="text-sm text-muted-foreground">
-            No active data records could be synchronized matching "
-            {neighborhoodname}".
+            No active data records could be synchronized matching
+            {neighborhoodname}.
           </p>
         </div>
       </div>

@@ -1,7 +1,6 @@
 // components/auth/HomeButton.tsx
 import Link from "next/link";
 import { ChevronLeft, Home } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 export default function HomeButton() {
   return (

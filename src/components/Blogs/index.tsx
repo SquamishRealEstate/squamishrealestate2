@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/config/supabaseClient";
 import {
-  Home as HomeIcon,
   TrendingUp,
   Users,
   ArrowRight,

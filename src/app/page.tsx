@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+// import { useState, useEffect } from "react";
 import Home from "@/components/Home";
 // import { Wrench, Sparkles, Clock, Twitter, Instagram, Linkedin, Facebook } from 'lucide-react';
 

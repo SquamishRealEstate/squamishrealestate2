@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   ChevronLeft,
   ChevronRight,
@@ -14,7 +14,6 @@ import {
   formatDate,
   formatDatePST,
   formatPrice,
-  formatTime,
   formatTimePST,
 } from "@/lib/utils";
 import { Button } from "../ui/button";
@@ -669,6 +668,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
       setTriedToSubmit(false); // Reset validation state
       setTimeout(() => setMessage(null), 4000);
     } catch (error) {
+      console.error("Error submitting form:", error);
       setMessage("Something went wrong. Please try again later.");
       setTimeout(() => setMessage(null), 4000);
     } finally {
@@ -1012,6 +1012,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
         throw new Error("Server error");
       }
     } catch (err) {
+      console.error("Error submitting form:", err);
       setMessage("Something went wrong. Please try again later.");
       setTimeout(() => setMessage(null), 4000);
     } finally {
@@ -1322,6 +1323,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
         throw new Error("Server error");
       }
     } catch (err) {
+      console.error("Error submitting form:", err);
       setMessage("Something went wrong. Please try again later.");
       setTimeout(() => setMessage(null), 4000);
     } finally {

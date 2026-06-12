@@ -20,7 +20,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { ListingFilters, FilterState } from "@/components/ListingFilters";
@@ -28,7 +27,6 @@ import { ListingCard, Listing } from "@/components/ListingCard";
 import { serializeFilters } from "@/lib/utils";
 
 export function HomeListingsSection({ user }: { user: any }) {
-  const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
 

@@ -78,7 +78,7 @@ function LoginPrompt() {
 
         {/* Secondary Action */}
         <p className="mt-6 text-xs text-muted-foreground">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <a
             href="/signup"
             className="text-accent font-semibold hover:underline"
@@ -477,7 +477,7 @@ const EmptyState = ({ icon: Icon, title }: any) => (
     </div>
     <p className="font-semibold text-foreground text-base">{title}</p>
     <p className="text-sm text-muted-foreground mt-1">
-      Looks like you don't have any activity here yet.
+      Looks like you don&apos;t have any activity here yet.
     </p>
   </div>
 );
@@ -565,7 +565,6 @@ function EditProfileForm({ user }: EditProfileFormProps) {
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     fullName: user?.user_metadata?.full_name || "",
@@ -640,7 +639,6 @@ function EditProfileForm({ user }: EditProfileFormProps) {
   const handleUpdate = async () => {
     setTriedToSubmit(true);
     if (!isFormValid) {
-      setError("Please check your inputs and try again.");
       setTriedToSubmit(false);
       return;
     }
@@ -666,7 +664,6 @@ function EditProfileForm({ user }: EditProfileFormProps) {
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       console.error(error);
-      setError("Failed to update profile.");
       setTriedToSubmit(false);
       return;
     }

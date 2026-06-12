@@ -59,7 +59,7 @@ function LoginContent() {
       }
       setError(authError.message);
       setLoading(false);
-    } else {
+    } else if (data) {
       // 2. Redirect to the original page or dashboard
       router.push(callbackUrl);
       router.refresh(); // Crucial to update the AuthGuard state

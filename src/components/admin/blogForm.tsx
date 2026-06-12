@@ -146,10 +146,6 @@ export default function BlogForm({
 
       const { id, created_at, ...updatePayload } = submissionData as any;
 
-      console.log(blogData?.id);
-      console.log(submissionData);
-      console.log(updatePayload);
-
       const { data, error, status } = blogData?.id
         ? await supabase
             .from("blogs")

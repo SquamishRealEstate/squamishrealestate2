@@ -31,6 +31,7 @@ export function useAdmin() {
           setIsAdmin(false);
         }
       } catch (err) {
+        console.error("Error fetching user role:", err);
         setIsAdmin(false);
       } finally {
         setIsLoading(false);

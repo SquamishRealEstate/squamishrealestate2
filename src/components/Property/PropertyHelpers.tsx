@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState, useEffect, use } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   ChevronLeft,
   Heart,
@@ -642,6 +642,7 @@ export const RecentSolds = ({ type }: { type: string }) => {
             .order("last_mls_date", { ascending: false })
             .limit(10);
 
+          if (error) throw error;
           setSolds((data as any[]) || []);
         } else {
           const { data, error } = await supabase
@@ -651,6 +652,7 @@ export const RecentSolds = ({ type }: { type: string }) => {
             .order("last_mls_date", { ascending: false })
             .limit(10);
 
+          if (error) throw error;
           setSolds((data as any[]) || []);
         }
       } catch (error) {
@@ -901,7 +903,9 @@ export const LastSold = ({
           if (word.includes(parkingType)) return parkingType;
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching parking type:", error);
+    }
     return answer;
   }
 
@@ -1031,11 +1035,9 @@ export const Photos = ({ photos }: { photos: any[] }) => {
 
 export const FloorPlans = ({
   property,
-  type,
   floorPlanDocs,
 }: {
   property: any;
-  type: string;
   floorPlanDocs: any;
 }) => {
   const floorNames = ["first", "second", "third", "fourth"];
@@ -1147,7 +1149,7 @@ export const FloorPlans = ({
                         className="block mx-auto max-w-full h-auto max-h-[450px] object-contain transition-transform duration-300 group-hover:scale-[1.01]"
                         alt={`Floor Plan ${index + 1}`}
                         onError={(e) =>
-                          console.error("Image failed to load:", doc)
+                          console.error("Image failed to load:", e)
                         }
                       />
 
@@ -1389,13 +1391,7 @@ export const Taxes = ({ property, type }: { property: any; type: string }) => {
   );
 };
 
-export const SchoolPrograms = ({
-  property,
-  type,
-}: {
-  property: any;
-  type: string;
-}) => {
+export const SchoolPrograms = ({ property }: { property: any }) => {
   const data = [
     { name: "Elementary School", value: property.elementary_school },
     { name: "Middle School", value: "Don Ross Middle School" },
@@ -2126,6 +2122,7 @@ export const ThinkingOfSelling = () => {
 
       setTimeout(() => setMessage(null), 4000);
     } catch (error) {
+      console.error("Error submitting form:", error);
       setMessage("Something went wrong. Please try again later.");
       setTimeout(() => setMessage(null), 4000);
     } finally {

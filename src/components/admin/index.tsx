@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/config/supabaseClient";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
   Send,
@@ -15,7 +13,6 @@ import {
   X,
   ChevronRight,
   Loader2,
-  CheckCircle,
   ExternalLink,
   Layers,
 } from "lucide-react";

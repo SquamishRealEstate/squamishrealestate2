@@ -27,7 +27,6 @@ function RegisterContent() {
   const redirectTo = `${window.location.origin}${callbackUrl}`;
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -86,12 +85,10 @@ function RegisterContent() {
     setTriedToSubmit(true);
 
     if (!isFormValid) {
-      setError("Please complete all fields and accept the terms.");
       return;
     }
 
     setShowVowModal(true);
-    setError(null);
   };
 
   const finalizeRegistration = async () => {
@@ -111,9 +108,8 @@ function RegisterContent() {
     });
 
     if (authError) {
-      setError(authError.message);
       setLoading(false);
-    } else {
+    } else if (data) {
       router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
     }
   };
@@ -126,7 +122,6 @@ function RegisterContent() {
 
   const handleDisagree = () => {
     setShowVowModal(false);
-    setError("You must accept the VOW terms to create an account.");
   };
 
   // Helper for consistent field styling

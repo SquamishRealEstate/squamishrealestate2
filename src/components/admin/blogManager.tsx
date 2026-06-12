@@ -37,7 +37,6 @@ export default function BlogManager() {
   const [blogIDToDelete, setBlogIDToDelete] = useState<string>();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
 
   const fetchBlogs = useCallback(
     async (isInitial = true) => {
@@ -82,7 +81,6 @@ export default function BlogManager() {
       .eq("id", blogIDToDelete);
     if (!error) {
       setBlogs(blogs.filter((b) => b.id !== blogIDToDelete));
-      setToastMessage("Successfully deleted blog");
       setShowToast(true);
       setBlogIDToDelete("");
       setTimeout(() => setShowToast(false), 3000);

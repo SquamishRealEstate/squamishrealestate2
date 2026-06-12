@@ -9,18 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Map, X, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MapView } from "@/components/Map/Map";
-import type { Listing } from "@/lib/mockData";
-import { mockListings } from "@/lib/mockData";
 
-interface CollapsibleMapProps {
-  listings?: Listing[];
-  onListingClick?: (listing: Listing) => void;
-}
-
-export default function CollapsibleMap({
-  listings = mockListings,
-  onListingClick,
-}: CollapsibleMapProps) {
+export default function CollapsibleMap() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);

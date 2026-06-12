@@ -261,7 +261,6 @@ export const formatTimePST = (timestamp: string): string => {
 };
 
 import { FilterState } from "@/components/ListingFilters";
-import { Console } from "console";
 
 export function serializeFilters(filters: FilterState): string {
   const params = new URLSearchParams();

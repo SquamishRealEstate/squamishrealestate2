@@ -35,7 +35,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
       ? listing.photos[0]
       : "/images/Default-Card.jpg";
 
-  let civicAddress = listing.civic_address;
+  const civicAddress = listing.civic_address;
   const propertiesOnly =
     listing.property_category === "parcel" ||
     listing.property_category === "strata_property";

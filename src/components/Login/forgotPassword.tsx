@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/config/supabaseClient";
-import { Loader2, ArrowRight, Check, X } from "lucide-react";
+import { Loader2, ArrowRight, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
