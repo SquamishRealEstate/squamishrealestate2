@@ -20,6 +20,7 @@ import {
   ArrowRight,
   X,
   Check,
+  Home,
 } from "lucide-react";
 import { AuthGuard } from "../Auth/authGuard";
 import Navbar from "@/components/Navbar";
@@ -28,6 +29,7 @@ import { ReviewCard } from "../Property/PropertyHelpers";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import AddressAutocomplete from "@/components/admin/addressAutocomplete";
+import Link from "next/link";
 
 const PAGE_SIZE = 10;
 
@@ -49,47 +51,64 @@ export default function DashboardWrapper() {
 
 function LoginPrompt() {
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      {/* Container Card using your theme tokens */}
-      <div className="w-full max-w-sm bg-card border border-border rounded-[var(--radius-xl)] shadow-lg p-8 flex flex-col items-center text-center">
-        {/* Decorative Icon */}
-        <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mb-6 border border-border">
-          {/* Using your Primary color for the icon */}
-          <User size={32} className="text-primary" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+      {/* subtle background glow */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+
+      {/* Card */}
+      <div className="relative w-full max-w-md rounded-3xl border border-border bg-card/80 backdrop-blur-xl shadow-xl p-10 flex flex-col items-center text-center">
+        {/* Icon */}
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 border border-primary/10">
+          <User size={30} className="text-primary" />
         </div>
 
-        {/* Headline using your Display font */}
-        <h2 className="font-display text-3xl font-bold text-foreground mb-3">
+        {/* Title */}
+        <h2 className="font-display text-3xl font-bold text-foreground mb-2">
           Welcome Back
         </h2>
 
-        {/* Body using your Body font */}
-        <p className="font-body text-muted-foreground text-sm mb-8 leading-relaxed">
-          Sign in to your account to access your property dashboard.
+        {/* Subtitle */}
+        <p className="text-sm text-muted-foreground mb-8 leading-relaxed">
+          Sign in to access your dashboard, manage your profile, and explore
+          your account.
         </p>
 
-        {/* Primary Action Button */}
-        <a
+        {/* Primary Button */}
+        <Link
           href="/login"
-          className="w-full py-3 px-6 bg-primary text-primary-foreground rounded-[var(--radius-md)] font-semibold transition-all hover:opacity-90 hover:shadow-md active:scale-95"
+          className="w-full group inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-primary text-primary-foreground font-semibold shadow-sm hover:shadow-md hover:opacity-95 transition-all active:scale-[0.98]"
         >
           Sign In
-        </a>
+          <ArrowRight
+            size={16}
+            className="group-hover:translate-x-0.5 transition-transform"
+          />
+        </Link>
 
-        {/* Secondary Action */}
+        {/* Secondary Button */}
+        <Link
+          href="/"
+          className="w-full mt-3 inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl border border-border text-foreground font-medium hover:bg-muted transition-all active:scale-[0.98]"
+        >
+          <Home size={16} />
+          Go to Home
+        </Link>
+
+        {/* Footer */}
         <p className="mt-6 text-xs text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <a
-            href="/signup"
-            className="text-accent font-semibold hover:underline"
+          Don’t have an account?{" "}
+          <Link
+            href="/register"
+            className="text-accent font-medium hover:underline"
           >
-            Create an account
-          </a>
+            Create one
+          </Link>
         </p>
       </div>
     </div>
   );
 }
+
 function DashboardContent({ user }: { user: any }) {
   const [activeTab, setActiveTab] = useState("Messages");
 
@@ -156,6 +175,7 @@ function DashboardContent({ user }: { user: any }) {
         query = supabase
           .from("inquiries")
           .select("*", { count: "exact" })
+          .eq("email", user?.email)
           .order("created_at", { ascending: false });
       } else if (tabName === "Reviews") {
         query = supabase
