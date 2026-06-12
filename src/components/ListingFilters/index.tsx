@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce"; // Adjust import path as needed
+import { Input } from "@/components/ui/input";
 
 export type FilterState = {
   propertiesOnly: boolean;
@@ -38,7 +39,7 @@ export function ListingFilters({
     initialValues.propertiesOnly,
   );
 
-  // Raw local input states
+  // Raw local Input states
   const [searchQuery, setSearchQuery] = useState(initialValues.searchQuery);
   const [category, setCategory] = useState<string[]>(initialValues.category);
   const [status, setStatus] = useState<string[]>(initialValues.status);
@@ -144,7 +145,7 @@ export function ListingFilters({
           </p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
-          <input
+          <Input
             type="checkbox"
             className="sr-only peer"
             checked={propertiesOnly}
@@ -169,7 +170,7 @@ export function ListingFilters({
           Location / Keywords
         </label>
         <div className="relative">
-          <input
+          <Input
             type="text"
             placeholder="Search address, MLS® number, or neighborhood..."
             value={searchQuery}
@@ -277,20 +278,20 @@ export function ListingFilters({
               Price Range
             </label>
             <div className="flex items-center space-x-2">
-              <input
+              <Input
                 type="number"
                 placeholder="$ Min"
                 value={minPrice}
                 onChange={(e) => setMinPrice(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50/50"
               />
               <span className="text-gray-300 text-xs font-bold">to</span>
-              <input
+              <Input
                 type="number"
                 placeholder="$ Max"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50/50"
               />
             </div>
           </div>
@@ -368,19 +369,19 @@ export function ListingFilters({
               Floor Area (sqft)
             </label>
             <div className="flex items-center space-x-2">
-              <input
+              <Input
                 type="number"
                 placeholder="Min"
                 value={minArea}
                 onChange={(e) => setMinArea(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
               />
-              <input
+              <Input
                 type="number"
                 placeholder="Max"
                 value={maxArea}
                 onChange={(e) => setMaxArea(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
               />
             </div>
           </div>
@@ -389,19 +390,19 @@ export function ListingFilters({
               Lot Size (sqft)
             </label>
             <div className="flex items-center space-x-2">
-              <input
+              <Input
                 type="number"
                 placeholder="Min"
                 value={minLot}
                 onChange={(e) => setMinLot(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
               />
-              <input
+              <Input
                 type="number"
                 placeholder="Max"
                 value={maxLot}
                 onChange={(e) => setMaxLot(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
               />
             </div>
           </div>
@@ -410,19 +411,19 @@ export function ListingFilters({
               Year Built
             </label>
             <div className="flex items-center space-x-2">
-              <input
+              <Input
                 type="number"
                 placeholder="Min"
                 value={minYear}
                 onChange={(e) => setMinYear(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
               />
-              <input
+              <Input
                 type="number"
                 placeholder="Max"
                 value={maxYear}
                 onChange={(e) => setMaxYear(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
+                className="w-full h-10 border border-gray-200 rounded-xl px-3 py-2 text-sm bg-gray-50/50"
               />
             </div>
           </div>

@@ -20,6 +20,7 @@ import {
 import { Button } from "../ui/button";
 import Link from "next/link";
 import { ContactItem } from "../Contact";
+import { Input } from "@/components/ui/input";
 // export function ListingGallery({ listing }: { listing: any }) {
 //   const rawPhotos = listing?.photos || [];
 
@@ -559,7 +560,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
     const hasInteracted = value.length > 0 || triedToSubmit;
     return {
       showError: hasInteracted && !isValid,
-      className: `w-full bg-muted/5 border rounded-lg p-3.5 pl-11 text-sm transition-all outline-none ${
+      className: `h-12 w-full bg-muted/5 border rounded-lg p-3.5 pl-11 text-sm transition-all outline-none ${
         hasInteracted && !isValid
           ? "border-destructive ring-2 ring-destructive/20 animate-shake"
           : "border-border focus:border-primary focus:ring-1 focus:ring-primary"
@@ -799,7 +800,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="name"
               placeholder="John Doe"
               value={formData.name}
@@ -821,7 +822,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="email"
               value={formData.email}
               onChange={handleInputChange}
@@ -844,7 +845,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="phone"
               placeholder="123-456-7890"
               value={formData.phone}
@@ -863,7 +864,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
 
         {/* TERMS CHECKBOX */}
         <div className="relative flex gap-x-3 items-center pt-2 pl-1">
-          <input
+          <Input
             id="agreeToTerms"
             name="agreeToTerms"
             type="checkbox"
@@ -1026,7 +1027,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
     return {
       showError: hasInteracted && !isValid,
       // Dynamically toggle between pl-11 (for icons) and px-4 (for normal inputs/textareas)
-      className: `w-full bg-muted/5 border rounded-lg p-3.5 text-sm transition-all outline-none ${
+      className: `h-12 w-full bg-muted/5 border rounded-lg p-3.5 text-sm transition-all outline-none ${
         hasIcon ? "pl-11" : "px-4"
       } ${
         hasInteracted && !isValid
@@ -1093,7 +1094,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="name"
               placeholder="John Doe"
               value={formData.name}
@@ -1115,7 +1116,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="email"
               value={formData.email}
               onChange={handleInputChange}
@@ -1156,7 +1157,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
 
         {/* TERMS CHECKBOX */}
         <div className="relative flex gap-x-3 items-center pt-2 pl-1">
-          <input
+          <Input
             id="agreeToTerms"
             name="agreeToTerms"
             type="checkbox"
@@ -1336,7 +1337,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
     return {
       showError: hasInteracted && !isValid,
       // Dynamically toggle between pl-11 (for icons) and px-4 (for normal inputs/textareas)
-      className: `w-full bg-muted/5 border rounded-lg p-3.5 text-sm transition-all outline-none ${
+      className: `h-12 w-full bg-muted/5 border rounded-lg p-3.5 text-sm transition-all outline-none ${
         hasIcon ? "pl-11" : "px-4"
       } ${
         hasInteracted && !isValid
@@ -1360,7 +1361,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="name"
               placeholder="John Doe"
               value={formData.name}
@@ -1382,7 +1383,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="email"
               value={formData.email}
               onChange={handleInputChange}
@@ -1404,7 +1405,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="purchasePrice"
               value={formData.purchasePrice}
               onChange={handleInputChange}
@@ -1430,7 +1431,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
           </label>
           <div className="relative">
             <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-            <input
+            <Input
               name="deposit"
               value={formData.deposit}
               onChange={handleInputChange}
@@ -1472,7 +1473,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
 
         {/* TERMS CHECKBOX */}
         <div className="relative flex gap-x-3 items-center pt-2 pl-1">
-          <input
+          <Input
             id="agreeToTerms"
             name="agreeToTerms"
             type="checkbox"

@@ -5,6 +5,7 @@ import { supabase } from "@/config/supabaseClient";
 import { Loader2, ArrowRight, Check, X } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -91,9 +92,9 @@ export default function ForgotPassword() {
 
         <form onSubmit={handleReset} className="space-y-5">
           <div className="space-y-1.5">
-            <input
+            <Input
               name="email"
-              className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all outline-none"
+              className="w-full h-12 px-4 py-3 rounded-xl border border-border bg-muted/40 focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all outline-none"
               placeholder="alex@example.com"
               onChange={handleChange}
             />

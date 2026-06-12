@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 export default function UpdatePassword() {
   const [password, setPassword] = useState("");
@@ -166,9 +167,9 @@ export default function UpdatePassword() {
               New Password
             </label>
             <div className="relative">
-              <input
+              <Input
                 type={showPassword ? "text" : "password"}
-                className={`w-full px-4 py-3.5 rounded-xl border transition-all outline-none bg-slate-50/50 focus:ring-2 ${
+                className={`w-full h-12 px-4 py-3.5 rounded-xl border transition-all outline-none bg-slate-50/50 focus:ring-2 ${
                   triedToSubmit && !allPasswordMet
                     ? "border-rose-500 ring-rose-500/10 animate-shake"
                     : "border-slate-200 focus:ring-primary/20 focus:border-primary"

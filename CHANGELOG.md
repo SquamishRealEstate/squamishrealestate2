@@ -30,3 +30,4 @@
 - Implemented All Listings Page with Filters and Pagination ; added search properies only option
 - Added Recent Solds and Latest Listings Component under Property Detail Page
 - Modified Featured Property Management under Admin
+- Added User Dashboard

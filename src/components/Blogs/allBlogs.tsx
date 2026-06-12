@@ -16,8 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import HomeButton from "../ui/homeButton";
-
+import { Input } from "@/components/ui/input";
 export const AllBlogs = () => {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [filteredBlogs, setFilteredBlogs] = useState<any[]>([]);
@@ -85,15 +84,42 @@ export const AllBlogs = () => {
           {/* Search Bar - Sophisticated width and height */}
           <div className="max-w-lg mx-auto relative group">
             <Search
-              className="absolute left-5 top-1/2 -translate-y-1/2 text-primary-foreground/30 group-focus-within:text-accent transition-colors"
               size={18}
+              className="
+    absolute left-5 top-1/2 -translate-y-1/2
+    z-20
+    text-white
+    opacity-90
+    pointer-events-none
+  "
             />
-            <input
+
+            <Input
               type="text"
               placeholder="Search the archive..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-primary-foreground/[0.08] border border-primary-foreground/10 backdrop-blur-lg rounded-full py-4 pl-12 pr-6 text-primary-foreground placeholder:text-primary-foreground/30 focus:outline-none focus:ring-1 focus:ring-accent/40 transition-all font-body text-sm"
+              onChange={(e: any) => setSearchQuery(e.target.value)}
+              className="
+      w-full
+      h-12
+      rounded-full
+      bg-primary-foreground/[0.08]
+      border border-primary-foreground/10
+      backdrop-blur-lg
+
+      pl-12 pr-6
+
+      text-primary-foreground
+      placeholder:text-primary-foreground/30
+
+      focus-visible:ring-1
+      focus-visible:ring-accent/40
+      focus-visible:border-accent/40
+
+      transition-all
+      font-body
+      text-sm
+    "
             />
           </div>
         </div>
