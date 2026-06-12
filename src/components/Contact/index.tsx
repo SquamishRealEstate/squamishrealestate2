@@ -19,6 +19,7 @@ import {
 import HomeButton from "../ui/homeButton";
 import { Button } from "../ui/button";
 import { supabase } from "@/config/supabaseClient";
+import { Input } from "../ui/input";
 
 export default function Contact() {
   const [loading, setLoading] = useState(false);
@@ -232,11 +233,11 @@ export default function Contact() {
                     <label className="text-sm font-semibold text-slate-700 ml-1">
                       Full Name
                     </label>
-                    <input
-                      className={
+                    <Input
+                      className={`h-12 ${
                         getFieldStatus(validations.name, formData.name)
                           .className
-                      }
+                      }`}
                       value={formData.name}
                       name="name"
                       placeholder="Your Name"
@@ -254,11 +255,11 @@ export default function Contact() {
                     <label className="text-sm font-semibold text-slate-700 ml-1">
                       Email Address
                     </label>
-                    <input
-                      className={
+                    <Input
+                      className={`h-12 ${
                         getFieldStatus(validations.email, formData.email)
                           .className
-                      }
+                      }`}
                       value={formData.email}
                       name="email"
                       placeholder="email@example.com"
