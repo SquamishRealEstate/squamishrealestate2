@@ -1,6 +1,6 @@
 import axios from "axios";
-import dns from "node:dns";
-import dotenv from "dotenv";
+import * as dns from "node:dns"; // 🌟 Changed to wildcard import
+import * as dotenv from "dotenv";
 
 // 1. Initialize dotenv immediately
 dotenv.config();
@@ -211,6 +211,7 @@ async function fetchFromBridge(structureType: string, fields: string[]) {
     const data = response.data.value;
 
     allListings = allListings.concat(data);
+
     console.log(`✅ Fetched ${allListings.length} total...`);
 
     if (data.length < 200) break;
@@ -423,6 +424,7 @@ async function enrichAndSyncListings(
       ) {
         listingRecord.zone_code = parcel.zone_code;
         listingRecord.zone_desc = parcel.zone_desc;
+        listingRecord.civic_address = parcel.civic_address; // Use the formatted civic address
       } else if (listingType === "strata") {
         listingRecord.zoning = parcel.zoning; // Strata uses 'zoning'
         listingRecord.gis_id = parcel.gis_id; // Added GISID for strata

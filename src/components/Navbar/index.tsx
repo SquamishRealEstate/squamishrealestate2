@@ -53,17 +53,20 @@ export default function Navbar() {
           <a
             href="/properties"
             className="text-sm font-medium hover:text-primary transition-colors"
+            target="_blank"
           >
             Properties
           </a>
           <a
-            href="#neighborhoods"
+            href="/neighborhoods"
             className="text-sm font-medium hover:text-primary transition-colors"
+            target="_blank"
           >
             Neighborhoods
           </a>
           <a
             href="/blogs"
+            target="_blank"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Local News
@@ -125,14 +128,16 @@ export default function Navbar() {
         <div className="p-6 flex flex-col gap-1">
           {/* Links with background on hover/active */}
           <a
-            href="#properties"
+            href="/properties"
+            target="_blank"
             onClick={() => setIsMenuOpen(false)}
             className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >
             Properties
           </a>
           <a
-            href="#neighborhoods"
+            href="/neighborhoods"
+            target="_blank"
             onClick={() => setIsMenuOpen(false)}
             className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >
@@ -140,6 +145,7 @@ export default function Navbar() {
           </a>
           <a
             href="/blogs"
+            target="_blank"
             onClick={() => setIsMenuOpen(false)}
             className="px-4 py-3 text-base font-medium text-slate-700 hover:bg-slate-50 rounded-lg"
           >

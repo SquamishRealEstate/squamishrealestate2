@@ -31,6 +31,8 @@ import { Slider } from "@/components/ui/slider"; // Assuming a Radix-based UI sl
 import { Star, Upload, Send, Loader2, FileText } from "lucide-react";
 import { supabase } from "@/config/supabaseClient"; // Ensure this import
 import { Button } from "../ui/button";
+import { ListingCard } from "@/components/ListingCard";
+import { AuthGuard } from "../Auth/authGuard";
 import Link from "next/link";
 import { Input } from "../ui/input";
 
@@ -1027,8 +1029,176 @@ export const Photos = ({ photos }: { photos: any[] }) => {
   );
 };
 
-export const FloorPlans = () => <div>Floor Plans Component</div>;
+export const FloorPlans = ({
+  property,
+  type,
+  floorPlanDocs,
+}: {
+  property: any;
+  type: string;
+  floorPlanDocs: any;
+}) => {
+  const floorNames = ["first", "second", "third", "fourth"];
+
+  // Track open states for accordions
+  const [openAccordions, setOpenAccordions] = useState<{
+    [key: number]: boolean;
+  }>({
+    0: true,
+  });
+
+  // Track which image URL is currently active in full-screen modal view
+  const [modalImage, setModalImage] = useState<string | null>(null);
+
+  const toggleAccordion = (index: number) => {
+    setOpenAccordions((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  return (
+    <div className="mt-4">
+      {floorPlanDocs.length > 0 ? (
+        floorPlanDocs.map((doc: any, index: any) => {
+          // Get the current floor name based on the index
+          const currentFloorName = floorNames[index];
+          console.log("Current floor name: " + currentFloorName);
+
+          // Determine the value to display based on the current floor's value
+          let displayValue = property[currentFloorName + "_floor"];
+
+          console.log("Display value: " + displayValue);
+          // Check if the current floor value is 0 and determine the next one to display
+          if (
+            currentFloorName === "second" &&
+            displayValue === "0" &&
+            index + 1 < floorNames.length
+          ) {
+            console.log(
+              "Second floor value is 0 - " + property["third_floor"],
+            ) +
+              " " +
+              property["second_floor"];
+            displayValue = property["third_floor"];
+          }
+
+          if (currentFloorName === "third") {
+            // If SecondFloor is 0, display FourthFloor for ThirdFloor
+            if (property["second_floor"] === "0") {
+              displayValue = property["fourth_floor"];
+            }
+            // If ThirdFloor is 0, display FourthFloor
+            else if (displayValue === "0") {
+              displayValue = property["fourth_floor"];
+            }
+          }
+
+          const isOpen = !!openAccordions[index];
+          return (
+            <div
+              className="bg-white shadow-sm rounded-none overflow-hidden"
+              key={index}
+            >
+              {/* Accordion Header */}
+              <button
+                type="button"
+                onClick={() => toggleAccordion(index)}
+                className={`w-full flex justify-between items-center px-6 py-4 transition-all duration-300 ${
+                  isOpen
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-white text-foreground hover:bg-muted"
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <span className="font-bold uppercase tracking-[0.12em] text-[11px] md:text-xs">
+                    Floor {index + 1}
+                  </span>
+                  <span className="text-xs opacity-70 normal-case tracking-normal">
+                    <span className="hidden md:inline">Sqft: </span>
+                    {displayValue !== 0 && displayValue !== null
+                      ? `${displayValue} sf`
+                      : "-"}
+                  </span>
+                </div>
+
+                <span
+                  className={`transform transition-transform duration-300 font-bold text-sm ${
+                    isOpen ? "rotate-180" : ""
+                  }`}
+                >
+                  {isOpen ? "−" : "+"}
+                </span>
+              </button>
+
+              {/* Accordion Content */}
+              {isOpen && (
+                <div className="p-6 border-t border-border animate-in slide-in-from-top-2 duration-300">
+                  {/* Container increased in size to allow large visual layout */}
+                  <div className="flex flex-col items-center w-full group">
+                    <button
+                      type="button"
+                      onClick={() => setModalImage(doc)}
+                      className="relative w-full max-w-[600px] bg-gray-50 p-4 border border-dashed border-gray-200 rounded-sm hover:border-gray-400 transition-colors cursor-zoom-in overflow-hidden focus:outline-none"
+                      title="Click to view full screen"
+                    >
+                      <img
+                        src={doc}
+                        className="block mx-auto max-w-full h-auto max-h-[450px] object-contain transition-transform duration-300 group-hover:scale-[1.01]"
+                        alt={`Floor Plan ${index + 1}`}
+                        onError={(e) =>
+                          console.error("Image failed to load:", doc)
+                        }
+                      />
+
+                      {/* Interactive visual hint for user to click to expand */}
+                      <div className="absolute bottom-3 right-3 bg-black/70 text-white text-[10px] uppercase font-bold tracking-wider px-2 py-1 rounded backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                        🔍 Click to Zoom
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })
+      ) : (
+        <p>No floor plans available.</p> // Optional message for no data
+      )}
+      {/* LIGHTBOX OVERLAY MODAL */}
+      {modalImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 animate-in fade-in duration-200 cursor-zoom-out"
+          onClick={() => setModalImage(null)}
+        >
+          {/* Close Button UI */}
+          <button
+            type="button"
+            className="absolute top-6 right-6 text-white text-3xl font-light hover:text-gray-300 focus:outline-none"
+            onClick={() => setModalImage(null)}
+          >
+            &times;
+          </button>
+
+          {/* Enlarged Blueprint View Box */}
+          <div
+            className="max-w-5xl max-h-[90vh] flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()} // Stop closing click bubble
+          >
+            <img
+              src={modalImage}
+              className="max-w-full max-h-[85vh] object-contain rounded-sm select-none shadow-2xl animate-in zoom-in-95 duration-200"
+              alt="Enlarged Floor Plan View"
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const NearbyPhotos = () => <div>Nearby Photos Component</div>;
+
 export const BCAssessment = ({
   property,
   type,
@@ -1765,9 +1935,9 @@ export const ReportAnIssueForm = ({
   return (
     <div
       ref={reportRef}
-      className="mb-4 mx-auto space-y-4 antialiased font-body"
+      className="max-w-2xl mb-4 mx-auto space-y-4 antialiased font-body px-2"
     >
-      <div className="p-8 rounded-xl bg-white border border-border">
+      <div className="p-8 rounded-xl bg-white border border-border shadow-sm">
         <div className="flex items-center gap-2">
           <AlertCircle size={20} className="text-accent" />
           <h5 className="font-bold text-primary font-display tracking-tight">
@@ -2087,5 +2257,43 @@ export const ThinkingOfSelling = () => {
         </form>
       </div>
     </div>
+  );
+};
+
+export const Listing = ({ listing }: { listing: any }) => {
+  return (
+    <AuthGuard renderPrivate={false}>
+      {(user, loginUI) => {
+        const isActive = listing?.market_status?.toLowerCase() === "active";
+
+        if (!isActive && !user) {
+          return (
+            <div className="max-w-2xl mb-4 mx-auto space-y-4 antialiased font-body px-2">
+              <div className="p-8 rounded-xl bg-white border border-border shadow-sm">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Listing
+                </h3>
+                <p className="text-muted-foreground">
+                  This listing is currently{" "}
+                  <span className="font-bold">{listing.market_status}</span>.
+                </p>
+                {loginUI}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="max-w-2xl mb-4 mx-auto space-y-4 antialiased font-body px-2">
+            <div className="p-8 rounded-xl bg-white border border-border shadow-sm">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Listing</h3>
+              <div className="max-w-sm">
+                <ListingCard listing={listing} />
+              </div>
+            </div>
+          </div>
+        );
+      }}
+    </AuthGuard>
   );
 };

@@ -19,6 +19,8 @@ import {
   formatPrice,
   getBathrooms,
   formatNumber,
+  cleanStreetName,
+  preloadImage,
 } from "@/lib/utils";
 import { supabase } from "@/config/supabaseClient";
 import { popupStyles } from "./popupStyles";
@@ -27,7 +29,7 @@ import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
 
-const flyToCenter: LngLatLike = [-123.152797, 49.699331];
+const defaultSquamishCenter: LngLatLike = [-123.152797, 49.699331];
 
 // Define property types globally so both components can use it safely
 export type PropertyType = "detached" | "strata" | "multifamily" | "land";
@@ -41,9 +43,14 @@ export type MarketStatusType =
 interface MapViewProps {
   className?: string;
   onMapReady?: (map: mapboxgl.Map) => void;
+  center?: LngLatLike;
 }
 
-export function MapView({ className, onMapReady }: MapViewProps) {
+export function MapView({
+  className,
+  onMapReady,
+  center = defaultSquamishCenter,
+}: MapViewProps) {
   return (
     <AuthGuard renderPrivate={false}>
       {(user) => {
@@ -54,6 +61,7 @@ export function MapView({ className, onMapReady }: MapViewProps) {
             isLoggedIn={isLoggedIn}
             className={className}
             onMapReady={onMapReady}
+            center={center}
           />
         );
       }}
@@ -61,20 +69,18 @@ export function MapView({ className, onMapReady }: MapViewProps) {
   );
 }
 
-// ----------------------------------------------------------------------
-// Sub-Component cleanly handling the UI layout and Live Map Sync
-// ----------------------------------------------------------------------
-
 interface MapInnerLayoutProps {
   isLoggedIn: boolean;
   className?: string;
   onMapReady?: (map: mapboxgl.Map) => void;
+  center?: LngLatLike;
 }
 
 function MapInnerLayout({
   isLoggedIn,
   className,
   onMapReady,
+  center,
 }: MapInnerLayoutProps) {
   const router = useRouter();
   const mapContainer = useRef<HTMLDivElement | null>(null);
@@ -297,10 +303,10 @@ function MapInnerLayout({
 
     try {
       const { data, error } = await supabase.rpc("get_listings_in_bounds", {
-        min_lat: sw.lat.toString(),
-        max_lat: ne.lat.toString(),
-        min_lng: sw.lng.toString(),
-        max_lng: ne.lng.toString(),
+        min_lat: sw.lat.toString().trim(),
+        max_lat: ne.lat.toString().trim(),
+        min_lng: sw.lng.toString().trim(),
+        max_lng: ne.lng.toString().trim(),
         table_name: tableMapping[type],
       });
 
@@ -332,6 +338,32 @@ function MapInnerLayout({
     }
   };
 
+  const getCardImage = (property: any, type: PropertyType) => {
+    const PARCELS_BUCKET_NAME = "streetview";
+    const STRATA_BUCKET_NAME = "strata";
+
+    const localDefaultPlaceholder = "/images/Default-Card.jpg";
+
+    if (!property || !property.civic_address) return localDefaultPlaceholder;
+
+    if (type === "detached" || type === "multifamily" || type === "land") {
+      const rawAddress = property.civic_address.trim();
+      const firstSpace = rawAddress.indexOf(" ");
+      if (firstSpace === -1) return localDefaultPlaceholder;
+
+      const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
+      const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
+
+      const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
+
+      // Construct path with clean title case variables and the .webp extension
+      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/card/${streetNumber}-${cleanedStreet}.webp`;
+      console.log("Constructed image path:", card_image_path);
+      return encodeURI(card_image_path);
+    }
+    return localDefaultPlaceholder;
+  };
+
   const createListingPopupContent = async (
     listing: any,
     type: PropertyType,
@@ -350,8 +382,19 @@ function MapInnerLayout({
     let innerHTML = "";
     if (type === "detached" || type === "multifamily" || type === "land") {
       const targetUrl = `/listing/landing/${type}/${listing.pid}/${formatString(listing.civic_address)}`;
+      const localDefaultPlaceholder = "/images/Default-Card.jpg";
+
+      // Assumes getCardImage is imported or declared in your file
+      const imgSrc = getCardImage(listing, type);
+      await preloadImage(imgSrc);
       innerHTML = `
-        <img src="/images/Default-Card.jpg" alt="Property Image" width="1000" height="600" />
+          <img
+      src="${imgSrc}"
+      alt="${listing.civic_address || "Property preview"}"
+      class="h-48 w-full object-cover transition-opacity duration-300"
+      loading="lazy"
+      onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
+    />
         <div class="bottom-left">
         <p>
          ${formatPrice(listing.asking_price)}<br/>
@@ -428,10 +471,10 @@ function MapInnerLayout({
     return container;
   };
 
-  const createPropertyPopupContent = (
+  const createPropertyPopupContent = async (
     result: any,
     type: "detached" | "strata",
-  ): HTMLDivElement => {
+  ): Promise<HTMLDivElement> => {
     const container = document.createElement("div");
     container.className = "popup-clickable-container";
     container.style.cursor = "pointer";
@@ -440,8 +483,19 @@ function MapInnerLayout({
     if (type === "detached") {
       const property = result.property;
       const targetUrl = `/property/landing/detached/${property.pid}/${formatString(property.civic_address)}`;
+      const localDefaultPlaceholder = "/images/Default-Card.jpg";
+
+      // Assumes getCardImage is imported or declared in your file
+      const imgSrc = getCardImage(property, type);
+      await preloadImage(imgSrc);
       innerHTML = `
-        <img src="/images/Default-Card.jpg" alt="Property Image" width="1000" height="600" />
+          <img
+      src="${imgSrc}"
+      alt="${property.civic_address || "Property preview"}"
+      class="h-48 w-full object-cover transition-opacity duration-300"
+      loading="lazy"
+      onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
+    />
         <div class="bottom-left">
         <p>
           ${property.civic_address}<br/>
@@ -554,7 +608,7 @@ function MapInnerLayout({
     mapRef.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/nmandiveyi/ckwmqtgv305f514mnn23k7yax",
-      center: flyToCenter,
+      center: center,
       zoom: 16,
       bearing: 0,
       pitch: 0,
@@ -630,7 +684,7 @@ function MapInnerLayout({
 
       if (!getProperty) return;
 
-      const popupContent = createPropertyPopupContent(
+      const popupContent = await createPropertyPopupContent(
         getProperty,
         propertyType,
       );
