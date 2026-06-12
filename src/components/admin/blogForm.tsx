@@ -261,7 +261,7 @@ export default function BlogForm({
                   onClick={() => fileInputRef.current?.click()}
                   className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group"
                 >
-                  <input
+                  <Input
                     type="file"
                     hidden
                     ref={fileInputRef}

@@ -34,6 +34,7 @@ import { Button } from "../ui/button";
 import { ListingCard } from "@/components/ListingCard";
 import { AuthGuard } from "../Auth/authGuard";
 import Link from "next/link";
+import { Input } from "../ui/input";
 
 /** 1. Back to Map Button **/
 export const BackToMapButton = ({ onClick }: { onClick: () => void }) => (
@@ -263,7 +264,7 @@ export const SocialInteractions = ({
   );
 };
 
-const ReviewCard = ({ review }: { review: any }) => {
+export const ReviewCard = ({ review }: { review: any }) => {
   const [photoIndex, setPhotoIndex] = useState(0);
   const hasMultiplePhotos = review.photo_urls?.length > 1;
 
@@ -1665,12 +1666,12 @@ export const ReviewForm = ({
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground font-mono">
                 $
               </span>
-              <input
+              <Input
                 name="estimateValue"
                 value={formData.estimateValue}
                 onChange={handleInputChange}
                 placeholder="0,000,000"
-                className={`${getFieldStatus(validations.estimateValue, formData.estimateValue).className} pl-8 font-bold font-mono`}
+                className={`${getFieldStatus(validations.estimateValue, formData.estimateValue).className} h-12 pl-8 font-bold font-mono`}
               />
             </div>
             {(getFieldStatus(validations.estimateValue, formData.estimateValue)
@@ -1709,7 +1710,7 @@ export const ReviewForm = ({
 
           {/* File Upload */}
           <label className="group relative border-2 border-dashed border-border p-8 text-center hover:border-primary transition-colors cursor-pointer bg-muted/5 block">
-            <input
+            <Input
               type="file"
               multiple
               onChange={handleFileChange}
@@ -2155,17 +2156,17 @@ export const ThinkingOfSelling = () => {
             </label>
             <div className="relative">
               <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-              <input
+              <Input
                 name="propertyOwner"
                 value={formData.propertyOwner}
                 onChange={handleInputChange}
                 placeholder="John Doe"
-                className={
+                className={`h-12 ${
                   getFieldStatus(
                     validations.propertyOwner,
                     formData.propertyOwner,
                   ).className
-                }
+                }`}
               />
             </div>
             {getFieldStatus(validations.propertyOwner, formData.propertyOwner)
@@ -2183,15 +2184,15 @@ export const ThinkingOfSelling = () => {
             </label>
             <div className="relative">
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-              <input
+              <Input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="john@example.com"
-                className={
+                className={`h-12 ${
                   getFieldStatus(validations.email, formData.email).className
-                }
+                }`}
               />
             </div>
             {getFieldStatus(validations.email, formData.email).showError && (
@@ -2208,17 +2209,17 @@ export const ThinkingOfSelling = () => {
             </label>
             <div className="relative">
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
-              <input
+              <Input
                 name="propertyAddress"
                 value={formData.propertyAddress}
                 onChange={handleInputChange}
                 placeholder="123 Squamish Way"
-                className={
+                className={`h-12 ${
                   getFieldStatus(
                     validations.propertyAddress,
                     formData.propertyAddress,
                   ).className
-                }
+                }`}
               />
             </div>
             {getFieldStatus(

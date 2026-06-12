@@ -132,15 +132,17 @@ export function ListingCard({ listing }: { listing: Listing }) {
                   </div>
                 </>
               )}
-              {listing.total_floor_area && (
+              {
                 <div>
                   📐{" "}
                   <span className="font-black text-gray-800">
-                    {listing.total_floor_area.toLocaleString()}
+                    {listing.total_floor_area
+                      ? listing.total_floor_area.toLocaleString()
+                      : "—"}
                   </span>{" "}
                   sqft
                 </div>
-              )}
+              }
 
               {listing.lot_size && (
                 <div>

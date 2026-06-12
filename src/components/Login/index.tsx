@@ -7,6 +7,7 @@ import { supabase } from "@/config/supabaseClient";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import HomeButton from "../ui/homeButton";
+import { Input } from "../ui/input";
 
 // Separate the content to avoid SSR issues with useSearchParams
 function LoginContent() {
@@ -132,11 +133,11 @@ function LoginContent() {
               <label className="block text-sm font-semibold text-slate-700">
                 Email Address
               </label>
-              <input
+              <Input
                 type="email"
                 name="email"
                 autoComplete="email"
-                className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 focus:ring-2 focus:ring-ring/30 outline-none transition-all"
+                className="w-full h-12 px-4 py-3 rounded-xl border border-border bg-muted/40 focus:ring-2 focus:ring-ring/30 outline-none transition-all"
                 placeholder="alex@example.com"
                 onChange={handleChange}
                 required
@@ -156,11 +157,11 @@ function LoginContent() {
                 </Link>
               </div>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   autoComplete="current-password"
-                  className="w-full px-4 py-3 rounded-xl border border-border bg-muted/40 focus:ring-2 focus:ring-ring/30 outline-none transition-all"
+                  className="w-full h-12 px-4 py-3 rounded-xl border border-border bg-muted/40 focus:ring-2 focus:ring-ring/30 outline-none transition-all"
                   placeholder="••••••••"
                   onChange={handleChange}
                   required

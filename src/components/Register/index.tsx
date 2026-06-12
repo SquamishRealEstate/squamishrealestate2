@@ -16,6 +16,7 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import VowModal from "@/components/Register/vowModal";
 import HomeButton from "../ui/homeButton";
+import { Input } from "../ui/input";
 
 function RegisterContent() {
   const router = useRouter();
@@ -133,7 +134,7 @@ function RegisterContent() {
     const hasInteracted = value.length > 0 || triedToSubmit;
     return {
       showError: hasInteracted && !isValid,
-      className: `w-full px-4 py-3 rounded-xl border transition-all outline-none bg-muted/40 focus:ring-2 ${
+      className: `w-full h-12 px-4 py-3 rounded-xl border transition-all outline-none bg-muted/40 focus:ring-2 ${
         hasInteracted && !isValid
           ? "border-destructive ring-destructive/20 animate-shake"
           : "border-border focus:ring-ring/30 focus:border-primary"
@@ -203,7 +204,7 @@ function RegisterContent() {
                 <label className="text-sm font-semibold text-slate-700">
                   First Name
                 </label>
-                <input
+                <Input
                   name="firstName"
                   className={
                     getFieldStatus(validations.firstName, formData.firstName)
@@ -223,7 +224,7 @@ function RegisterContent() {
                 <label className="text-sm font-semibold text-slate-700">
                   Last Name
                 </label>
-                <input
+                <Input
                   name="lastName"
                   className={
                     getFieldStatus(validations.lastName, formData.lastName)
@@ -246,7 +247,7 @@ function RegisterContent() {
               <label className="text-sm font-semibold text-slate-700">
                 Email Address
               </label>
-              <input
+              <Input
                 name="email"
                 className={
                   getFieldStatus(validations.email, formData.email).className
@@ -281,7 +282,7 @@ function RegisterContent() {
                 Password
               </label>
               <div className="relative">
-                <input
+                <Input
                   type={showPassword ? "text" : "password"}
                   name="password"
                   className={
@@ -340,7 +341,7 @@ function RegisterContent() {
               {/* Terms & Privacy Checkbox */}
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-start">
-                  <input
+                  <Input
                     id="terms"
                     name="agreeToTerms"
                     type="checkbox"
