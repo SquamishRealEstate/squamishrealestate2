@@ -94,7 +94,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-secondary-foreground/20 mt-8 pt-8 text-center text-sm text-secondary-foreground/60">
-          <p>&copy; Sean Brawely PREC* 2024. All rights reserved.</p>
+          <p>&copy; Sean Brawely PREC* 2026. All rights reserved.</p>
         </div>
       </div>
     </footer>

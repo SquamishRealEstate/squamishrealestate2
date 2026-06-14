@@ -7,9 +7,9 @@ import {
   numberWithCommas,
   checkIfEmpty,
   formatString,
-  cleanStreetName,
   preloadImage,
   fetchFloorPlans,
+  getS3Image,
 } from "@/lib/utils";
 import {
   MapPin,
@@ -145,27 +145,27 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
   const localDefaultPlaceholder = "/images/landing.jpg";
 
-  const getLandingImage = (property: any, type: string) => {
-    const PARCELS_BUCKET_NAME = "streetview";
-    if (!property || !property.civic_address) return localDefaultPlaceholder;
+  // const getLandingImage = (property: any, type: string) => {
+  //   const PARCELS_BUCKET_NAME = "streetview";
+  //   if (!property || !property.civic_address) return localDefaultPlaceholder;
 
-    if (type === "detached" || type === "multifamily" || type === "land") {
-      const rawAddress = property.civic_address.trim();
-      const firstSpace = rawAddress.indexOf(" ");
-      if (firstSpace === -1) return localDefaultPlaceholder;
+  //   if (type === "detached" || type === "multifamily" || type === "land") {
+  //     const rawAddress = property.civic_address.trim();
+  //     const firstSpace = rawAddress.indexOf(" ");
+  //     if (firstSpace === -1) return localDefaultPlaceholder;
 
-      const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
-      const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
+  //     const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
+  //     const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
 
-      const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
+  //     const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
 
-      // Construct path with clean title case variables and the .webp extension
-      const landing_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/landing/${streetNumber}-${cleanedStreet}.webp`;
-      console.log("Constructed image path:", landing_image_path);
-      return encodeURI(landing_image_path);
-    }
-    return localDefaultPlaceholder;
-  };
+  //     // Construct path with clean title case variables and the .webp extension
+  //     const landing_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/landing/${streetNumber}-${cleanedStreet}.webp`;
+  //     console.log("Constructed image path:", landing_image_path);
+  //     return encodeURI(landing_image_path);
+  //   }
+  //   return localDefaultPlaceholder;
+  // };
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -296,7 +296,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
   const landingImage = useMemo(() => {
     if (!property) return "/images/landing.jpg";
-    return getLandingImage(property, type);
+    return getS3Image(property, type, "landing");
   }, [property, type]);
 
   useEffect(() => {

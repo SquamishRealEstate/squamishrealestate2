@@ -14,7 +14,7 @@ export const header = `
       style="width: 180px; height: auto; margin: 0 auto; display: block;"
       />
       <p style="margin: 12px 0 0 0; color: #ffffff; font-size: 10px; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; letter-spacing: 0.2em; opacity: 0.8;">
-        Don't Sell Without The Intel
+        Find Your Mountain Home
       </p>
   </div>
 `;

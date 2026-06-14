@@ -116,9 +116,6 @@ export default function FeaturedProperties() {
             <h2 className="text-3xl md:text-4xl font-bold mb-2">
               Featured Properties
             </h2>
-            <p className="text-muted-foreground">
-              Discover our handpicked selection of exceptional homes
-            </p>
           </div>
           <Button variant="outline" asChild>
             <Link href="/properties" target="_blank" rel="noopener noreferrer">

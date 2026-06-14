@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { formatString } from "@/lib/utils";
+import { formatString, getS3Image } from "@/lib/utils";
 
 export type Listing = {
   pid: string;
@@ -30,10 +30,10 @@ export type Listing = {
 };
 
 export function ListingCard({ listing }: { listing: Listing }) {
+  const s3Image = getS3Image(listing, listing.property_category, "card");
+
   const firstPhoto =
-    listing.photos && listing.photos.length > 0
-      ? listing.photos[0]
-      : "/images/Default-Card.jpg";
+    s3Image || listing.photos?.[0] || "/images/Default-Card.jpg";
 
   const civicAddress = listing.civic_address;
   const propertiesOnly =
@@ -68,6 +68,10 @@ export function ListingCard({ listing }: { listing: Listing }) {
               src={firstPhoto}
               alt="Property"
               className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  `${listing.photos?.[0] || "/images/Default-Card.jpg"}`;
+              }}
             />
             {listing.market_status && (
               <span className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">

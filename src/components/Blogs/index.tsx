@@ -25,6 +25,7 @@ interface Blog {
   created_at: string;
   author: string | null;
   image: string | null;
+  slug: string;
 }
 
 const CATEGORY_ICONS: Record<string, React.ReactNode> = {
@@ -78,7 +79,7 @@ export default function Blogs() {
 
       <div className="container relative z-10 mx-auto px-6">
         <h2 className="text-3xl md:text-4xl font-bold text-center mb-16">
-          Explore Our Squamish Blog
+          Squamish Blog
         </h2>
 
         {loading ? (
@@ -88,18 +89,37 @@ export default function Blogs() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {blogs.map((blog) => (
-              <div key={blog.id} className="text-center group">
-                <div className="w-16 h-16 rounded-full bg-primary-foreground/20 flex items-center justify-center mx-auto mb-4 transition-transform group-hover:scale-110">
-                  {/* Render mapped icon, or fallback to FileText if category doesn't match */}
-                  {CATEGORY_ICONS[blog.category] || (
-                    <FileText className="w-8 h-8" />
-                  )}
-                </div>
-                <h3 className="text-xl font-semibold mb-3">{blog.title}</h3>
-                <p className="text-primary-foreground/80 line-clamp-2 italic text-sm">
-                  {blog.content.replace(/<[^>]*>/g, "")}
-                </p>
-                <div className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] opacity-40">
+              <div
+                key={blog.id}
+                className="flex flex-col items-center text-center p-8 rounded-3xl transition-all duration-300"
+              >
+                {/* Wrap only the content in the Link */}
+                <Link
+                  href={`/blog/${blog.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex flex-col items-center"
+                >
+                  {/* ICON */}
+                  <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-6 transition-transform duration-300 group-hover:scale-110 group-hover:bg-white/20">
+                    {CATEGORY_ICONS[blog.category] || (
+                      <FileText className="w-8 h-8" />
+                    )}
+                  </div>
+
+                  {/* TITLE */}
+                  <h3 className="text-xl font-semibold mb-3 text-white group-hover:text-primary-foreground/90 transition-colors">
+                    {blog.title}
+                  </h3>
+
+                  {/* DESCRIPTION */}
+                  <p className="text-white/60 line-clamp-2 italic text-sm leading-relaxed mb-6 group-hover:text-white/90 transition-colors">
+                    {blog.content.replace(/<[^>]*>/g, "")}
+                  </p>
+                </Link>
+
+                {/* META (Not clickable) */}
+                <div className="text-[10px] font-black uppercase tracking-[0.2em] opacity-30">
                   {blog.category} •{" "}
                   {new Date(blog.created_at).toLocaleDateString()}
                 </div>
@@ -114,7 +134,7 @@ export default function Blogs() {
               variant="outline"
               className="bg-transparent border-white/20 hover:bg-white hover:text-primary rounded-full px-8 py-6 font-bold uppercase tracking-widest text-xs"
             >
-              View All Blogs
+              View All Articles
               <ArrowRight className="ml-2 w-4 h-4" />
             </Button>
           </Link>

@@ -152,8 +152,8 @@ function AllListingsPage({ user }: { user: any }) {
     <div className="bg-background min-h-screen">
       <Navbar />
       <div className="pt-32 pb-16 px-6 bg-gray-50 min-h-screen font-sans">
-        <h1 className="text-3xl font-extrabold text-gray-900 mb-8 tracking-tight">
-          Search Squamish Real Estate and Homes for Sale
+        <h1 className="text-2xl font-extrabold text-gray-900 mb-8 tracking-tight">
+          Search Squamish Real Estate
         </h1>
 
         {/* Exact same shared component */}

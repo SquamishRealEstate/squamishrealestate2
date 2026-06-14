@@ -139,9 +139,12 @@ export function ListingFilters({
     <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 space-y-6">
       <div className="flex items-center justify-between bg-gray-50 p-4 rounded-xl border border-gray-100">
         <div>
-          <h3 className="text-sm font-bold text-gray-900">Properties Only</h3>
+          <h3 className="text-sm font-bold text-gray-900">
+            Squamish Properties
+          </h3>
           <p className="text-xs text-gray-500">
-            Search comprehensive parcel and strata data.
+            Search Active Listings (default) or toggle to search off market
+            properties
           </p>
         </div>
         <label className="relative inline-flex items-center cursor-pointer">
@@ -193,7 +196,7 @@ export function ListingFilters({
             <div className="flex flex-wrap gap-2">
               {[
                 { id: "detached", label: "Detached" },
-                { id: "strata", label: "Strata (Condo)" },
+                { id: "strata", label: "Strata" },
                 { id: "multifamily", label: "Multi-Family" },
                 { id: "land", label: "Land" },
               ].map((type) => {
@@ -229,27 +232,44 @@ export function ListingFilters({
             <div className="flex flex-wrap gap-2">
               {[
                 { id: "Active", label: "Active" },
+                { id: "Closed", label: "Sold" },
                 { id: "Pending", label: "Pending" },
                 { id: "Expired", label: "Expired" },
                 { id: "Terminated", label: "Terminated" },
-                { id: "Closed", label: "Closed" },
-                { id: "Cancel Protected", label: "Cancel Protected" },
+                // { id: "Cancel Protected", label: "Cancel Protected" },
               ].map((item) => {
                 const isSelected = user
                   ? status.includes(item.id)
                   : item.id === "Active";
+
+                const handleToggle = () => {
+                  if (item.id === "Terminated") {
+                    if (isSelected) {
+                      // Remove both if currently selected
+                      setStatus(
+                        status.filter(
+                          (s) => s !== "Terminated" && s !== "Cancel Protected",
+                        ),
+                      );
+                    } else {
+                      // Add both if currently not selected
+                      setStatus([...status, "Terminated", "Cancel Protected"]);
+                    }
+                  } else {
+                    // Standard toggle for other items
+                    setStatus(
+                      isSelected
+                        ? status.filter((s) => s !== item.id)
+                        : [...status, item.id],
+                    );
+                  }
+                };
                 return (
                   <button
                     key={item.id}
                     type="button"
                     disabled={!user}
-                    onClick={() =>
-                      setStatus(
-                        isSelected
-                          ? status.filter((s) => s !== item.id)
-                          : [...status, item.id],
-                      )
-                    }
+                    onClick={() => handleToggle()}
                     className={`px-4 py-2 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 ${
                       isSelected
                         ? "bg-primary border-primary text-white shadow-xs"

@@ -1065,23 +1065,16 @@ export const FloorPlans = ({
         floorPlanDocs.map((doc: any, index: any) => {
           // Get the current floor name based on the index
           const currentFloorName = floorNames[index];
-          console.log("Current floor name: " + currentFloorName);
 
           // Determine the value to display based on the current floor's value
           let displayValue = property[currentFloorName + "_floor"];
 
-          console.log("Display value: " + displayValue);
           // Check if the current floor value is 0 and determine the next one to display
           if (
             currentFloorName === "second" &&
             displayValue === "0" &&
             index + 1 < floorNames.length
           ) {
-            console.log(
-              "Second floor value is 0 - " + property["third_floor"],
-            ) +
-              " " +
-              property["second_floor"];
             displayValue = property["third_floor"];
           }
 

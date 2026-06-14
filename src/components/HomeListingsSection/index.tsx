@@ -203,12 +203,9 @@ export function HomeListingsSection({ user }: { user: any }) {
   return (
     <section className="container py-12">
       <div className="mb-6">
-        <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-          Search Squamish Real Estate and Homes for Sale
+        <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          Search Squamish Real Estate
         </h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Use the filters below to preview available real estate listings.
-        </p>
       </div>
 
       {/* Shared Filter component: Updates local home state on submission */}

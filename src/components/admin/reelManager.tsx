@@ -191,9 +191,23 @@ export default function ReelManager() {
                   </div>
 
                   <div className="p-5 space-y-3">
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                      {reel.category || "Uncategorized"}
-                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Array.isArray(reel.category) &&
+                      reel.category.length > 0 ? (
+                        reel.category.map((cat) => (
+                          <span
+                            key={cat}
+                            className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 px-2 py-1 rounded"
+                          >
+                            {cat}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 bg-gray-50 px-2 py-1 rounded">
+                          Featured
+                        </span>
+                      )}
+                    </div>
                     <div>
                       <h4 className="font-bold text-slate-900 flex items-center gap-2">
                         <MapPin size={16} className="text-slate-400" />

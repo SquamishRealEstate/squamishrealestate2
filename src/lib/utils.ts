@@ -356,7 +356,6 @@ export const fetchFloorPlans = async (
   let folderPath = "";
   let targetPrefix = "";
 
-  console.log(property);
   const isDetachedOrLand = ["detached", "multifamily", "land"].some((t) =>
     type.includes(t),
   );
@@ -438,7 +437,6 @@ export const fetchFloorPlans = async (
         return encodeURI(fullPath);
       });
 
-    console.log("Successfully matched floor plan assets:", matchedUrls);
     return matchedUrls;
   } catch (err) {
     console.error(
@@ -447,4 +445,35 @@ export const fetchFloorPlans = async (
     );
     return [];
   }
+};
+
+export const getS3Image = (
+  property: any,
+  propertyType: any,
+  imageType: string,
+) => {
+  const PARCELS_BUCKET_NAME = "streetview";
+
+  if (!property || !property.civic_address) return "";
+
+  if (
+    propertyType === "detached" ||
+    propertyType === "multifamily" ||
+    propertyType === "land" ||
+    propertyType === "parcel"
+  ) {
+    const rawAddress = property.civic_address.trim();
+    const firstSpace = rawAddress.indexOf(" ");
+    if (firstSpace === -1) return "";
+
+    const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
+    const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
+
+    const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
+
+    // Construct path with clean title case variables and the .webp extension
+    const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/${imageType}/${streetNumber}-${cleanedStreet}.webp`;
+    return encodeURI(card_image_path);
+  }
+  return "";
 };
