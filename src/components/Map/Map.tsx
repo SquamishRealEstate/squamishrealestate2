@@ -8,6 +8,13 @@ import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { TooltipArrow } from "@radix-ui/react-tooltip";
+import {
   MapboxStyleDefinition,
   MapboxStyleSwitcherControl,
 } from "mapbox-gl-style-switcher";
@@ -19,8 +26,8 @@ import {
   formatPrice,
   getBathrooms,
   formatNumber,
-  cleanStreetName,
   preloadImage,
+  getS3Image,
 } from "@/lib/utils";
 import { supabase } from "@/config/supabaseClient";
 import { popupStyles } from "./popupStyles";
@@ -89,10 +96,6 @@ function MapInnerLayout({
   // --- MARKET STATUS FILTER STATE ---
   const [selectedStatuses, setSelectedStatuses] = useState<MarketStatusType[]>([
     "Active",
-    "Pending",
-    "Expired",
-    "Terminated",
-    "Closed",
   ]);
 
   const tableMapping: Record<PropertyType, string> = {
@@ -335,30 +338,30 @@ function MapInnerLayout({
     }
   };
 
-  const getCardImage = (property: any, type: PropertyType) => {
-    const PARCELS_BUCKET_NAME = "streetview";
+  // const getCardImage = (property: any, type: PropertyType) => {
+  //   const PARCELS_BUCKET_NAME = "streetview";
 
-    const localDefaultPlaceholder = "/images/Default-Card.jpg";
+  //   const localDefaultPlaceholder = "/images/Default-Card.jpg";
 
-    if (!property || !property.civic_address) return localDefaultPlaceholder;
+  //   if (!property || !property.civic_address) return localDefaultPlaceholder;
 
-    if (type === "detached" || type === "multifamily" || type === "land") {
-      const rawAddress = property.civic_address.trim();
-      const firstSpace = rawAddress.indexOf(" ");
-      if (firstSpace === -1) return localDefaultPlaceholder;
+  //   if (type === "detached" || type === "multifamily" || type === "land") {
+  //     const rawAddress = property.civic_address.trim();
+  //     const firstSpace = rawAddress.indexOf(" ");
+  //     if (firstSpace === -1) return localDefaultPlaceholder;
 
-      const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
-      const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
+  //     const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
+  //     const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
 
-      const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
+  //     const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
 
-      // Construct path with clean title case variables and the .webp extension
-      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/card/${streetNumber}-${cleanedStreet}.webp`;
-      console.log("Constructed image path:", card_image_path);
-      return encodeURI(card_image_path);
-    }
-    return localDefaultPlaceholder;
-  };
+  //     // Construct path with clean title case variables and the .webp extension
+  //     const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/card/${streetNumber}-${cleanedStreet}.webp`;
+  //     console.log("Constructed image path:", card_image_path);
+  //     return encodeURI(card_image_path);
+  //   }
+  //   return localDefaultPlaceholder;
+  // };
 
   const createListingPopupContent = async (
     listing: any,
@@ -381,7 +384,7 @@ function MapInnerLayout({
       const localDefaultPlaceholder = "/images/Default-Card.jpg";
 
       // Assumes getCardImage is imported or declared in your file
-      const imgSrc = getCardImage(listing, type);
+      const imgSrc = getS3Image(listing, type, "card");
       await preloadImage(imgSrc);
       innerHTML = `
           <img
@@ -482,7 +485,7 @@ function MapInnerLayout({
       const localDefaultPlaceholder = "/images/Default-Card.jpg";
 
       // Assumes getCardImage is imported or declared in your file
-      const imgSrc = getCardImage(property, type);
+      const imgSrc = getS3Image(property, type, "card");
       await preloadImage(imgSrc);
       innerHTML = `
           <img
@@ -789,40 +792,88 @@ function MapInnerLayout({
           </span>
           {[
             { id: "Active" as MarketStatusType, label: "Active" },
+            { id: "Closed" as MarketStatusType, label: "Sold" },
             { id: "Pending" as MarketStatusType, label: "Pending" },
             { id: "Expired" as MarketStatusType, label: "Expired" },
             { id: "Terminated" as MarketStatusType, label: "Terminated" },
-            { id: "Closed" as MarketStatusType, label: "Closed" },
           ].map((pill) => {
             const isSelected = isLoggedIn
               ? selectedStatuses.includes(pill.id)
               : pill.id === "Active";
 
             return (
-              <button
-                key={pill.id}
-                type="button"
-                disabled={!isLoggedIn}
-                onClick={() => toggleStatusFilter(pill.id)}
-                className={cn(
-                  "w-full px-2 py-1 text-[11px] font-medium rounded-md border transition-all flex items-center justify-between gap-1 cursor-pointer select-none",
-                  isSelected
-                    ? "bg-primary border-primary text-white font-semibold"
-                    : "bg-transparent border-transparent text-gray-500 hover:bg-gray-100/80 hover:text-gray-800",
-                  !isLoggedIn &&
-                    (pill.id === "Active"
-                      ? "opacity-100 cursor-not-allowed"
-                      : "opacity-40 bg-transparent text-gray-400 cursor-not-allowed hover:bg-transparent"),
-                )}
-              >
-                <span className="truncate">{pill.label}</span>
-                {!isLoggedIn && pill.id !== "Active" && (
-                  <Lock
-                    className="size-2.5 shrink-0 opacity-60"
-                    strokeWidth={2.5}
-                  />
-                )}
-              </button>
+              <TooltipProvider key={pill.id} delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex w-full">
+                      <button
+                        key={pill.id}
+                        type="button"
+                        aria-disabled={!isLoggedIn}
+                        onClick={() => {
+                          if (!isLoggedIn) return;
+                          toggleStatusFilter(pill.id);
+                        }}
+                        className={cn(
+                          "w-full px-2 py-1 text-[11px] font-medium rounded-md border transition-all flex items-center justify-between gap-1 select-none",
+                          isSelected
+                            ? "bg-primary border-primary text-white font-semibold"
+                            : "bg-transparent border-transparent text-gray-500 hover:bg-gray-100/80 hover:text-gray-800",
+                          !isLoggedIn &&
+                            (pill.id === "Active"
+                              ? "opacity-100 cursor-not-allowed"
+                              : "opacity-40 bg-transparent text-gray-400 cursor-not-allowed hover:bg-transparent"),
+                        )}
+                      >
+                        <span className="truncate">{pill.label}</span>
+
+                        {!isLoggedIn && pill.id !== "Active" && (
+                          <Lock
+                            className="size-2.5 shrink-0 opacity-60"
+                            strokeWidth={2.5}
+                          />
+                        )}
+                      </button>
+                    </span>
+                  </TooltipTrigger>
+
+                  {!isLoggedIn && pill.id !== "Active" && (
+                    <TooltipContent
+                      side="right"
+                      align="end"
+                      sideOffset={8}
+                      className="bg-zinc-900 text-white text-[11px] px-3 py-1.5 rounded-md shadow-lg border border-zinc-800"
+                    >
+                      Login or register to view
+                      <TooltipArrow className="fill-zinc-900" />
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+              // <button
+              //   key={pill.id}
+              //   type="button"
+              //   disabled={!isLoggedIn}
+              //   onClick={() => toggleStatusFilter(pill.id)}
+              //   className={cn(
+              //     "w-full px-2 py-1 text-[11px] font-medium rounded-md border transition-all flex items-center justify-between gap-1 cursor-pointer select-none",
+              //     isSelected
+              //       ? "bg-primary border-primary text-white font-semibold"
+              //       : "bg-transparent border-transparent text-gray-500 hover:bg-gray-100/80 hover:text-gray-800",
+              //     !isLoggedIn &&
+              //       (pill.id === "Active"
+              //         ? "opacity-100 cursor-not-allowed"
+              //         : "opacity-40 bg-transparent text-gray-400 cursor-not-allowed hover:bg-transparent"),
+              //   )}
+              // >
+              //   <span className="truncate">{pill.label}</span>
+              //   {!isLoggedIn && pill.id !== "Active" && (
+              //     <Lock
+              //       className="size-2.5 shrink-0 opacity-60"
+              //       strokeWidth={2.5}
+              //     />
+              //   )}
+              // </button>
             );
           })}
         </div>

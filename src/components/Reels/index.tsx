@@ -9,9 +9,11 @@ import {
   VideoOff,
   Loader2,
   MapPin,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatString } from "@/lib/utils";
+import Link from "next/link";
 
 interface Reel {
   id: number;
@@ -20,6 +22,8 @@ interface Reel {
   priority: number;
   address?: string;
   description?: string;
+  pid: string;
+  property_type: string;
 }
 
 const TABS = [
@@ -85,24 +89,42 @@ const ReelItem: React.FC<{ reel: Reel }> = ({ reel }) => {
           </div>
 
           {/* BOTTOM: Dedicated Info Bar (No more overlap!) */}
-          <div className="flex-1 bg-white p-4 flex flex-col border-t border-slate-100 z-20">
+          <Link
+            href={`/listing/landing/${reel.property_type}/${reel.pid}/${formatString(reel.address)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-1 bg-white p-4 flex flex-col border-t border-slate-100 z-20 group-hover:bg-slate-50 transition-colors"
+          >
+            {/* ADDRESS (Clickable + highlighted) */}
             {reel.address && (
-              <div className="flex items-center gap-1.5 text-slate-900 mb-1">
-                <MapPin
-                  size={14}
-                  className="text-[#06422d] shrink-0 fill-[#06422d]/10"
-                />
-                <span className="text-[11px] font-bold truncate tracking-tight uppercase">
+              <div className="flex items-start gap-2 mb-2">
+                <MapPin size={14} className="text-primary mt-0.5 shrink-0" />
+
+                <span className="text-sm font-semibold leading-snug text-slate-900 group-hover:text-primary transition-colors underline decoration-dotted underline-offset-4">
                   {reel.address}
                 </span>
               </div>
             )}
+
+            {/* DESCRIPTION */}
             {reel.description && (
-              <p className="text-slate-500 text-[10px] leading-tight line-clamp-2 italic">
+              <p className="text-slate-500 text-xs leading-relaxed line-clamp-2 pl-5">
                 {reel.description}
               </p>
             )}
-          </div>
+
+            {/* CTA */}
+            <div className="mt-auto pt-3 pl-5 flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                View Details
+              </span>
+
+              <ArrowRight
+                size={14}
+                className="text-primary opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1"
+              />
+            </div>
+          </Link>
         </>
       ) : (
         <div className="w-full h-full flex flex-col items-center justify-center bg-slate-50 text-slate-300 p-6 text-center">
@@ -125,12 +147,21 @@ export default function Reels() {
   useEffect(() => {
     const fetchReels = async () => {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // Start with the base query
+      let query = supabase
         .from("reels")
         .select("*")
-        .eq("category", activeTab)
         .order("priority", { ascending: false })
         .order("created_at", { ascending: false });
+
+      // Only apply the filter if it's NOT the "Featured" tab
+      if (activeTab !== "Featured") {
+        query = query.filter("category", "cs", `["${activeTab}"]`);
+      }
+
+      const { data, error } = await query;
+      console.log("data:", data);
 
       if (!error) setReels(data || []);
       setLoading(false);

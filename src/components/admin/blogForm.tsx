@@ -154,8 +154,6 @@ export default function BlogForm({
             .select()
         : await supabase.from("blogs").insert([submissionData]).select();
 
-      console.log(data);
-
       if (error) throw error;
 
       setStatus({

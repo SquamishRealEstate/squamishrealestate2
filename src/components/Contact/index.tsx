@@ -145,7 +145,7 @@ export default function Contact() {
               <div className="flex items-center gap-4">
                 <div className="h-20 w-20 rounded-2xl overflow-hidden">
                   <img
-                    src="https://lh3.googleusercontent.com/d/1OgL1mWWWQijCzPwQWjpIjoamLsUECTQH"
+                    src="https://lh3.googleusercontent.com/d/1N02fnHn6r8AWbQJMz0D6Rv1hO-8F6Kcl"
                     alt="Sean Brawley"
                     referrerPolicy="no-referrer"
                     className="h-full w-full object-cover"

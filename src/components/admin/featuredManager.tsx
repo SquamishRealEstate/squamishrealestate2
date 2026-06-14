@@ -59,8 +59,6 @@ export default function FeaturedManager() {
     const tableName =
       category === "detached" ? "detached_listings" : "strata_listings";
 
-    console.log(`Assigning PID ${pid} to slot ${slotId} in table ${tableName}`);
-
     // Use 0 to clear the position, as your schema defines it as smallint
     await Promise.all([
       supabase

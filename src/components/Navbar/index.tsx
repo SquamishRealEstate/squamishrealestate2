@@ -44,7 +44,7 @@ export default function Navbar() {
             <div className=" mb-[-6px]">
               <h1 className="text-xl font-bold">Squamish Real Estate</h1>
               <p className="text-xs text-muted-foreground">
-                Your Mountain Home Awaits
+                Find Your Mountain Home
               </p>
             </div>
           </div>

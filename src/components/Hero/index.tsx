@@ -2,6 +2,8 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function Hero() {
   const [scrollY, setScrollY] = useState(0);
@@ -34,14 +36,16 @@ export default function Hero() {
           Ready to Call Squamish Home?
         </h1>
         <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto animate-fade-in-up animation-delay-200">
-          Discover mountain-view properties, modern townhomes, and luxury
+          Discover mountain view properties, modern townhomes, and luxury
           estates in BC’s outdoor paradise.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in-up animation-delay-400">
-          <Button size="lg" className="h-14 px-8 text-lg">
-            Explore Properties
-            <ArrowRight className="ml-2 w-5 h-5" />
-          </Button>
+          <Link href="/properties" target="_blank" rel="noopener noreferrer">
+            <Button size="lg" className="h-14 px-8 text-lg">
+              Explore Properties
+              <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+          </Link>
           <Button
             size="lg"
             variant="outline"
