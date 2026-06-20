@@ -197,21 +197,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
 
       fetchReviews();
 
-      // const listingInfo = [
-      //   {
-      //     name: `Sold History`,
-      //     component: LastSold,
-      //   },
-      //   { name: `Photos (${listing?.photos?.length || 0})`, component: Photos },
-      //   { name: `Floor Plans (0)`, component: FloorPlans },
-      //   { name: "Nearby Photos", component: NearbyPhotos },
-      //   { name: "BC Assessment", component: BCAssessment },
-      //   { name: "Taxes", component: Taxes },
-      //   { name: "School Programs", component: SchoolPrograms },
-      // ];
-
-      // setListingInfo(listingInfo);
-
       const fetchOpenHouses = async () => {
         if (!listing?.listing_id) return;
 
@@ -257,7 +242,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
         renderComponent: () => <LastSold property={listing} type={type} />,
       },
       {
-        name: `Photos (${listing?.photos?.length || 0})`,
+        name: `Photos (${listing?.photos?.length < 3 ? 7 : listing?.photos?.length || 0})`,
         renderComponent: () => <Photos photos={listing.photos || []} />,
       },
       {
@@ -331,7 +316,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
           return (
             <>
               <div className="relative mb-2 pt-20">
-                <BackToMapButton onClick={() => router.push("/")} />
+                <BackToMapButton />
                 <ListingGallery listing={listing} />
                 <div className="absolute bottom-6 left-6 right-auto md:bottom-12 md:left-12 md:right-auto flex flex-col items-start gap-3 z-10 pointer-events-none">
                   <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden pointer-events-auto">
@@ -591,8 +576,9 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
                       return (
                         <div className="space-y-6 border-b border-border pb-8">
                           {listingInfo.map((info, index) => {
-                            const isPublic = info.name === "Nearby Photos";
-                            const listingType = type + "Listing";
+                            const isProtected =
+                              info.name === "Sold History" ||
+                              info.name === "BC Assessment";
 
                             return (
                               <div
@@ -622,7 +608,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
 
                                 {openAccordions[index] && (
                                   <div className="p-6 border-t border-border animate-in slide-in-from-top-2 duration-300">
-                                    {isPublic ? (
+                                    {!isProtected ? (
                                       info.renderComponent()
                                     ) : (
                                       <AuthGuard

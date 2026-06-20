@@ -35,19 +35,28 @@ import { ListingCard } from "@/components/ListingCard";
 import { AuthGuard } from "../Auth/authGuard";
 import Link from "next/link";
 import { Input } from "../ui/input";
+import { useMap } from "@/components/Map/MapContext";
 
-/** 1. Back to Map Button **/
-export const BackToMapButton = ({ onClick }: { onClick: () => void }) => (
-  <div className="absolute top-28 left-0 z-20 w-full px-6 md:px-12 max-w-7xl right-0">
-    <button
-      onClick={onClick}
-      className="flex items-center gap-1 text-white/90 hover:text-white transition-all bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-black/50"
-    >
-      <ChevronLeft size={14} /> Back to Map
-    </button>
-  </div>
-);
+export const BackToMapButton = () => {
+  const router = useRouter();
+  const { setMapExpanded } = useMap();
 
+  const handleClick = () => {
+    setMapExpanded(true); // Open the map
+    router.push("/"); // Go home
+  };
+
+  return (
+    <div className="absolute top-28 left-0 z-20 w-full px-6 md:px-12 max-w-7xl right-0">
+      <button
+        onClick={handleClick}
+        className="flex items-center gap-1 text-white/90 hover:text-white transition-all bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/10 text-[10px] font-bold uppercase tracking-widest hover:bg-black/50"
+      >
+        <ChevronLeft size={14} /> Back to Map
+      </button>
+    </div>
+  );
+};
 /** 2. Property Stat Item (Bed, Bath, etc.) **/
 interface StatProps {
   label: string;
@@ -1023,7 +1032,7 @@ export const LastSold = ({
 
 export const Photos = ({ photos }: { photos: any[] }) => {
   console.log("Property Photos:", photos);
-  if (!photos || photos.length === 0) return null;
+  if (!photos || photos.length === 0) return <p>No photos available.</p>;
 
   return (
     <ListingGallery

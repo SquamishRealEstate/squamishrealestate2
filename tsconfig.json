@@ -28,7 +28,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "src/components/Register/vowModaltsx"
+    "src/components/Register/vowModaltsx",
+    "declarations.d.ts" // <--- This line is mandatory
   ],
   "exclude": ["node_modules"]
 }

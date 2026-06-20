@@ -316,7 +316,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         ref: salesHistoryRef,
       },
       {
-        name: `Photos (${property.photos?.length || 0})`,
+        name: `Photos (${property?.photos?.length < 3 ? 7 : property?.photos?.length || 0})`,
         renderComponent: () => <Photos photos={property.photos || []} />,
         ref: photosRef,
       },
@@ -418,7 +418,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       <Navbar />
 
       <main className="flex-1 flex flex-col pt-20">
-        <BackToMapButton onClick={() => router.push("/")} />
+        <BackToMapButton />
 
         <div className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden ">
           <Image
@@ -648,9 +648,8 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
             <div className="space-y-4 mb-10 antialiased">
               {propertyInfo.map((info, index) => {
                 // Define which sections are public
-                const isPublic =
-                  info.name === "Nearby Photos" ||
-                  info.name === "HonestDoor Price History";
+                const isProtected =
+                  info.name === "Last Sold" || info.name === "BC Assessment";
 
                 return (
                   <div
@@ -681,7 +680,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                     {/* Accordion Content */}
                     {openAccordions[index] && (
                       <div className="p-6 border-t border-border animate-in slide-in-from-top-2 duration-300">
-                        {isPublic ? (
+                        {!isProtected ? (
                           /* PUBLIC CONTENT */
                           <div className="w-full">
                             {info.name === "HonestDoor Price History" ? (
@@ -701,7 +700,9 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                                 <HDMyHomeWidgetComponent />
                               </div>
                             ) : (
-                              info.renderComponent()
+                              <div className="overflow-x-auto">
+                                {info.renderComponent()}
+                              </div>
                             )}
                           </div>
                         ) : (

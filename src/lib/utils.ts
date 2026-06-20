@@ -361,22 +361,21 @@ export const fetchFloorPlans = async (
   );
   const isStrata = type.includes("strata");
 
-  // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
+  const rawAddress = property.civic_address.trim();
+  const firstSpace = rawAddress.indexOf(" ");
+  if (firstSpace === -1) return [];
+
+  const streetNumber = rawAddress.substring(0, firstSpace).trim(); // "1855"
+  const rawStreetPhrase = rawAddress.substring(firstSpace + 1).trim(); // "ALDER PL"
+
+  // Clean and explicitly force trim to remove hidden newlines/spaces
+  const cleanedStreet = cleanStreetName(rawStreetPhrase).split(" ")[0].trim(); // "Alder"
+
   // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
   if (isDetachedOrLand) {
     if (!property.civic_address) return [];
 
     bucketName = "streetview";
-
-    const rawAddress = property.civic_address.trim();
-    const firstSpace = rawAddress.indexOf(" ");
-    if (firstSpace === -1) return [];
-
-    const streetNumber = rawAddress.substring(0, firstSpace).trim(); // "1855"
-    const rawStreetPhrase = rawAddress.substring(firstSpace + 1).trim(); // "ALDER PL"
-
-    // Clean and explicitly force trim to remove hidden newlines/spaces
-    const cleanedStreet = cleanStreetName(rawStreetPhrase).trim(); // "Alder"
 
     // FIX: Ensure no trailing or double slashes are built into this string path
     folderPath = `${cleanedStreet}/fp`;
@@ -389,11 +388,13 @@ export const fetchFloorPlans = async (
   else if (isStrata) {
     bucketName = "strata";
 
-    // Keep this safe so it doesn't break if you pass a strata type
-    console.warn(
-      "Strata floor plan matching logic has not been configured yet.",
-    );
-    return [];
+    if (!property.civic_address) return [];
+
+    // FIX: Ensure no trailing or double slashes are built into this string path
+    folderPath = `${property.gis_id}/fp`;
+
+    // Target prefix for filtering files inside that folder
+    targetPrefix = `${streetNumber}-${cleanedStreet}-Floor-Plan`;
   } else {
     return [];
   }
@@ -453,8 +454,19 @@ export const getS3Image = (
   imageType: string,
 ) => {
   const PARCELS_BUCKET_NAME = "streetview";
+  const STRATA_BUCKET_NAME = "strata";
 
   if (!property || !property.civic_address) return "";
+
+  const rawAddress = property.civic_address.trim();
+  const firstSpace = rawAddress.indexOf(" ");
+  if (firstSpace === -1) return "";
+
+  const streetNumber = rawAddress.substring(0, firstSpace).trim(); // "1855"
+  const rawStreetPhrase = rawAddress.substring(firstSpace + 1).trim(); // "ALDER PL"
+
+  // Clean and explicitly force trim to remove hidden newlines/spaces
+  const cleanedStreet = cleanStreetName(rawStreetPhrase).split(" ")[0].trim(); // "Alder"
 
   if (
     propertyType === "detached" ||
@@ -462,18 +474,17 @@ export const getS3Image = (
     propertyType === "land" ||
     propertyType === "parcel"
   ) {
-    const rawAddress = property.civic_address.trim();
-    const firstSpace = rawAddress.indexOf(" ");
-    if (firstSpace === -1) return "";
-
-    const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
-    const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
-
-    const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
-
-    // Construct path with clean title case variables and the .webp extension
     const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/${imageType}/${streetNumber}-${cleanedStreet}.webp`;
     return encodeURI(card_image_path);
+  } else if (propertyType === "strata") {
+    if (imageType === "card") {
+      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/card.webp`;
+      return encodeURI(card_image_path);
+    } else {
+      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/landing/${streetNumber}-${cleanedStreet}.webp`;
+      console.log("Strata Card Image Path:", cleanedStreet);
+      return encodeURI(card_image_path);
+    }
   }
   return "";
 };

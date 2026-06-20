@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Map, X, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MapView } from "@/components/Map/Map";
+import { useMap } from "@/components/Map/MapContext";
 
 export default function CollapsibleMap() {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const { isMapExpanded, setMapExpanded } = useMap();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [mapInstance, setMapInstance] = useState<mapboxgl.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -35,13 +36,13 @@ export default function CollapsibleMap() {
     };
   }, [mapInstance]);
 
-  if (!isExpanded) {
+  if (!isMapExpanded) {
     // Collapsed state - show button to expand
     return (
       <div className="fixed bottom-24 right-6 z-40">
         <Button
           size="lg"
-          onClick={() => setIsExpanded(true)}
+          onClick={() => setMapExpanded(true)}
           className="h-14 px-6 shadow-lg"
         >
           <Map className="w-5 h-5 mr-2" />
@@ -57,9 +58,9 @@ export default function CollapsibleMap() {
       <div
         className={cn(
           "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
-          isExpanded ? "opacity-100" : "opacity-0 pointer-events-none",
+          isMapExpanded ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
-        onClick={() => setIsExpanded(false)}
+        onClick={() => setMapExpanded(false)}
       />
 
       {/* Map Container */}
@@ -70,7 +71,7 @@ export default function CollapsibleMap() {
           isFullscreen
             ? "inset-0 rounded-none"
             : "top-20 right-6 bottom-6 w-[600px] rounded-2xl",
-          isExpanded
+          isMapExpanded
             ? "translate-x-0 opacity-100"
             : "translate-x-full opacity-0",
         )}
@@ -94,7 +95,7 @@ export default function CollapsibleMap() {
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => setIsExpanded(false)}
+                onClick={() => setMapExpanded(false)}
               >
                 <X className="w-5 h-5" />
               </Button>

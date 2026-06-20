@@ -377,12 +377,11 @@ function MapInnerLayout({
       const baths = getBathrooms(listing.full_baths, listing.half_baths);
       specsLine = `Beds ${beds} | Baths ${baths} | `;
     }
+    const localDefaultPlaceholder = "/images/Default-Card.jpg";
 
     let innerHTML = "";
     if (type === "detached" || type === "multifamily" || type === "land") {
       const targetUrl = `/listing/landing/${type}/${listing.pid}/${formatString(listing.civic_address)}`;
-      const localDefaultPlaceholder = "/images/Default-Card.jpg";
-
       // Assumes getCardImage is imported or declared in your file
       const imgSrc = getS3Image(listing, type, "card");
       await preloadImage(imgSrc);
@@ -423,14 +422,42 @@ function MapInnerLayout({
         const units = relatedStrata ?? [];
 
         const dropdownOptions = units
+          .sort((a: any, b: any) => {
+            const getNumbers = (address: string) =>
+              address.match(/\d+/g)?.map(Number) || [];
+
+            const aNums = getNumbers(a.civic_address);
+            const bNums = getNumbers(b.civic_address);
+
+            // Sort by street number (1365)
+            const streetCompare = aNums[1] - bNums[1];
+
+            if (streetCompare !== 0) {
+              return streetCompare;
+            }
+
+            // Sort by unit number (301, 403, 407)
+            return aNums[0] - bNums[0];
+          })
           .map((unit: any) => {
-            return `<option value="${unit.pid}|${unit.civic_address}">${unit.civic_address}</option>`;
+            return `<option value="${unit.pid}|${unit.civic_address}">
+            ${unit.civic_address}
+        </option>`;
           })
           .join("");
 
+        const imgSrc = getS3Image(listing, type, "card");
+        await preloadImage(imgSrc);
+
         innerHTML = `
       <div class="popup-card default-cursor">
-        <img src="/images/Default-Card.jpg" alt="Strata Listing" class="popup-image" />
+       <img
+      src="${imgSrc}"
+      alt="${listing.civic_address || "Property preview"}"
+      class="h-48 w-full object-cover transition-opacity duration-300"
+      loading="lazy"
+      onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
+    />
         <div class="popup-content">
           <p class="popup-address">${listing.neighbourhood || "Squamish"} | ${listing.postal_code}</p>
           <div class="field-group">
@@ -477,13 +504,12 @@ function MapInnerLayout({
     const container = document.createElement("div");
     container.className = "popup-clickable-container";
     container.style.cursor = "pointer";
+    const localDefaultPlaceholder = "/images/Default-Card.jpg";
 
     let innerHTML = "";
     if (type === "detached") {
       const property = result.property;
       const targetUrl = `/property/landing/detached/${property.pid}/${formatString(property.civic_address)}`;
-      const localDefaultPlaceholder = "/images/Default-Card.jpg";
-
       // Assumes getCardImage is imported or declared in your file
       const imgSrc = getS3Image(property, type, "card");
       await preloadImage(imgSrc);
@@ -510,14 +536,42 @@ function MapInnerLayout({
     } else if (type === "strata") {
       const { property, relatedStrata } = result;
       const dropdownOptions = relatedStrata
+        .sort((a: any, b: any) => {
+          const getNumbers = (address: string) =>
+            address.match(/\d+/g)?.map(Number) || [];
+
+          const aNums = getNumbers(a.civic_address);
+          const bNums = getNumbers(b.civic_address);
+
+          // Sort by street number (1365)
+          const streetCompare = aNums[1] - bNums[1];
+
+          if (streetCompare !== 0) {
+            return streetCompare;
+          }
+
+          // Sort by unit number (301, 403, 407)
+          return aNums[0] - bNums[0];
+        })
         .map((unit: any) => {
-          return `<option value="${unit.pid}|${unit.civic_address}">${unit.civic_address}</option>`;
+          return `<option value="${unit.pid}|${unit.civic_address}">
+            ${unit.civic_address}
+        </option>`;
         })
         .join("");
 
+      const imgSrc = getS3Image(property, type, "card");
+      await preloadImage(imgSrc);
+
       innerHTML = `
       <div class="popup-card default-cursor">
-        <img src="/images/Default-Card.jpg" alt="Strata Property" class="popup-image" />
+        <img
+      src="${imgSrc}"
+      alt="${property.civic_address || "Property preview"}"
+      class="h-48 w-full object-cover transition-opacity duration-300"
+      loading="lazy"
+      onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
+    />
         <div class="popup-content">
           <p class="popup-address">${property.neighbourhood} | ${property.postal_code}</p>
           <div class="field-group">
