@@ -22,28 +22,37 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Properties</h4>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/properties"
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="hover:text-secondary-foreground transition-colors"
                 >
                   For Sale
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href={{
+                    pathname: "/properties",
+                    query: { status: "Closed" },
+                  }}
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="hover:text-secondary-foreground transition-colors"
                 >
                   Recently Sold
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  href="/neighborhoods"
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="hover:text-secondary-foreground transition-colors"
                 >
                   Neighborhoods
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -52,16 +61,17 @@ export default function Footer() {
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li>
-                <a
+                <Link
                   href="#"
                   className="hover:text-secondary-foreground transition-colors"
                 >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
                 <Link
                   href="/terms-of-use"
+                  rel="noopener noreferrer"
                   target="_blank"
                   className="hover:text-secondary-foreground transition-colors"
                 >
@@ -71,6 +81,8 @@ export default function Footer() {
               <li>
                 <Link
                   href="/privacy-statement"
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="hover:text-secondary-foreground transition-colors"
                 >
                   Privacy Policy

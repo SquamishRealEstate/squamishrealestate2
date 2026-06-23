@@ -180,7 +180,15 @@ export default function Navbar() {
                   asChild
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  <Link href="/dashboard">Dashboard</Link>
+                  {!isLoading && isAdmin ? (
+                    <Link href="/admin" target="_blank">
+                      Dashboard
+                    </Link>
+                  ) : (
+                    <Link href="/dashboard" target="_blank">
+                      Dashboard
+                    </Link>
+                  )}
                 </Button>
                 <Button
                   variant="ghost"

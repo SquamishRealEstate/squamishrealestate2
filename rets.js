@@ -79,7 +79,7 @@ const detachedFields = [
     "ListingContractDate",
     "ListingKeyNumeric",
     "MlsStatus",
-    "OriginalListPrice",
+    "ListPrice",
     "BuildingAreaTotal",
     "LotSizeArea",
     "PublicRemarks",
@@ -119,7 +119,7 @@ const strataFields = [
     "ListingContractDate",
     "ListingKeyNumeric",
     "MlsStatus",
-    "OriginalListPrice",
+    "ListPrice",
     "BuildingAreaTotal",
     "PublicRemarks",
     "AssociationFee",
@@ -158,7 +158,7 @@ const landFields = [
     "ListingContractDate",
     "ListingKeyNumeric",
     "MlsStatus",
-    "OriginalListPrice",
+    "ListPrice",
     "BuildingAreaTotal",
     "LotSizeArea",
     "PublicRemarks",
@@ -183,7 +183,7 @@ const multifamilyFields = [
     "ListingContractDate",
     "ListingKeyNumeric",
     "MlsStatus",
-    "OriginalListPrice",
+    "ListPrice",
     "BuildingAreaTotal",
     "LotSizeArea",
     "PublicRemarks",
@@ -243,6 +243,9 @@ function processAndTransformListings(rawListings, listingType) {
     const latestByPid = {};
     rawListings.forEach((raw) => {
         const pid = formatParcelNumber(raw.ParcelNumber);
+        if (pid === "026-578-379") {
+            console.log(raw);
+        }
         const existingListing = latestByPid[pid];
         const isNewer = !existingListing ||
             new Date(raw.ListingContractDate) >
@@ -255,7 +258,7 @@ function processAndTransformListings(rawListings, listingType) {
                 mls_number: raw.ListingId,
                 listing_date: toDate(raw.ListingContractDate),
                 market_status: raw.MlsStatus,
-                asking_price: toNum(raw.OriginalListPrice),
+                asking_price: toNum(raw.ListPrice),
                 total_floor_area: toNum(raw.BuildingAreaTotal),
                 listing_remarks: raw.PublicRemarks,
                 features: toArr(raw.Appliances),
@@ -476,17 +479,17 @@ async function enrichAndSyncListings(processedListings, listingType) {
         }
         console.log(`✅ ${targetListingTable} updated.`);
     }
-    if (parcelUpdateBatch.length > 0) {
-        const { error } = await exports.supabase
-            .from(sourceParcelTable)
-            .upsert(parcelUpdateBatch, { onConflict: "pid" });
-        if (error) {
-            console.log("Error in properties upload");
-            console.log(error);
-            throw error;
-        }
-        console.log(`✅ ${sourceParcelTable} updated.`);
-    }
+    // if (parcelUpdateBatch.length > 0) {
+    //   const { error } = await supabase
+    //     .from(sourceParcelTable)
+    //     .upsert(parcelUpdateBatch, { onConflict: "pid" });
+    //   if (error) {
+    //     console.log("Error in properties upload");
+    //     console.log(error);
+    //     throw error;
+    //   }
+    //   console.log(`✅ ${sourceParcelTable} updated.`);
+    // }
 }
 const fetchOpenHouseListings = async (allListings) => {
     const batchSize = 200;
