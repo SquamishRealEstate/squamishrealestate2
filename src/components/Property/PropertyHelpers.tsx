@@ -492,7 +492,7 @@ export const PropertyActions = ({ onWriteReview, onReport }: any) => (
   </div>
 );
 
-export const NewListings = () => {
+export const NewListings = ({ type }: { type: string }) => {
   const [listings, setListings] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -504,6 +504,7 @@ export const NewListings = () => {
         const { data, error } = await supabase
           .from("all_listings")
           .select("*")
+          .eq("property_category", type)
           .order("listing_date", { ascending: false })
           .limit(10);
 
@@ -1032,7 +1033,6 @@ export const LastSold = ({
 
 export const Photos = ({ photos }: { photos: any[] }) => {
   console.log("Property Photos:", photos);
-  if (!photos || photos.length === 0) return <p>No photos available.</p>;
 
   return (
     <ListingGallery
@@ -1707,7 +1707,8 @@ export const ReviewForm = ({
           </div>
 
           {/* File Upload */}
-          <label className="group relative border-2 border-dashed border-border p-8 text-center hover:border-primary transition-colors cursor-pointer bg-muted/5 block">
+          <label className="group relative w-full border-2 border-dashed border-border px-4 py-6 sm:p-8 hover:border-primary transition-colors cursor-pointer bg-muted/5 flex flex-col items-center justify-center text-center">
+            {" "}
             <Input
               type="file"
               multiple

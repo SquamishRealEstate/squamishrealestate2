@@ -350,6 +350,9 @@ async function enrichAndSyncListings(processedListings, listingType) {
         if (parcel) {
             let mlsHistory = Array.isArray(parcel.mls_data) ? parcel.mls_data : [];
             let lastMlsDate = parcel.last_mls_date;
+            if (listing.pid === "025-394-843") {
+                console.log(parcel.mls_data);
+            }
             // 3. History Logic (Pending / Closed)
             if (listing.market_status === "Pending") {
                 const exists = mlsHistory.some((h) => String(h.price) === String(listing.sold_price) &&
@@ -579,22 +582,22 @@ async function syncAllListings() {
     try {
         // 1. Define your sync configurations
         const syncConfigs = [
-            {
-                type: "detached",
-                apiFilter: "Residential Detached",
-                fields: detachedFields,
-            },
+            // {
+            //   type: "detached",
+            //   apiFilter: "Residential Detached",
+            //   fields: detachedFields,
+            // },
             {
                 type: "strata",
                 apiFilter: "Residential Attached",
                 fields: strataFields,
             },
-            { type: "land", apiFilter: "Land Only", fields: landFields },
-            {
-                type: "multifamily",
-                apiFilter: "MultiFamily Only",
-                fields: multifamilyFields,
-            },
+            // { type: "land", apiFilter: "Land Only", fields: landFields },
+            // {
+            //   type: "multifamily",
+            //   apiFilter: "MultiFamily Only",
+            //   fields: multifamilyFields,
+            // },
         ];
         let allProcessed = [];
         console.log("🚀 Starting Full Property Sync...");

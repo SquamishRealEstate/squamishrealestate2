@@ -145,28 +145,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
   const localDefaultPlaceholder = "/images/landing.jpg";
 
-  // const getLandingImage = (property: any, type: string) => {
-  //   const PARCELS_BUCKET_NAME = "streetview";
-  //   if (!property || !property.civic_address) return localDefaultPlaceholder;
-
-  //   if (type === "detached" || type === "multifamily" || type === "land") {
-  //     const rawAddress = property.civic_address.trim();
-  //     const firstSpace = rawAddress.indexOf(" ");
-  //     if (firstSpace === -1) return localDefaultPlaceholder;
-
-  //     const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
-  //     const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
-
-  //     const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
-
-  //     // Construct path with clean title case variables and the .webp extension
-  //     const landing_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/landing/${streetNumber}-${cleanedStreet}.webp`;
-  //     console.log("Constructed image path:", landing_image_path);
-  //     return encodeURI(landing_image_path);
-  //   }
-  //   return localDefaultPlaceholder;
-  // };
-
   useEffect(() => {
     const fetchProperty = async () => {
       setLoading(true);
@@ -413,8 +391,9 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       ref: schoolProgramsRef,
     },
   ];
+
   return (
-    <div className="bg-background min-h-screen flex flex-col">
+    <div className="bg-background min-h-screen border flex flex-col">
       <Navbar />
 
       <main className="flex-1 flex flex-col pt-20">
@@ -427,14 +406,14 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
             fill
             priority
             unoptimized
-            className="object-cover object-top"
+            className="object-cover object-top md:object-fill"
             onError={(e) => {
               (e.target as HTMLImageElement).src = localDefaultPlaceholder;
             }}
           />
 
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent h-40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+          {/* <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-transparent h-40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" /> */}
 
           {/* Social Interactions Overlay */}
           {/* Social Interactions Wrapper - ADD relative z-50 */}
@@ -519,7 +498,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       </div>
 
       <div className="bg-grayLight p-6 pt-10 antialiased lg:flex">
-        <div className="w-full lg:w-2/3">
+        <div className="lg:w-2/3">
           <div className="hidden md:flex flex-wrap bg-white shadow-sm border border-gray-100 p-2">
             {labelData.map(({ label, value, icon, ref }) => (
               <div
@@ -626,7 +605,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                       className="animate-in fade-in duration-300"
                     >
                       {info.name === "New Listings" ? (
-                        <NewListings />
+                        <NewListings type={type} />
                       ) : (
                         <AuthGuard message="Sign in to view historical sold data for this property.">
                           {(user) =>
@@ -778,16 +757,16 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
           <div
             ref={reviewsRef}
-            className="bg-white border border-border shadow-sm rounded-none antialiased font-body mb-8"
+            className="bg-white border shadow-sm rounded-none antialiased font-body mb-8"
           >
             {/* Header remains public so users know what this section is */}
-            <div className="px-6 py-4 border-b border-border bg-muted/30">
+            <div className="px-6 py-4 border-b border-border bg-muted/30 ">
               <h4 className="uppercase tracking-[0.15em] text-[10px] text-primary font-bold">
                 Add Property Review
               </h4>
             </div>
 
-            <div className="p-0">
+            <div>
               {" "}
               {/* Removed padding here so AuthGuard can fill the width */}
               <AuthGuard renderPrivate={false}>

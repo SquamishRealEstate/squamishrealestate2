@@ -357,7 +357,6 @@ async function enrichAndSyncListings(
     if (parcel) {
       let mlsHistory = Array.isArray(parcel.mls_data) ? parcel.mls_data : [];
       let lastMlsDate = parcel.last_mls_date;
-
       // 3. History Logic (Pending / Closed)
       if (listing.market_status === "Pending") {
         const exists = mlsHistory.some(
@@ -628,22 +627,22 @@ async function syncAllListings() {
   try {
     // 1. Define your sync configurations
     const syncConfigs = [
-      {
-        type: "detached",
-        apiFilter: "Residential Detached",
-        fields: detachedFields,
-      },
+      // {
+      //   type: "detached",
+      //   apiFilter: "Residential Detached",
+      //   fields: detachedFields,
+      // },
       {
         type: "strata",
         apiFilter: "Residential Attached",
         fields: strataFields,
       },
-      { type: "land", apiFilter: "Land Only", fields: landFields },
-      {
-        type: "multifamily",
-        apiFilter: "MultiFamily Only",
-        fields: multifamilyFields,
-      },
+      // { type: "land", apiFilter: "Land Only", fields: landFields },
+      // {
+      //   type: "multifamily",
+      //   apiFilter: "MultiFamily Only",
+      //   fields: multifamilyFields,
+      // },
     ];
 
     let allProcessed: any[] = [];

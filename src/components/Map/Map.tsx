@@ -338,31 +338,6 @@ function MapInnerLayout({
     }
   };
 
-  // const getCardImage = (property: any, type: PropertyType) => {
-  //   const PARCELS_BUCKET_NAME = "streetview";
-
-  //   const localDefaultPlaceholder = "/images/Default-Card.jpg";
-
-  //   if (!property || !property.civic_address) return localDefaultPlaceholder;
-
-  //   if (type === "detached" || type === "multifamily" || type === "land") {
-  //     const rawAddress = property.civic_address.trim();
-  //     const firstSpace = rawAddress.indexOf(" ");
-  //     if (firstSpace === -1) return localDefaultPlaceholder;
-
-  //     const streetNumber = rawAddress.substring(0, firstSpace); // "1851"
-  //     const rawStreetPhrase = rawAddress.substring(firstSpace + 1); // "ALDER PL"
-
-  //     const cleanedStreet = cleanStreetName(rawStreetPhrase); // "Alder"
-
-  //     // Construct path with clean title case variables and the .webp extension
-  //     const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/card/${streetNumber}-${cleanedStreet}.webp`;
-  //     console.log("Constructed image path:", card_image_path);
-  //     return encodeURI(card_image_path);
-  //   }
-  //   return localDefaultPlaceholder;
-  // };
-
   const createListingPopupContent = async (
     listing: any,
     type: PropertyType,

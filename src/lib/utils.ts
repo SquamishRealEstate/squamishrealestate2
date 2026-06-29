@@ -352,6 +352,7 @@ export const fetchFloorPlans = async (
   property: any,
   type: string,
 ): Promise<string[]> => {
+  console.log("Fetching Floor Plans for:", type);
   let bucketName = "";
   let folderPath = "";
   let targetPrefix = "";
@@ -361,15 +362,8 @@ export const fetchFloorPlans = async (
   );
   const isStrata = type.includes("strata");
 
-  const rawAddress = property.civic_address.trim();
-  const firstSpace = rawAddress.indexOf(" ");
-  if (firstSpace === -1) return [];
-
-  const streetNumber = rawAddress.substring(0, firstSpace).trim(); // "1855"
-  const rawStreetPhrase = rawAddress.substring(firstSpace + 1).trim(); // "ALDER PL"
-
-  // Clean and explicitly force trim to remove hidden newlines/spaces
-  const cleanedStreet = cleanStreetName(rawStreetPhrase).split(" ")[0].trim(); // "Alder"
+  let civicAddress = property.civic_address.replace(/-/g, " ");
+  var civic_address = civicAddress.split(" ");
 
   // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
   if (isDetachedOrLand) {
@@ -377,24 +371,39 @@ export const fetchFloorPlans = async (
 
     bucketName = "streetview";
 
-    // FIX: Ensure no trailing or double slashes are built into this string path
-    folderPath = `${cleanedStreet}/fp`;
-
-    // Target prefix for filtering files inside that folder
-    targetPrefix = `${streetNumber}-${cleanedStreet}-Floor-Plan`;
+    if (!isNaN(Number(civic_address[1]))) {
+      civic_address[2] =
+        civic_address[2][0].toUpperCase() +
+        civic_address[2].slice(1).toLowerCase();
+      folderPath = `${civic_address[2]}/fp`;
+      targetPrefix = `${civic_address[0]}-${civic_address[1]}-${civic_address[2]}`;
+    } else {
+      civic_address[1] =
+        civic_address[1][0].toUpperCase() +
+        civic_address[1].slice(1).toLowerCase();
+      folderPath = `${civic_address[1]}/fp`;
+      targetPrefix = `${civic_address[0]}-${civic_address[1]}}`;
+    }
   }
 
   // --- CASE 2: STRATA ---
   else if (isStrata) {
     bucketName = "strata";
+    console.log("Strata bucket name:", bucketName);
 
     if (!property.civic_address) return [];
 
     // FIX: Ensure no trailing or double slashes are built into this string path
     folderPath = `${property.gis_id}/fp`;
 
+    civic_address[0] = civic_address[0].replace(/,/g, "");
+    civic_address[2] =
+      civic_address[2][0].toUpperCase() +
+      civic_address[2].slice(1).toLowerCase();
+
     // Target prefix for filtering files inside that folder
-    targetPrefix = `${streetNumber}-${cleanedStreet}-Floor-Plan`;
+    targetPrefix = `${civic_address[0]}-${civic_address[1]}-${civic_address[2]}-Floor-Plan`;
+    console.log("Strata target prefix:", targetPrefix);
   } else {
     return [];
   }
@@ -458,15 +467,8 @@ export const getS3Image = (
 
   if (!property || !property.civic_address) return "";
 
-  const rawAddress = property.civic_address.trim();
-  const firstSpace = rawAddress.indexOf(" ");
-  if (firstSpace === -1) return "";
-
-  const streetNumber = rawAddress.substring(0, firstSpace).trim(); // "1855"
-  const rawStreetPhrase = rawAddress.substring(firstSpace + 1).trim(); // "ALDER PL"
-
-  // Clean and explicitly force trim to remove hidden newlines/spaces
-  const cleanedStreet = cleanStreetName(rawStreetPhrase).split(" ")[0].trim(); // "Alder"
+  let civicAddress = property.civic_address.replace(/-/g, " ");
+  var civic_address = civicAddress.split(" ");
 
   if (
     propertyType === "detached" ||
@@ -474,15 +476,35 @@ export const getS3Image = (
     propertyType === "land" ||
     propertyType === "parcel"
   ) {
-    const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${cleanedStreet}/${imageType}/${streetNumber}-${cleanedStreet}.webp`;
+    if (!isNaN(Number(civic_address[1]))) {
+      civic_address[2] =
+        civic_address[2][0].toUpperCase() +
+        civic_address[2].slice(1).toLowerCase();
+    } else {
+      civic_address[1] =
+        civic_address[1][0].toUpperCase() +
+        civic_address[1].slice(1).toLowerCase();
+    }
+
+    const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${civic_address[1]}/${imageType}/${civic_address[0]}-${civic_address[1]}.webp`;
     return encodeURI(card_image_path);
   } else if (propertyType === "strata") {
+    const cleanedAddress = property.civic_address
+      .replace("-", " ")
+      .replace(/[^a-zA-Z0-9\s]/g, "")
+      .toLowerCase()
+      .split(" ");
+    cleanedAddress[2] =
+      cleanedAddress[2][0].toUpperCase() +
+      cleanedAddress[2].slice(1).toLowerCase();
+    const address =
+      cleanedAddress[0] + "-" + cleanedAddress[1] + "-" + cleanedAddress[2];
+
     if (imageType === "card") {
       const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/card.webp`;
       return encodeURI(card_image_path);
     } else {
-      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/landing/${streetNumber}-${cleanedStreet}.webp`;
-      console.log("Strata Card Image Path:", cleanedStreet);
+      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/landing/${address}.webp`;
       return encodeURI(card_image_path);
     }
   }
