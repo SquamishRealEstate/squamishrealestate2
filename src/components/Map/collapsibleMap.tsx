@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Map, X, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MapView } from "@/components/Map/Map";
-import { useMap } from "@/components/Map/MapContext";
+import { useMap } from "@/components/context/MapContext";
 
 export default function CollapsibleMap() {
   const { isMapExpanded, setMapExpanded } = useMap();

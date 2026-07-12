@@ -9,11 +9,13 @@ import LazySection from "@/components/LazySection";
 import Footer from "@/components/Footer";
 import Blogs from "@/components/Blogs";
 import { HomeListingsSection } from "@/components/HomeListingsSection";
+import GoogleOneTap from "@/components/Login/googleOneTap";
 import { AuthGuard } from "../Auth/authGuard";
 export default function Home() {
   return (
     <>
       <Navbar />
+      <GoogleOneTap />
       <Hero />
       <LazySection>
         <AuthGuard renderPrivate={false}>

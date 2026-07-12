@@ -35,7 +35,7 @@ import { ListingCard } from "@/components/ListingCard";
 import { AuthGuard } from "../Auth/authGuard";
 import Link from "next/link";
 import { Input } from "../ui/input";
-import { useMap } from "@/components/Map/MapContext";
+import { useMap } from "@/components/context/MapContext";
 
 export const BackToMapButton = () => {
   const router = useRouter();

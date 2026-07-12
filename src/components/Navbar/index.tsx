@@ -6,19 +6,20 @@ import Link from "next/link";
 import { supabase } from "@/config/supabaseClient";
 import { Menu, X } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
+import { useAuth } from "@/components/context/AuthProvider";
 
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth(); // Instantly reactive!
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { isAdmin, isLoading } = useAdmin();
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      setUser(data.user);
-    };
+    // const getUser = async () => {
+    //   const { data } = await supabase.auth.getUser();
+    //   setUser(data.user);
+    // };
 
-    getUser();
+    // getUser();
 
     const handleResize = () => {
       if (window.innerWidth >= 1024) setIsMenuOpen(false);
@@ -29,7 +30,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setUser(null);
+    // setUser(null);
     setIsMenuOpen(false);
   };
 

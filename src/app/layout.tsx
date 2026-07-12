@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Outfit, Inter, Space_Grotesk } from "next/font/google";
-import { MapProvider } from "@/components/Map/MapContext";
+import { MapProvider } from "@/components/context/MapContext";
+import { AuthProvider } from "@/components/context/AuthProvider";
+import ConsoleLoggerSilencer from "@/components/context/ConsoleLoggerSilencer";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -49,7 +51,12 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${inter.variable} ${spaceGrotesk.variable}`}
       >
-        <MapProvider>{children}</MapProvider>
+        <AuthProvider>
+          <MapProvider>
+            <ConsoleLoggerSilencer />
+            {children}
+          </MapProvider>
+        </AuthProvider>
       </body>
     </html>
   );
