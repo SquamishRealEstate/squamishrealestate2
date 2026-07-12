@@ -37,12 +37,15 @@ import Link from "next/link";
 import { Input } from "../ui/input";
 import { useMap } from "@/components/Map/MapContext";
 
-export const BackToMapButton = () => {
+export const BackToMapButton = ({ activePopup }: { activePopup: any }) => {
   const router = useRouter();
-  const { setMapExpanded } = useMap();
+  const { setMapExpanded, setActivePopup } = useMap();
+
+  console.log("BackToMapButton activePopup:", activePopup);
 
   const handleClick = () => {
     setMapExpanded(true); // Open the map
+    setActivePopup(activePopup);
     router.push("/"); // Go home
   };
 

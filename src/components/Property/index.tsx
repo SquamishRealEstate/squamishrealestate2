@@ -333,6 +333,18 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
     ];
   }, [property, floorPlansCount, floorPlanDocs, type]);
 
+  const activePopup = useMemo(() => {
+    if (!property) return null;
+
+    return {
+      source: "parcel",
+      pid: property.pid,
+      propertyType: type,
+      data: property,
+      lngLat: [Number(property.longitude), Number(property.latitude)],
+    };
+  }, [property, type]);
+
   const propertyExplorer = [
     { name: "New Listings", component: NewListings },
     { name: "Recent Solds", component: RecentSolds },
@@ -397,8 +409,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       <Navbar />
 
       <main className="flex-1 flex flex-col pt-20">
-        <BackToMapButton />
-
+        <BackToMapButton activePopup={activePopup} />
         <div className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden ">
           <Image
             src={landingImage}

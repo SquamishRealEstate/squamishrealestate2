@@ -267,6 +267,18 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
     ];
   }, [listing, floorPlansCount, floorPlanDocs, type]);
 
+  const activePopup = useMemo(() => {
+    if (!listing) return null;
+
+    return {
+      source: "listing",
+      pid: listing.pid,
+      propertyType: type,
+      data: listing,
+      lngLat: [Number(listing.longitude), Number(listing.latitude)],
+    };
+  }, [listing, type]);
+
   if (loading)
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-background">
@@ -316,7 +328,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
           return (
             <>
               <div className="relative mb-2 pt-20">
-                <BackToMapButton />
+                <BackToMapButton activePopup={activePopup} />
                 <ListingGallery listing={listing} />
                 <div className="absolute bottom-6 left-6 right-auto md:bottom-12 md:left-12 md:right-auto flex flex-col items-start gap-3 z-10 pointer-events-none">
                   <div className="bg-black/30 backdrop-blur-md rounded-2xl border border-white/10 shadow-2xl overflow-hidden pointer-events-auto">

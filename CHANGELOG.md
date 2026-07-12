@@ -34,3 +34,5 @@
 - Added All Neighbourhoods and Neighborhood Page
 - Modified View Tracking
 - Added User Dashboard
+- Added Home Buying Checklist
+- Added Home Selling Checklist

@@ -35,6 +35,7 @@ import { AuthGuard } from "../Auth/authGuard";
 import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
+import { useMap } from "./MapContext";
 
 const defaultSquamishCenter: LngLatLike = [-123.152797, 49.699331];
 
@@ -87,9 +88,13 @@ function MapInnerLayout({
   center,
 }: MapInnerLayoutProps) {
   const router = useRouter();
+  const { activePopup, setActivePopup } = useMap();
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+
+  const [mapLoaded, setMapLoaded] = useState(false); // Track map readiness
+  const currentPopupRef = useRef<mapboxgl.Popup | null>(null); // Track the active popup instance
 
   const [lockedListing, setLockedListing] = useState<any | null>(null);
 
@@ -127,7 +132,14 @@ function MapInnerLayout({
     pid: string,
     propertyType: "strata" | "detached",
   ) => {
-    const formattedPid = formatPid(pid);
+    let formattedPid;
+    if (pid.includes("-")) {
+      formattedPid = pid;
+    } else {
+      formattedPid = formatPid(pid);
+    }
+
+    console.log("formattedPid:", formattedPid);
     const table = propertyType === "strata" ? "strata" : "parcels";
 
     try {
@@ -217,20 +229,28 @@ function MapInnerLayout({
         return;
       }
 
-      console.log(`Access Granted for PID: ${listing.pid}`);
+      setActivePopup({
+        source: "listing",
+        pid: listing.pid,
+        propertyType: listingType,
+        data: listing,
+        lngLat: [Number(listing.longitude), Number(listing.latitude)],
+      });
 
-      const popupContent = await createListingPopupContent(
-        listing,
-        listingType,
-      );
+      // console.log(`Access Granted for PID: ${listing.pid}`);
 
-      const map = mapRef.current;
-      if (!map) return;
+      // const popupContent = await createListingPopupContent(
+      //   listing,
+      //   listingType,
+      // );
 
-      new mapboxgl.Popup({ offset: 15 })
-        .setLngLat([Number(listing.longitude), Number(listing.latitude)])
-        .setDOMContent(popupContent)
-        .addTo(map);
+      // const map = mapRef.current;
+      // if (!map) return;
+
+      // new mapboxgl.Popup({ offset: 15 })
+      //   .setLngLat([Number(listing.longitude), Number(listing.latitude)])
+      //   .setDOMContent(popupContent)
+      //   .addTo(map);
 
       // Open standard popup logic here if applicable
     });
@@ -380,7 +400,10 @@ function MapInnerLayout({
         </p>
         </div>
       `;
-      container.addEventListener("click", () => {
+      container.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // router.push(targetUrl);
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       });
     } else if (type === "strata") {
@@ -454,7 +477,9 @@ function MapInnerLayout({
           const viewBtn = container.querySelector(
             "#view-unit-btn",
           ) as HTMLButtonElement;
-          viewBtn.addEventListener("click", () => {
+          viewBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            e.preventDefault();
             const select = container.querySelector(
               "#strata-unit-select",
             ) as HTMLSelectElement;
@@ -505,7 +530,9 @@ function MapInnerLayout({
         </p>
         </div>
       `;
-      container.addEventListener("click", () => {
+      container.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         window.open(targetUrl, "_blank", "noopener,noreferrer");
       });
     } else if (type === "strata") {
@@ -568,7 +595,9 @@ function MapInnerLayout({
         const viewBtn = container.querySelector(
           "#view-unit-btn",
         ) as HTMLButtonElement;
-        viewBtn.addEventListener("click", () => {
+        viewBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          e.preventDefault();
           const select = container.querySelector(
             "#strata-unit-select",
           ) as HTMLSelectElement;
@@ -689,6 +718,8 @@ function MapInnerLayout({
       getAllListings("strata");
       getAllListings("multifamily");
       getAllListings("land");
+
+      setMapLoaded(true);
     });
 
     map.on("moveend", () => {
@@ -712,20 +743,28 @@ function MapInnerLayout({
 
       if (!getProperty) return;
 
-      const popupContent = await createPropertyPopupContent(
-        getProperty,
-        propertyType,
-      );
+      setActivePopup({
+        source: "parcel",
+        pid: raw_pid,
+        propertyType: propertyType,
+        lngLat: [e.lngLat.lng, e.lngLat.lat],
+        objectId: props.OBJECTID,
+      });
 
-      new mapboxgl.Popup({ offset: 15 })
-        .setLngLat([
-          Number(getProperty.property.longitude),
-          Number(getProperty.property.latitude),
-        ])
-        .setDOMContent(popupContent)
-        .addTo(map);
+      // const popupContent = await createPropertyPopupContent(
+      //   getProperty,
+      //   propertyType,
+      // );
 
-      map.setFilter("houses-highlighted", ["in", "OBJECTID", props.OBJECTID]);
+      // new mapboxgl.Popup({ offset: 15 })
+      //   .setLngLat([
+      //     Number(getProperty.property.longitude),
+      //     Number(getProperty.property.latitude),
+      //   ])
+      //   .setDOMContent(popupContent)
+      //   .addTo(map);
+
+      // map.setFilter("houses-highlighted", ["in", "OBJECTID", props.OBJECTID]);
     });
 
     map.on("mouseenter", "parcels-fill", function () {
@@ -798,6 +837,86 @@ function MapInnerLayout({
 
     renderMarkers(activeMarkersPool, isLoggedIn, setLockedListing);
   }, [allUniqueListings, selectedStatuses, isLoggedIn]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+
+    console.log("useEffect:", activePopup);
+
+    if (!map || !mapLoaded) return;
+
+    const renderPopup = async () => {
+      console.log("In renderPopup");
+      // 1. Clean up existing popups / filters to prevent duplicates
+      if (currentPopupRef.current) {
+        console.log("Removing currentPopupRef");
+        currentPopupRef.current.remove();
+        currentPopupRef.current = null;
+      }
+      if (map.getLayer("houses-highlighted")) {
+        console.log("Removing houses-highlighted");
+        map.setFilter("houses-highlighted", ["in", "OBJECTID", ""]);
+      }
+
+      // 2. If activePopup was set to null (e.g. user closed it), abort here.
+      if (!activePopup) return;
+
+      let popupContent: HTMLDivElement | null = null;
+
+      console.log("still in renderPopup");
+      console.log("activePopup:", activePopup.source);
+
+      // 3. Generate content based on source
+      if (activePopup.source === "listing") {
+        popupContent = await createListingPopupContent(
+          activePopup.data,
+          activePopup.propertyType,
+        );
+      } else if (activePopup.source === "parcel") {
+        console.log("activePopup:", activePopup);
+        const getProperty = await getPropertyData(
+          activePopup.pid,
+          activePopup.propertyType,
+        );
+        if (getProperty) {
+          console.log("getProperty:", getProperty);
+          popupContent = await createPropertyPopupContent(
+            getProperty,
+            activePopup.propertyType,
+          );
+
+          // Restore blue parcel highlight
+          if (activePopup.objectId && map.getLayer("houses-highlighted")) {
+            map.setFilter("houses-highlighted", [
+              "in",
+              "OBJECTID",
+              activePopup.objectId,
+            ]);
+          }
+        }
+      }
+
+      // 4. Mount the Mapbox Popup
+      if (popupContent) {
+        console.log("popupContent:");
+        const popup = new mapboxgl.Popup({ offset: 15 })
+          .setLngLat(activePopup.lngLat)
+          .setDOMContent(popupContent)
+          .addTo(map);
+
+        currentPopupRef.current = popup;
+
+        // Optional: Ensure the popup is centered when coming back to the map
+        map.easeTo({
+          center: activePopup.lngLat,
+          offset: [0, 100],
+          duration: 800,
+        });
+      }
+    };
+
+    renderPopup();
+  }, [activePopup, mapLoaded]);
 
   const toggleStatusFilter = (status: MarketStatusType) => {
     if (!isLoggedIn) return; // Prevent selection mutations if logged out
