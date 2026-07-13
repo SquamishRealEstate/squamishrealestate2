@@ -35,7 +35,7 @@ import { AuthGuard } from "../Auth/authGuard";
 import { Lock } from "lucide-react";
 import { Button } from "../ui/button";
 import { useRouter } from "next/navigation";
-import { useMap } from "./MapContext";
+import { useMap } from "@/components/context/MapContext";
 
 const defaultSquamishCenter: LngLatLike = [-123.152797, 49.699331];
 

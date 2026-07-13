@@ -362,8 +362,8 @@ export const fetchFloorPlans = async (
   );
   const isStrata = type.includes("strata");
 
-  let civicAddress = property.civic_address.replace(/-/g, " ");
-  var civic_address = civicAddress.split(" ");
+  const civicAddress = property.civic_address.replace(/-/g, " ");
+  const civic_address = civicAddress.split(" ");
 
   // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
   if (isDetachedOrLand) {
@@ -467,8 +467,8 @@ export const getS3Image = (
 
   if (!property || !property.civic_address) return "";
 
-  let civicAddress = property.civic_address.replace(/-/g, " ");
-  var civic_address = civicAddress.split(" ");
+  const civicAddress = property.civic_address.replace(/-/g, " ");
+  const civic_address = civicAddress.split(" ");
 
   if (
     propertyType === "detached" ||

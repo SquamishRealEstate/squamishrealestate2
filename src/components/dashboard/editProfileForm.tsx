@@ -343,7 +343,7 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
           <div>
             <h3 className="text-lg font-semibold">Preferences</h3>
             <p className="text-sm text-muted-foreground">
-              Select property types and areas you're interested in.
+              Select property types and areas you&apos;re interested in.
             </p>
           </div>
 
