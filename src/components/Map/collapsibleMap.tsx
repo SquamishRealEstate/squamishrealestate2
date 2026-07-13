@@ -4,7 +4,7 @@
    - Smooth transitions with ease-out curves
 */
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Map, X, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
