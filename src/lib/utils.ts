@@ -488,7 +488,7 @@ export const getS3Image = (
 
     const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${civic_address[1]}/${imageType}/${civic_address[0]}-${civic_address[1]}.webp`;
     return encodeURI(card_image_path);
-  } else if (propertyType === "strata") {
+  } else if (propertyType.includes("strata")) {
     const cleanedAddress = property.civic_address
       .replace("-", " ")
       .replace(/[^a-zA-Z0-9\s]/g, "")

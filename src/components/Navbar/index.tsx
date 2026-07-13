@@ -92,11 +92,11 @@ export default function Navbar() {
                 <Button asChild variant="outline">
                   {!isLoading && isAdmin ? (
                     <Link href="/admin" target="_blank">
-                      Dashboard
+                      My Real Estate
                     </Link>
                   ) : (
                     <Link href="/dashboard" target="_blank">
-                      Dashboard
+                      My Real Estate
                     </Link>
                   )}
                 </Button>
@@ -182,11 +182,11 @@ export default function Navbar() {
                 >
                   {!isLoading && isAdmin ? (
                     <Link href="/admin" target="_blank">
-                      Dashboard
+                      My Real Estate
                     </Link>
                   ) : (
                     <Link href="/dashboard" target="_blank">
-                      Dashboard
+                      My Real Estate
                     </Link>
                   )}
                 </Button>

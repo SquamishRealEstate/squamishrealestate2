@@ -19,18 +19,65 @@ interface EditProfileFormProps {
   user: any;
 }
 
+interface FormData {
+  fullName: string;
+  phone: string;
+  newPassword: string;
+  propertyTypes: string[]; // Define as array of strings
+  neighbourhoods: string[]; // Define as array of strings
+}
+
 export default function EditProfileForm({ user }: EditProfileFormProps) {
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState({
+  const PROPERTY_TYPES = [
+    "Detached",
+    "Townhouse",
+    "Condo",
+    "Duplex",
+    "Land",
+    "Multi-Family",
+  ];
+  const NEIGHBOURHOODS = [
+    "Brackendale",
+    "Brennan Center",
+    "Business Park",
+    "Dentville",
+    "Downtown Squamish",
+    "Garibaldi Estates",
+    "Garibaldi Highlands",
+    "Hospital Hill",
+    "Northyards",
+    "Paradise Valley",
+    "Plateau",
+    "Tantalus",
+    "University Highlands",
+    "Valleycliffe",
+  ];
+
+  const [formData, setFormData] = useState<FormData>({
     fullName: user?.user_metadata?.full_name || "",
     phone: user?.user_metadata?.phone || "",
-    address: user?.user_metadata?.address || "",
     newPassword: "",
+    propertyTypes: user?.user_metadata?.property_types || [],
+    neighbourhoods: user?.user_metadata?.neighbourhoods || [],
   });
+
+  const toggleSelection = (
+    category: "propertyTypes" | "neighbourhoods",
+    item: string,
+  ) => {
+    setFormData((prev) => {
+      const list = prev[category];
+      const newList = list.includes(item)
+        ? list.filter((i) => i !== item) // TypeScript now knows 'i' is a string!
+        : [...list, item];
+      return { ...prev, [category]: newList };
+    });
+  };
 
   const validations = {
     // Assuming name is required based on your UI
@@ -64,31 +111,31 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
 
   const isFormValid = validations.name && validations.phone && allPasswordMet;
 
-  const handleGetLocation = async () => {
-    if (!navigator.geolocation) return;
+  // const handleGetLocation = async () => {
+  //   if (!navigator.geolocation) return;
 
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const { latitude, longitude } = position.coords;
+  //   navigator.geolocation.getCurrentPosition(async (position) => {
+  //     const { latitude, longitude } = position.coords;
 
-      try {
-        const response = await fetch(
-          `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`,
-        );
+  //     try {
+  //       const response = await fetch(
+  //         `https://api.mapbox.com/search/geocode/v6/reverse?longitude=${longitude}&latitude=${latitude}&access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`,
+  //       );
 
-        const data = await response.json();
+  //       const data = await response.json();
 
-        const fullAddress =
-          data.features?.[0]?.properties?.full_address || "Address not found";
+  //       const fullAddress =
+  //         data.features?.[0]?.properties?.full_address || "Address not found";
 
-        setFormData((prev) => ({
-          ...prev,
-          address: fullAddress,
-        }));
-      } catch (error) {
-        console.error("Geocoding error:", error);
-      }
-    });
-  };
+  //       setFormData((prev) => ({
+  //         ...prev,
+  //         address: fullAddress,
+  //       }));
+  //     } catch (error) {
+  //       console.error("Geocoding error:", error);
+  //     }
+  //   });
+  // };
 
   const getFieldStatus = (isValid: boolean, value: string) => {
     const hasInteracted = value.length > 0 || triedToSubmit;
@@ -116,11 +163,13 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
     try {
       const updateData: any = {
         full_name: formData.fullName,
+        property_types: formData.propertyTypes,
+        neighbourhoods: formData.neighbourhoods,
       };
 
       // Only add if changed or provided
       if (formData.phone) updateData.phone = formData.phone;
-      if (formData.address) updateData.address = formData.address;
+      // if (formData.address) updateData.address = formData.address;
       const { error: metaError } = await supabase.auth.updateUser({
         data: updateData,
       });
@@ -264,7 +313,7 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
           </div>
 
           {/* Address */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <label className="text-sm font-medium">Address</label>
 
             <div className="flex gap-3">
@@ -285,6 +334,64 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
               >
                 <LocateFixed className="h-5 w-5" />
               </Button>
+            </div>
+          </div> */}
+        </section>
+
+        {/* Preferences Section */}
+        <section className="space-y-6 border-t pt-8">
+          <div>
+            <h3 className="text-lg font-semibold">Preferences</h3>
+            <p className="text-sm text-muted-foreground">
+              Select property types and areas you're interested in.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {/* Property Types */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">
+                Interested Property Types
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PROPERTY_TYPES.map((type) => (
+                  <Button
+                    key={type}
+                    type="button"
+                    variant={
+                      formData.propertyTypes.includes(type)
+                        ? "default"
+                        : "outline"
+                    }
+                    className="rounded-full h-8 px-4 text-xs"
+                    onClick={() => toggleSelection("propertyTypes", type)}
+                  >
+                    {type}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Neighbourhoods */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium">Neighbourhoods</label>
+              <div className="flex flex-wrap gap-2">
+                {NEIGHBOURHOODS.map((area) => (
+                  <Button
+                    key={area}
+                    type="button"
+                    variant={
+                      formData.neighbourhoods.includes(area)
+                        ? "default"
+                        : "outline"
+                    }
+                    className="rounded-full h-8 px-4 text-xs"
+                    onClick={() => toggleSelection("neighbourhoods", area)}
+                  >
+                    {area}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
         </section>

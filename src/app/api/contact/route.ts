@@ -211,6 +211,26 @@ export async function POST(req: Request) {
         break;
       }
 
+      // Inside your switch (templateType) block:
+      case "REFERRAL_CREDIT": {
+        adminSubject = `$1,000 Buy or Sell Credit Inquiry`;
+        userSubject = "We've received your inquiry - Squamish Real Estate";
+
+        const details = {
+          Message: "User is interested in the $1,000 Buy or Sell Credit offer.",
+        };
+
+        const sharedHtml = masterDynamicTemplate(
+          "Referral Credit Inquiry",
+          "A user has clicked to learn more about the $1,000 Buy or Sell Credit.",
+          details,
+        );
+
+        adminHtml = sharedHtml;
+        userHtml = sharedHtml;
+        break;
+      }
+
       default: {
         adminSubject = `New Inquiry: ${name}`;
         userSubject = "We've received your message - Squamish Real Estate";
