@@ -5,22 +5,15 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { supabase } from "@/config/supabaseClient";
 import { Menu, X } from "lucide-react";
-import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/components/context/AuthProvider";
 
 export default function Navbar() {
-  const { user } = useAuth(); // Instantly reactive!
+  const { user, isAdmin } = useAuth(); // Instantly reactive!
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { isAdmin, isLoading } = useAdmin();
+
+  console.log("isAdmin:", isAdmin);
 
   useEffect(() => {
-    // const getUser = async () => {
-    //   const { data } = await supabase.auth.getUser();
-    //   setUser(data.user);
-    // };
-
-    // getUser();
-
     const handleResize = () => {
       if (window.innerWidth >= 1024) setIsMenuOpen(false);
     };
@@ -91,7 +84,7 @@ export default function Navbar() {
                 </span>
 
                 <Button asChild variant="outline">
-                  {!isLoading && isAdmin ? (
+                  {isAdmin ? (
                     <Link href="/admin" target="_blank">
                       My Real Estate
                     </Link>
@@ -181,7 +174,7 @@ export default function Navbar() {
                   asChild
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {!isLoading && isAdmin ? (
+                  {isAdmin ? (
                     <Link href="/admin" target="_blank">
                       My Real Estate
                     </Link>
