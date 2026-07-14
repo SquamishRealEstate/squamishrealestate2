@@ -257,7 +257,7 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
 
                 <Input
                   value={formData.fullName}
-                  placeholder="John Doe"
+                  placeholder="Your Name"
                   className={
                     getFieldStatus(validations.name, formData.fullName)
                       .className

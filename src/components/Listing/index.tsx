@@ -240,29 +240,40 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       {
         name: `Sold History`,
         renderComponent: () => <LastSold property={listing} type={type} />,
+        isRendered: true,
       },
       {
         name: `Photos (${listing?.photos?.length < 3 ? 7 : listing?.photos?.length || 0})`,
         renderComponent: () => <Photos photos={listing.photos || []} />,
+        isRendered: listing?.photos?.length > 0,
       },
       {
         name: `Floor Plans (${floorPlansCount})`,
         renderComponent: () => (
           <FloorPlans property={listing} floorPlanDocs={floorPlanDocs} />
         ),
+        isRendered: floorPlansCount > 0,
       },
-      { name: "Nearby Photos", renderComponent: () => <NearbyPhotos /> },
+      {
+        name: "Nearby Photos",
+        renderComponent: () => <NearbyPhotos />,
+        isRendered: true,
+      },
+
       {
         name: "BC Assessment",
         renderComponent: () => <BCAssessment property={listing} type={type} />,
+        isRendered: true,
       },
       {
         name: "Taxes",
         renderComponent: () => <Taxes property={listing} type={type} />,
+        isRendered: true,
       },
       {
         name: "School Programs",
         renderComponent: () => <SchoolPrograms property={listing} />,
+        isRendered: true,
       },
     ];
   }, [listing, floorPlansCount, floorPlanDocs, type]);
@@ -588,6 +599,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
                       return (
                         <div className="space-y-6 border-b border-border pb-8">
                           {listingInfo.map((info, index) => {
+                            if (!info.isRendered) return null;
                             const isProtected =
                               info.name === "Sold History" ||
                               info.name === "BC Assessment";
@@ -761,7 +773,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
                   <ThinkingOfSelling />
                   <AuthGuard renderPrivate={false}>
                     {(user) => (
-                      <div className="p-6">
+                      <div>
                         <ReportAnIssueForm
                           user={user}
                           property={listing}

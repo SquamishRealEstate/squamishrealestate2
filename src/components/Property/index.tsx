@@ -292,11 +292,13 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         // Render as a JSX function component returning the tag directly
         renderComponent: () => <LastSold property={property} type={type} />,
         ref: salesHistoryRef,
+        isRendered: true,
       },
       {
         name: `Photos (${property?.photos?.length < 3 ? 7 : property?.photos?.length || 0})`,
         renderComponent: () => <Photos photos={property.photos || []} />,
         ref: photosRef,
+        isRendered: property?.photos?.length > 0,
       },
       {
         name: `Floor Plans (${floorPlansCount})`,
@@ -304,31 +306,37 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           <FloorPlans property={property} floorPlanDocs={floorPlanDocs} />
         ),
         ref: floorPlansRef,
+        isRendered: floorPlansCount > 0,
       },
       {
         name: "Nearby Photos",
         renderComponent: () => <NearbyPhotos />,
         ref: nearbyPhotosRef,
+        isRendered: true,
       },
       {
         name: "HonestDoor Price History",
         renderComponent: () => <NearbyPhotos />,
         ref: honestDoorPriceHistoryRef,
+        isRendered: true,
       },
       {
         name: "BC Assessment",
         renderComponent: () => <BCAssessment property={property} type={type} />,
         ref: bcAssessmentRef,
+        isRendered: true,
       },
       {
         name: "Taxes",
         renderComponent: () => <Taxes property={property} type={type} />,
         ref: taxesRef,
+        isRendered: true,
       },
       {
         name: "School Programs",
         renderComponent: () => <SchoolPrograms property={property} />,
         ref: schoolProgramsRef,
+        isRendered: true,
       },
     ];
   }, [property, floorPlansCount, floorPlanDocs, type]);
@@ -637,6 +645,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           <div className="bg-white p-2 shadow-md mt-4 text-[#666666] mb-5">
             <div className="space-y-4 mb-10 antialiased">
               {propertyInfo.map((info, index) => {
+                if (!info.isRendered) return null;
                 // Define which sections are public
                 const isProtected =
                   info.name === "Last Sold" || info.name === "BC Assessment";

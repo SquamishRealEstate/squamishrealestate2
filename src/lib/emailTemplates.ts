@@ -22,7 +22,7 @@ export const header = `
 export const footer = `
   <div style="background-color: ${theme.bgMuted}; padding: 24px; text-align: center; border-top: 1px solid ${theme.border};">
       <p style="font-size: 11px; color: ${theme.textMuted}; margin: 0; font-family: 'Inter', sans-serif; text-transform: uppercase; letter-spacing: 0.1em;">
-          © ${new Date().getFullYear()} Sean Brawley PREC* • Squamish, BC
+          © ${new Date().getFullYear()} Sean Brawley PREC* • RE/MAX Masters Realty
       </p>
   </div>
 `;

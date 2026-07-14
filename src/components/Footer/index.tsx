@@ -35,7 +35,7 @@ export default function Footer() {
                 <Link
                   href={{
                     pathname: "/properties",
-                    query: { status: "Closed" },
+                    query: { status: "Sold" },
                   }}
                   rel="noopener noreferrer"
                   target="_blank"
@@ -102,6 +102,13 @@ export default function Footer() {
               <br />
               sean@squamish.realestate
             </p>
+
+            <Link
+              href="/contact"
+              className="inline-block mt-4 text-sm font-medium text-secondary-foreground/80 hover:underline flex items-center gap-1"
+            >
+              Visit Contact Page →
+            </Link>
           </div>
         </div>
 

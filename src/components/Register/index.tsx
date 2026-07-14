@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import {
   Eye,
   EyeOff,
@@ -21,10 +21,19 @@ import { Input } from "../ui/input";
 function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [error, setError] = useState("");
 
   // 1. Capture the callback URL (e.g., /property/123)
-  const callbackUrl = searchParams.get("callback") || "/";
-  const redirectTo = `${window.location.origin}${callbackUrl}`;
+  // const callbackUrl = searchParams.get("callback") || "/";
+  // const redirectTo = `${window.location.origin}${callbackUrl}`;
+
+  const [redirectTo, setRedirectTo] = useState("");
+
+  useEffect(() => {
+    const callbackUrl = searchParams.get("callback") || "/";
+    // Now window is safe to access because we are in useEffect
+    setRedirectTo(`${window.location.origin}${callbackUrl}`);
+  }, [searchParams]);
 
   const [loading, setLoading] = useState(false);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
@@ -108,8 +117,11 @@ function RegisterContent() {
     });
 
     if (authError) {
+      setError(authError.message);
       setLoading(false);
+      console.error("Error creating user:", authError);
     } else if (data) {
+      console.log("User created:", data);
       router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
     }
   };
@@ -122,6 +134,7 @@ function RegisterContent() {
 
   const handleDisagree = () => {
     setShowVowModal(false);
+    setError("You must accept the VOW terms to create an account.");
   };
 
   // Helper for consistent field styling

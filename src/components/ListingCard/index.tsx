@@ -40,6 +40,9 @@ export function ListingCard({ listing }: { listing: Listing }) {
     listing.property_category === "parcel" ||
     listing.property_category === "strata_property";
 
+  const marketStatus =
+    listing.market_status === "Closed" ? "Sold" : listing.market_status;
+
   // 2. Run your specific conditional formatting rule
   // listing = fixCivicAddress(listing, listing.property_category);
 
@@ -75,7 +78,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
             />
             {listing.market_status && (
               <span className="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                {listing.market_status}
+                {marketStatus}
               </span>
             )}
             {listing.property_category && (

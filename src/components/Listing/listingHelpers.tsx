@@ -648,7 +648,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
             <Input
               name="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={formData.name}
               onChange={handleInputChange}
               className={`${getFieldStatus(validations.name, formData.name).className}`}
@@ -672,7 +672,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="email@example.com"
               className={
                 getFieldStatus(validations.email, formData.email).className
               }
@@ -943,7 +943,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
             <Input
               name="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={formData.name}
               onChange={handleInputChange}
               className={`${getFieldStatus(validations.name, formData.name).className}`}
@@ -967,7 +967,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="email@example.com"
               className={
                 getFieldStatus(validations.email, formData.email).className
               }
@@ -1211,7 +1211,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
             <Input
               name="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={formData.name}
               onChange={handleInputChange}
               className={`${getFieldStatus(validations.name, formData.name).className}`}
@@ -1235,7 +1235,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="email@example.com"
               className={
                 getFieldStatus(validations.email, formData.email).className
               }

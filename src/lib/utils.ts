@@ -268,7 +268,16 @@ export function serializeFilters(filters: FilterState): string {
     if (key === "propertiesOnly" && value === true) {
       params.set(key, "true");
     } else if (Array.isArray(value)) {
-      if (value.length > 0) params.set(key, value.join(","));
+      // if (value.length > 0) params.set(key, value.join(","));
+      if (value.length > 0) {
+        // Map "Closed" back to "Sold" ONLY if the key is "status"
+        const processedValue =
+          key === "status"
+            ? value.map((s) => (s === "Closed" ? "Sold" : s))
+            : value;
+
+        params.set(key, processedValue.join(","));
+      }
     } else if (value && typeof value !== "boolean") {
       params.set(key, value);
     }
@@ -277,17 +286,21 @@ export function serializeFilters(filters: FilterState): string {
 }
 
 export function deserializeFilters(searchParams: any, user: any): FilterState {
+  const rawStatus = searchParams.get("status");
+
+  let statusArray = rawStatus ? rawStatus.split(",") : user ? [] : ["Active"];
+
+  const processedStatus = statusArray.map((s: string) =>
+    s === "Sold" ? "Closed" : s,
+  );
+
   return {
     propertiesOnly: searchParams.get("propertiesOnly") === "true", // Add this
     searchQuery: searchParams.get("searchQuery") || "",
     category: searchParams.get("category")
       ? searchParams.get("category").split(",")
       : [],
-    status: searchParams.get("status")
-      ? searchParams.get("status").split(",")
-      : user
-        ? []
-        : ["Active"],
+    status: processedStatus,
     bedrooms: searchParams.get("bedrooms") || "",
     bathrooms: searchParams.get("bathrooms") || "",
     minPrice: searchParams.get("minPrice") || "",

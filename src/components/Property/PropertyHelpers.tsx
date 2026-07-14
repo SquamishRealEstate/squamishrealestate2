@@ -2163,7 +2163,7 @@ export const ThinkingOfSelling = () => {
                 name="propertyOwner"
                 value={formData.propertyOwner}
                 onChange={handleInputChange}
-                placeholder="John Doe"
+                placeholder="Your Name"
                 className={`h-12 ${
                   getFieldStatus(
                     validations.propertyOwner,
@@ -2192,7 +2192,7 @@ export const ThinkingOfSelling = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleInputChange}
-                placeholder="john@example.com"
+                placeholder="email@example.com"
                 className={`h-12 ${
                   getFieldStatus(validations.email, formData.email).className
                 }`}
