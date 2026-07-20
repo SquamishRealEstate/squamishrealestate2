@@ -1,7 +1,6 @@
 import React from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
-import { mockListings } from "@/lib/mockData";
 import Reels from "@/components/Reels";
 import FeaturedProperties from "@/components/FeaturedProperties";
 import CollapsibleMap from "@/components/Map/collapsibleMap";

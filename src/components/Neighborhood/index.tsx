@@ -328,6 +328,7 @@ export const Neighborhood = () => {
                     <img
                       key={idx}
                       src={img}
+                      alt="Neighborhood photo"
                       onClick={() => setPhotoIndex(idx)}
                       className={`shrink-0 w-16 h-16 object-cover rounded-md cursor-pointer border transition-all ${
                         idx === photoIndex

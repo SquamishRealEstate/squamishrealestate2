@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 // Import your initialized Supabase client
 import { supabase } from "@/config/supabaseClient";
 

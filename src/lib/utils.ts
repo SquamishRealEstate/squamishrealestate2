@@ -288,7 +288,7 @@ export function serializeFilters(filters: FilterState): string {
 export function deserializeFilters(searchParams: any, user: any): FilterState {
   const rawStatus = searchParams.get("status");
 
-  let statusArray = rawStatus ? rawStatus.split(",") : user ? [] : ["Active"];
+  const statusArray = rawStatus ? rawStatus.split(",") : user ? [] : ["Active"];
 
   const processedStatus = statusArray.map((s: string) =>
     s === "Sold" ? "Closed" : s,

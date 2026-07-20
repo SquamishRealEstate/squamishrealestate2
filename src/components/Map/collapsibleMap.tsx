@@ -4,7 +4,7 @@
    - Smooth transitions with ease-out curves
 */
 
-import { useState, useCallback, useEffect, useRef, Suspense } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Map, X, Maximize2, Minimize2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -104,7 +104,7 @@ export default function CollapsibleMap() {
 
           {/* Map */}
           <div className="flex-1 overflow-hidden">
-            <MapView className="w-full h-full" onMapReady={handleMapReady} />
+            <MapView onMapReady={handleMapReady} />
           </div>
         </div>
       </div>

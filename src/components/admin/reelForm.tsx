@@ -11,8 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { X, CheckCircle, Loader2, MapPin, PlusCircle } from "lucide-react";
-import AddressAutocomplete from "./addressAutocomplete";
+import { X, CheckCircle, Loader2, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type Reel = {
@@ -111,11 +110,15 @@ export default function ReelForm({
     setSaving(true);
 
     try {
-      const { id, created_at, ...updatePayload } = formData as any;
+      const {
+        id: _id,
+        created_at: _created_at,
+        ...updatePayload
+      } = formData as any;
 
       // const { error } = await supabase.from("reels").insert([formData]);
 
-      const { data, error, status } = reelData?.id
+      const { data, error } = reelData?.id
         ? await supabase
             .from("reels")
             .update(updatePayload)

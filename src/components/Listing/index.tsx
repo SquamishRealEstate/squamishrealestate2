@@ -27,7 +27,6 @@ import {
   ThinkingOfSelling,
 } from "@/components/Property/PropertyHelpers";
 import { AuthGuard } from "../Auth/authGuard";
-import { useRouter } from "next/navigation";
 import { ShareMenu } from "../ShareMenu";
 import {
   MapPin,
@@ -62,7 +61,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
   const [listingAverageRating, setListingAverageRating] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
   const [openhouses, setOpenHouses] = useState<any[]>([]);
-  const router = useRouter();
   const reviewsRef = React.useRef<HTMLDivElement>(null);
   const reportRef = React.useRef<HTMLDivElement>(null);
   // const [listingInfo, setListingInfo] = useState<any[]>([]);

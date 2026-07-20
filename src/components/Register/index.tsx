@@ -125,6 +125,7 @@ function RegisterContent() {
         router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
       }
     } catch (error) {
+      console.error("Error creating user:", error);
       setLoading(false);
     }
   };

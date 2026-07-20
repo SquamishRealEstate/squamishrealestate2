@@ -144,9 +144,13 @@ export default function BlogForm({
         slug: generateSlug(formData.title),
       };
 
-      const { id, created_at, ...updatePayload } = submissionData as any;
+      const {
+        id: _id,
+        created_at: _created_at,
+        ...updatePayload
+      } = submissionData as any;
 
-      const { data, error, status } = blogData?.id
+      const { error } = blogData?.id
         ? await supabase
             .from("blogs")
             .update(updatePayload)

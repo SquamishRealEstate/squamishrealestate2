@@ -49,7 +49,7 @@ export const masterDynamicTemplate = (
         <table style="width: 100%; border-collapse: collapse;">
           ${Object.entries(details)
             .map(
-              ([key, val], index, array) => `
+              ([key, val], index) => `
             <tr style="${index % 2 === 0 ? "background-color: #ffffff;" : `background-color: ${theme.bgMuted};`}">
               <td style="padding: 14px 16px; font-weight: 700; color: ${theme.textMuted}; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; width: 35%; vertical-align: top; font-family: 'Space Grotesk', sans-serif;">
                 ${key.replace(/_/g, " ")}

@@ -215,7 +215,7 @@ function DashboardContent({ user }: { user: any }) {
 
       if (!query) return;
 
-      const { data, count, error } = await query.range(from, to);
+      const { data, count } = await query.range(from, to);
       let items = data || [];
 
       if (tabName !== "Messages" && items.length > 0) {

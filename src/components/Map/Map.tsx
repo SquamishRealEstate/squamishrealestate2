@@ -49,13 +49,11 @@ export type MarketStatusType =
   | "Closed";
 
 interface MapViewProps {
-  className?: string;
   onMapReady?: (map: mapboxgl.Map) => void;
   center?: LngLatLike;
 }
 
 export function MapView({
-  className,
   onMapReady,
   center = defaultSquamishCenter,
 }: MapViewProps) {

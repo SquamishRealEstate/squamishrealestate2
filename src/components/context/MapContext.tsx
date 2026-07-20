@@ -13,9 +13,9 @@ export type ActivePopupState = {
 
 const MapContext = createContext({
   isMapExpanded: false,
-  setMapExpanded: (val: boolean) => {},
+  setMapExpanded: (_val: boolean) => {},
   activePopup: null as ActivePopupState,
-  setActivePopup: (val: ActivePopupState) => {},
+  setActivePopup: (_val: ActivePopupState) => {},
 });
 
 export const MapProvider = ({ children }: { children: React.ReactNode }) => {

@@ -112,9 +112,9 @@ function AboutBody() {
           <div className="w-12 h-1 bg-slate-900 rounded-full mb-8"></div>
 
           <p className="text-slate-600 leading-relaxed max-w-lg mb-12">
-            We're here to make real estate simple, transparent and rewarding.
-            From your first conversation to closing day, we provide trusted
-            guidance every step of the way.
+            We&apos;re here to make real estate simple, transparent and
+            rewarding. From your first conversation to closing day, we provide
+            trusted guidance every step of the way.
           </p>
 
           {/* STATS */}

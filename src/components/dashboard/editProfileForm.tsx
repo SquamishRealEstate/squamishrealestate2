@@ -3,7 +3,6 @@ import { supabase } from "@/config/supabaseClient";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
-  LocateFixed,
   EyeOff,
   Key,
   Phone,
@@ -13,7 +12,6 @@ import {
   Eye,
   User,
 } from "lucide-react";
-import AddressAutocomplete from "@/components/admin/addressAutocomplete";
 
 interface EditProfileFormProps {
   user: any;
@@ -220,6 +218,7 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
       //   setTriedToSubmit(false);
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
+      console.error("Error updating profile:", error);
       setTriedToSubmit(false);
       return;
     }

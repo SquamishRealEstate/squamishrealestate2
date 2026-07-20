@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import {
   Mail,
@@ -22,7 +22,7 @@ import Image from "next/image";
 import { formatDate } from "@/lib/utils";
 import { useSearchParams } from "next/navigation";
 
-export default function Contact() {
+export function ContactBody() {
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -476,6 +476,20 @@ export default function Contact() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Contact() {
+  return (
+    <Suspense
+      fallback={
+        <div className="h-screen flex items-center justify-center font-bold text-xs uppercase tracking-widest animate-pulse">
+          Initializing Security...
+        </div>
+      }
+    >
+      <ContactBody />
+    </Suspense>
   );
 }
 

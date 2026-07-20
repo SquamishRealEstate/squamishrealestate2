@@ -24,6 +24,7 @@ export const ReferralBalance = ({ user }: { user: any }) => {
       setTimeout(() => setStatus("idle"), 3000);
     } catch (err) {
       setStatus("idle");
+      console.error("Error contacting user:", err);
     }
   };
 

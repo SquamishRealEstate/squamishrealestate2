@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
 import {
   numberWithCommas,
@@ -69,8 +69,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const { pid } = useParams();
 
   console.log("Type", type);
-  // This will show every key-value pair in your console
-  const router = useRouter();
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   // const [landingImage, setLandingImage] = useState<string>("");

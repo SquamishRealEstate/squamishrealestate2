@@ -36,7 +36,6 @@ export default function Neighborhoods() {
 
   useEffect(() => {
     const initializeData = async () => {
-      ("Fetching neighborhood profiles...");
       try {
         setLoading(true);
 
