@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Mail,
@@ -20,12 +20,21 @@ import { supabase } from "@/config/supabaseClient";
 import { Input } from "../ui/input";
 import Image from "next/image";
 import { formatDate } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 export default function Contact() {
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+  const [reason, setReason] = useState<string>("General Inquiry");
+  const searchParams = useSearchParams();
+  const paramReason = searchParams.get("reason") || "General Inquiry";
+
+  useEffect(() => {
+    setReason(paramReason);
+    setFormData((prev) => ({ ...prev, reason: paramReason }));
+  }, [paramReason]);
 
   const month = currentMonthDate.getMonth();
   const year = currentMonthDate.getFullYear();
@@ -59,7 +68,7 @@ export default function Contact() {
     name: "",
     email: "",
     message: "",
-    reason: "",
+    reason: reason,
     templateType: "CONTACT_FORM", // Default template type
   });
 

@@ -34,7 +34,25 @@ export function ListingGallery({
   const rawPhotos = photos || listing?.photos || [];
 
   const displayPhotos = [...rawPhotos];
-  if (displayPhotos.length < 3) {
+  // if (!singlePhotoOnly && displayPhotos.length < 3) {
+  //   const fallbacks = [
+  //     "/images/dashboard/Squamish-1.jpg",
+  //     "/images/dashboard/Squamish-2.jpg",
+  //     "/images/dashboard/Squamish-3.jpg",
+  //     "/images/dashboard/Squamish-4.jpg",
+  //     "/images/dashboard/Squamish-5.jpg",
+  //     "/images/dashboard/Squamish-6.jpg",
+  //     "/images/dashboard/Squamish-7.jpg",
+  //   ];
+
+  //   fallbacks.forEach((fallback) => {
+  //     if (displayPhotos.length < 3 && !displayPhotos.includes(fallback)) {
+  //       displayPhotos.push(fallback);
+  //     }
+  //   });
+  // }
+
+  if (!singlePhotoOnly && displayPhotos.length < 3) {
     const fallbacks = [
       "/images/dashboard/Squamish-1.jpg",
       "/images/dashboard/Squamish-2.jpg",
@@ -45,11 +63,19 @@ export function ListingGallery({
       "/images/dashboard/Squamish-7.jpg",
     ];
 
-    fallbacks.forEach((fallback) => {
-      if (displayPhotos.length < 7 && !displayPhotos.includes(fallback)) {
+    // 1. Shuffle the fallbacks array randomly
+    const shuffledFallbacks = fallbacks.sort(() => 0.5 - Math.random());
+
+    // 2. Loop through the randomized array
+    for (const fallback of shuffledFallbacks) {
+      // Stop checking once we have exactly 3 photos
+      if (displayPhotos.length >= 3) break;
+
+      // Only push if the photo isn't already in the array (prevents duplicates)
+      if (!displayPhotos.includes(fallback)) {
         displayPhotos.push(fallback);
       }
-    });
+    }
   }
 
   const remainingCount = displayPhotos.length - 3;

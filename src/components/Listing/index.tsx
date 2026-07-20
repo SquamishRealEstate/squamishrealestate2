@@ -236,6 +236,8 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
   const listingInfo = useMemo(() => {
     if (!listing) return [];
 
+    console.log("Listing Info:", listing.photos);
+
     return [
       {
         name: `Sold History`,
@@ -243,7 +245,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
         isRendered: true,
       },
       {
-        name: `Photos (${listing?.photos?.length < 3 ? 7 : listing?.photos?.length || 0})`,
+        name: `Photos (${listing?.photos?.length})`,
         renderComponent: () => <Photos photos={listing.photos || []} />,
         isRendered: listing?.photos?.length > 0,
       },
@@ -257,7 +259,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       {
         name: "Nearby Photos",
         renderComponent: () => <NearbyPhotos />,
-        isRendered: true,
+        isRendered: false,
       },
 
       {

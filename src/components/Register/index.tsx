@@ -104,25 +104,28 @@ function RegisterContent() {
     setLoading(true);
     setShowVowModal(false);
 
-    const { data, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        emailRedirectTo: redirectTo,
-        data: {
-          full_name: `${formData.firstName} ${formData.lastName}`,
-          vow_agreed: true,
+    try {
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            vow_agreed: true,
+          },
         },
-      },
-    });
+      });
 
-    if (authError) {
-      setError(authError.message);
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+      } else if (data) {
+        console.log("User created:", data);
+        router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
+      }
+    } catch (error) {
       setLoading(false);
-      console.error("Error creating user:", authError);
-    } else if (data) {
-      console.log("User created:", data);
-      router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
     }
   };
 
@@ -205,6 +208,17 @@ function RegisterContent() {
               Sign in
             </Link>
           </p>
+
+          {error && (
+            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 shadow-sm animate-shake">
+                <div className="p-1 bg-rose-100 rounded-full shrink-0">
+                  <X size={14} className="text-rose-600 stroke-[3px]" />
+                </div>
+                <p className="text-sm font-semibold leading-tight">{error}</p>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="mt-10 space-y-5">
             {/* NAME FIELDS */}
             <div className="grid grid-cols-2 gap-4">

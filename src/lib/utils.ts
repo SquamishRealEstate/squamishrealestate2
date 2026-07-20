@@ -315,42 +315,42 @@ export function deserializeFilters(searchParams: any, user: any): FilterState {
 }
 
 // Helper to clean suffix and convert to Title Case (e.g., "ALDER PL" -> "Alder")
-export function cleanStreetName(streetPhrase: string) {
-  if (!streetPhrase) return "";
+// export function cleanStreetName(streetPhrase: string) {
+//   if (!streetPhrase) return "";
 
-  const words = streetPhrase.trim().split(/\s+/);
-  // Common suffixes to identify and remove from the end of the path
-  const suffixes = [
-    "PL",
-    "ST",
-    "AVE",
-    "RD",
-    "DR",
-    "BLVD",
-    "WAY",
-    "LN",
-    "CRT",
-    "CT",
-    "CRES",
-    "CIR",
-    "GATE",
-  ];
+//   const words = streetPhrase.trim().split(/\s+/);
+//   // Common suffixes to identify and remove from the end of the path
+//   const suffixes = [
+//     "PL",
+//     "ST",
+//     "AVE",
+//     "RD",
+//     "DR",
+//     "BLVD",
+//     "WAY",
+//     "LN",
+//     "CRT",
+//     "CT",
+//     "CRES",
+//     "CIR",
+//     "GATE",
+//   ];
 
-  // Remove the suffix if it's the last word
-  if (
-    words.length > 1 &&
-    suffixes.includes(words[words.length - 1].toUpperCase())
-  ) {
-    words.pop();
-  }
+//   // Remove the suffix if it's the last word
+//   if (
+//     words.length > 1 &&
+//     suffixes.includes(words[words.length - 1].toUpperCase())
+//   ) {
+//     words.pop();
+//   }
 
-  // Format to Title Case (capitalize first letter, lowercase the rest)
-  return words
-    .map((word) => {
-      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-    })
-    .join(" ");
-}
+//   // Format to Title Case (capitalize first letter, lowercase the rest)
+//   return words
+//     .map((word) => {
+//       return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+//     })
+//     .join(" ");
+// }
 
 export const preloadImage = (src: string) => {
   return new Promise((resolve) => {

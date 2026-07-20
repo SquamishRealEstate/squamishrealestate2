@@ -62,7 +62,9 @@ export default function Footer() {
             <ul className="space-y-2 text-sm text-secondary-foreground/80">
               <li>
                 <Link
-                  href="#"
+                  href="/about-us"
+                  rel="noopener noreferrer"
+                  target="_blank"
                   className="hover:text-secondary-foreground transition-colors"
                 >
                   About Us

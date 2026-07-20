@@ -295,7 +295,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         isRendered: true,
       },
       {
-        name: `Photos (${property?.photos?.length < 3 ? 7 : property?.photos?.length || 0})`,
+        name: `Photos (${property?.photos?.length || 0})`,
         renderComponent: () => <Photos photos={property.photos || []} />,
         ref: photosRef,
         isRendered: property?.photos?.length > 0,
@@ -312,7 +312,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         name: "Nearby Photos",
         renderComponent: () => <NearbyPhotos />,
         ref: nearbyPhotosRef,
-        isRendered: true,
+        isRendered: false,
       },
       {
         name: "HonestDoor Price History",

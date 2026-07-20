@@ -46,13 +46,19 @@ export default function Hero() {
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
           </Link>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-14 px-8 text-lg bg-white/90 hover:bg-white"
+          <Link
+            href="/contact?reason=Schedule%20a%20Tour"
+            target="_blank"
+            rel="noopener noreferrer"
           >
-            Schedule a Tour
-          </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="h-14 px-8 text-lg bg-white/90 hover:bg-white"
+            >
+              Schedule a Tour
+            </Button>
+          </Link>
         </div>
       </div>
 
