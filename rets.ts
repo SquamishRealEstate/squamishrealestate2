@@ -16,13 +16,17 @@ import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
   throw new Error("Missing Supabase URL or Anon Key in environment variables");
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
+const supabaseAdmin = createClient(
+  supabaseUrl,
+  supabaseServiceKey, // Look for this in your Supabase API settings
+);
 // --- HELPERS ---
 const formatArrayToString = (arr: any[]): string =>
   arr && Array.isArray(arr) ? arr.join(", ") : "";
@@ -324,19 +328,19 @@ async function enrichAndSyncListings(
   switch (listingType) {
     case "detached":
       targetListingTable = "detached_listings";
-      sourceParcelTable = "parcels_duplicate";
+      sourceParcelTable = "parcels";
       break;
     case "strata":
       targetListingTable = "strata_listings";
-      sourceParcelTable = "strata_duplicate";
+      sourceParcelTable = "strata";
       break;
     case "land":
       targetListingTable = "land_listings";
-      sourceParcelTable = "parcels_duplicate"; // Land usually uses the main parcel table
+      sourceParcelTable = "parcels"; // Land usually uses the main parcel table
       break;
     case "multifamily":
       targetListingTable = "multifamily_listings";
-      sourceParcelTable = "parcels_duplicate"; // Land usually uses the main parcel table
+      sourceParcelTable = "parcels"; // Land usually uses the main parcel table
       break;
   }
   const finalListingUploads = [];
@@ -503,17 +507,17 @@ async function enrichAndSyncListings(
     console.log(`✅ ${targetListingTable} updated.`);
   }
 
-  // if (parcelUpdateBatch.length > 0) {
-  //   const { error } = await supabase
-  //     .from(sourceParcelTable)
-  //     .upsert(parcelUpdateBatch, { onConflict: "pid" });
-  //   if (error) {
-  //     console.log("Error in properties upload");
-  //     console.log(error);
-  //     throw error;
-  //   }
-  //   console.log(`✅ ${sourceParcelTable} updated.`);
-  // }
+  if (parcelUpdateBatch.length > 0) {
+    const { error } = await supabaseAdmin
+      .from(sourceParcelTable)
+      .upsert(parcelUpdateBatch, { onConflict: "pid" });
+    if (error) {
+      console.log("Error in properties upload");
+      console.log(error);
+      throw error;
+    }
+    console.log(`✅ ${sourceParcelTable} updated.`);
+  }
 }
 
 const fetchOpenHouseListings = async (allListings: any[]) => {
@@ -627,22 +631,22 @@ async function syncAllListings() {
   try {
     // 1. Define your sync configurations
     const syncConfigs = [
-      // {
-      //   type: "detached",
-      //   apiFilter: "Residential Detached",
-      //   fields: detachedFields,
-      // },
+      {
+        type: "detached",
+        apiFilter: "Residential Detached",
+        fields: detachedFields,
+      },
       {
         type: "strata",
         apiFilter: "Residential Attached",
         fields: strataFields,
       },
-      // { type: "land", apiFilter: "Land Only", fields: landFields },
-      // {
-      //   type: "multifamily",
-      //   apiFilter: "MultiFamily Only",
-      //   fields: multifamilyFields,
-      // },
+      { type: "land", apiFilter: "Land Only", fields: landFields },
+      {
+        type: "multifamily",
+        apiFilter: "MultiFamily Only",
+        fields: multifamilyFields,
+      },
     ];
 
     let allProcessed: any[] = [];

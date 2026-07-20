@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useEffect } from "react";
 import {
   Eye,
   EyeOff,
@@ -21,10 +21,19 @@ import { Input } from "../ui/input";
 function RegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [error, setError] = useState("");
 
   // 1. Capture the callback URL (e.g., /property/123)
-  const callbackUrl = searchParams.get("callback") || "/";
-  const redirectTo = `${window.location.origin}${callbackUrl}`;
+  // const callbackUrl = searchParams.get("callback") || "/";
+  // const redirectTo = `${window.location.origin}${callbackUrl}`;
+
+  const [redirectTo, setRedirectTo] = useState("");
+
+  useEffect(() => {
+    const callbackUrl = searchParams.get("callback") || "/";
+    // Now window is safe to access because we are in useEffect
+    setRedirectTo(`${window.location.origin}${callbackUrl}`);
+  }, [searchParams]);
 
   const [loading, setLoading] = useState(false);
   const [triedToSubmit, setTriedToSubmit] = useState(false);
@@ -95,22 +104,28 @@ function RegisterContent() {
     setLoading(true);
     setShowVowModal(false);
 
-    const { data, error: authError } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-      options: {
-        emailRedirectTo: redirectTo,
-        data: {
-          full_name: `${formData.firstName} ${formData.lastName}`,
-          vow_agreed: true,
+    try {
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: `${formData.firstName} ${formData.lastName}`,
+            vow_agreed: true,
+          },
         },
-      },
-    });
+      });
 
-    if (authError) {
+      if (authError) {
+        setError(authError.message);
+        setLoading(false);
+      } else if (data) {
+        console.log("User created:", data);
+        router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
+      }
+    } catch (error) {
       setLoading(false);
-    } else if (data) {
-      router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
     }
   };
 
@@ -122,6 +137,7 @@ function RegisterContent() {
 
   const handleDisagree = () => {
     setShowVowModal(false);
+    setError("You must accept the VOW terms to create an account.");
   };
 
   // Helper for consistent field styling
@@ -192,6 +208,17 @@ function RegisterContent() {
               Sign in
             </Link>
           </p>
+
+          {error && (
+            <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300">
+              <div className="flex items-center gap-3 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-600 shadow-sm animate-shake">
+                <div className="p-1 bg-rose-100 rounded-full shrink-0">
+                  <X size={14} className="text-rose-600 stroke-[3px]" />
+                </div>
+                <p className="text-sm font-semibold leading-tight">{error}</p>
+              </div>
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="mt-10 space-y-5">
             {/* NAME FIELDS */}
             <div className="grid grid-cols-2 gap-4">

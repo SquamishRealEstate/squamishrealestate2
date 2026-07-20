@@ -56,7 +56,14 @@ export const AuthGuard = ({
         {message ||
           "Real Estate Board rules require registration to access historical listing data."}
       </p>
-      <Button variant="default" onClick={() => router.push("/login")}>
+      <Button
+        variant="default"
+        onClick={() =>
+          router.push(
+            `/login?callback=${encodeURIComponent(window.location.pathname)}`,
+          )
+        }
+      >
         Login / Register
       </Button>
     </div>

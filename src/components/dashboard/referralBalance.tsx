@@ -15,6 +15,7 @@ export const ReferralBalance = ({ user }: { user: any }) => {
         body: JSON.stringify({
           templateType: "REFERRAL_CREDIT",
           email: user?.email,
+          name: user?.user_metadata?.full_name,
         }),
       });
       if (response.ok) setStatus("success");
@@ -30,7 +31,7 @@ export const ReferralBalance = ({ user }: { user: any }) => {
     <button
       onClick={handleContact}
       disabled={status !== "idle"}
-      className="relative w-full text-left p-3 pb-6 bg-gradient-to-br from-accent/10 to-transparent border border-accent/20 rounded-xl shadow-sm hover:border-accent/40 transition-all cursor-pointer overflow-hidden"
+      className="relative w-full text-left p-3 pb-6 bg-gradient-to-br from-accent/10 to-transparent border border-accent/20 rounded-xl shadow-sm hover:border-accent/40 transition-all cursor-pointer"
     >
       {/* Tooltip */}
       <div className="group absolute top-2 right-2 cursor-help z-20">

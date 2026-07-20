@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-// import { useForm } from 'react-hook-form';
 import {
   Mail,
   Phone,
@@ -19,15 +18,57 @@ import HomeButton from "../ui/homeButton";
 import { Button } from "../ui/button";
 import { supabase } from "@/config/supabaseClient";
 import { Input } from "../ui/input";
+import Image from "next/image";
+import { formatDate } from "@/lib/utils";
+import { useSearchParams } from "next/navigation";
 
 export default function Contact() {
   const [triedToSubmit, setTriedToSubmit] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentMonthDate, setCurrentMonthDate] = useState(new Date());
+  const [reason, setReason] = useState<string>("General Inquiry");
+  const searchParams = useSearchParams();
+  const paramReason = searchParams.get("reason") || "General Inquiry";
+
+  useEffect(() => {
+    setReason(paramReason);
+    setFormData((prev) => ({ ...prev, reason: paramReason }));
+  }, [paramReason]);
+
+  const month = currentMonthDate.getMonth();
+  const year = currentMonthDate.getFullYear();
+  const monthNames = [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ];
+
+  const handlePrevMonth = () => {
+    setCurrentMonthDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonthDate(new Date(year, month + 1, 1));
+  };
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     message: "",
+    reason: reason,
     templateType: "CONTACT_FORM", // Default template type
   });
 
@@ -41,14 +82,15 @@ export default function Contact() {
     validations.email && validations.name && validations.message;
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
   ) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Attempting to submit form..."); // Debugging log
@@ -58,11 +100,22 @@ export default function Contact() {
       return;
     }
 
+    const isScheduling =
+      formData.reason === "Schedule a Meeting" ||
+      formData.reason === "Schedule a Tour";
+
+    const scheduledDate = isScheduling ? selectedDate : null;
+
+    const payload = {
+      ...formData,
+      date: formatDate(scheduledDate),
+    };
+
     try {
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(payload),
       });
 
       const result = await response.json();
@@ -73,6 +126,8 @@ export default function Contact() {
           name: formData.name,
           email: formData.email,
           message: formData.message,
+          reason: formData.reason,
+          date: scheduledDate, // Make sure you have a 'date' column in Supabase
         },
       ]);
 
@@ -86,6 +141,7 @@ export default function Contact() {
           name: "",
           email: "",
           message: "",
+          reason: "General Inquiry",
           templateType: "CONTACT_FORM",
         });
         setTriedToSubmit(false);
@@ -128,7 +184,7 @@ export default function Contact() {
             Contact Us
           </h1>
           <p className="text-lg text-white/80 font-medium italic">
-            Let&apos;s find your place in the mountains.
+            Find your mountian home.
           </p>
         </div>
       </div>
@@ -140,7 +196,7 @@ export default function Contact() {
             {/* Realtor Card */}
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
               <h3 className="text-sm font-bold uppercase tracking-widest text-primary mb-6">
-                Your Expert
+                Squamish Expert
               </h3>
               <div className="flex items-center gap-4">
                 <div className="h-20 w-20 rounded-2xl overflow-hidden">
@@ -208,6 +264,14 @@ export default function Contact() {
                 />
               </div>
             </div>
+            <Image
+              src="/images/REMAX-Masters.jpg"
+              alt="Squamish Real Estate Logo"
+              style={{ display: "block", margin: "0 auto" }}
+              height={80}
+              width={80}
+              priority
+            ></Image>
           </div>
 
           {/* RIGHT COLUMN: MESSAGE FORM */}
@@ -234,7 +298,6 @@ export default function Contact() {
                       name="name"
                       placeholder="Your Name"
                       onChange={handleChange}
-                      //className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none"
                     />
                     {(formData.name.length > 0 || triedToSubmit) &&
                       !validations.name && (
@@ -256,7 +319,6 @@ export default function Contact() {
                       name="email"
                       placeholder="email@example.com"
                       onChange={handleChange}
-                      //className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none"
                     />
                     {(formData.email.length > 0 || triedToSubmit) &&
                       !validations.email && (
@@ -270,9 +332,114 @@ export default function Contact() {
                   </div>
                 </div>
 
+                {/* NEW: Reason Dropdown */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 ml-1">
-                    How can we help?
+                    Reason for Contact
+                  </label>
+                  <select
+                    name="reason"
+                    value={formData.reason}
+                    onChange={handleChange}
+                    className="w-full h-12 px-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none text-slate-700"
+                  >
+                    <option value="General Inquiry">General Inquiry</option>
+                    <option value="Schedule a Tour">Schedule a Tour</option>
+                    <option value="Schedule a Meeting">
+                      Schedule a Meeting
+                    </option>
+                  </select>
+                </div>
+
+                {/* NEW: Conditional Calendar Rendering */}
+                {(formData.reason === "Schedule a Meeting" ||
+                  formData.reason === "Schedule a Tour") && (
+                  <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-sm font-semibold text-slate-700 ml-1 mb-2 block">
+                      Select a Date
+                    </label>
+                    {/* Changed border-grayborder to border-slate-200 to match your UI */}
+                    <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                      {/* Calendar Header */}
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-bold text-sm">
+                          {monthNames[month]} {year}
+                        </h3>
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={handlePrevMonth}
+                            className="p-1.5 hover:bg-slate-100 rounded-md transition-colors font-bold"
+                          >
+                            &larr;
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleNextMonth}
+                            className="p-1.5 hover:bg-slate-100 rounded-md transition-colors font-bold"
+                          >
+                            &rarr;
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Days of the Week Header */}
+                      <div className="grid grid-cols-7 text-center text-xs font-semibold mb-2 text-slate-500">
+                        <div>Su</div>
+                        <div>Mo</div>
+                        <div>Tu</div>
+                        <div>We</div>
+                        <div>Th</div>
+                        <div>Fr</div>
+                        <div>Sa</div>
+                      </div>
+
+                      {/* Days Grid */}
+                      <div className="grid grid-cols-7 gap-1 text-center">
+                        {Array.from({ length: firstDayIndex }).map((_, idx) => (
+                          <div key={`empty-${idx}`} />
+                        ))}
+
+                        {Array.from({ length: daysInMonth }).map((_, idx) => {
+                          const dayNum = idx + 1;
+                          const thisDate = new Date(year, month, dayNum);
+
+                          const isSelected =
+                            selectedDate.getDate() === dayNum &&
+                            selectedDate.getMonth() === month &&
+                            selectedDate.getFullYear() === year;
+
+                          const isPast =
+                            new Date(year, month, dayNum, 23, 59, 59) <
+                            new Date();
+
+                          return (
+                            <button
+                              type="button"
+                              key={dayNum}
+                              disabled={isPast}
+                              onClick={() => setSelectedDate(thisDate)}
+                              className={`py-1.5 text-xs font-semibold rounded-md transition-all
+                  ${
+                    isSelected
+                      ? "bg-primary text-white font-bold shadow-sm scale-105"
+                      : isPast
+                        ? "text-slate-300 cursor-not-allowed"
+                        : "text-slate-700 hover:bg-slate-100"
+                  }`}
+                            >
+                              {dayNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700 ml-1">
+                    Message details
                   </label>
                   <textarea
                     className={
@@ -284,7 +451,6 @@ export default function Contact() {
                     onChange={handleChange}
                     rows={5}
                     placeholder="Tell us about the property or area you're interested in..."
-                    //className="w-full px-5 py-4 rounded-2xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all outline-none resize-none"
                   />
                   {(formData.message.length > 0 || triedToSubmit) &&
                     !validations.message && (

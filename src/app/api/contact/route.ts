@@ -26,6 +26,7 @@ export async function POST(req: Request) {
       query,
       purchasePrice,
       deposit,
+      reason,
     } = body;
 
     const transporter = nodemailer.createTransport({
@@ -217,17 +218,23 @@ export async function POST(req: Request) {
         userSubject = "We've received your inquiry - Squamish Real Estate";
 
         const details = {
-          Message: "User is interested in the $1,000 Buy or Sell Credit offer.",
+          Message: `${name} would like more information on the Cashback credit of $1,000 or 10% of commission earned on your next transaction.`,
         };
 
-        const sharedHtml = masterDynamicTemplate(
-          "Referral Credit Inquiry",
-          "A user has clicked to learn more about the $1,000 Buy or Sell Credit.",
+        const user = masterDynamicTemplate(
+          "Membership Rewards",
+          "Thank you for your interest! We have received your inquiry and will review it shortly.",
           details,
         );
 
-        adminHtml = sharedHtml;
-        userHtml = sharedHtml;
+        const admin = masterDynamicTemplate(
+          "Membership Rewards",
+          `Please reply to ${name} | ${email}`,
+          details,
+        );
+
+        adminHtml = admin;
+        userHtml = user;
         break;
       }
 
@@ -238,7 +245,9 @@ export async function POST(req: Request) {
         const details = {
           Name: name,
           Email: email,
+          reason: reason,
           Message: message,
+          ...(date !== null && { Date: date }),
         };
 
         adminHtml = masterDynamicTemplate(

@@ -34,7 +34,25 @@ export function ListingGallery({
   const rawPhotos = photos || listing?.photos || [];
 
   const displayPhotos = [...rawPhotos];
-  if (displayPhotos.length < 3) {
+  // if (!singlePhotoOnly && displayPhotos.length < 3) {
+  //   const fallbacks = [
+  //     "/images/dashboard/Squamish-1.jpg",
+  //     "/images/dashboard/Squamish-2.jpg",
+  //     "/images/dashboard/Squamish-3.jpg",
+  //     "/images/dashboard/Squamish-4.jpg",
+  //     "/images/dashboard/Squamish-5.jpg",
+  //     "/images/dashboard/Squamish-6.jpg",
+  //     "/images/dashboard/Squamish-7.jpg",
+  //   ];
+
+  //   fallbacks.forEach((fallback) => {
+  //     if (displayPhotos.length < 3 && !displayPhotos.includes(fallback)) {
+  //       displayPhotos.push(fallback);
+  //     }
+  //   });
+  // }
+
+  if (!singlePhotoOnly && displayPhotos.length < 3) {
     const fallbacks = [
       "/images/dashboard/Squamish-1.jpg",
       "/images/dashboard/Squamish-2.jpg",
@@ -45,11 +63,19 @@ export function ListingGallery({
       "/images/dashboard/Squamish-7.jpg",
     ];
 
-    fallbacks.forEach((fallback) => {
-      if (displayPhotos.length < 7 && !displayPhotos.includes(fallback)) {
+    // 1. Shuffle the fallbacks array randomly
+    const shuffledFallbacks = fallbacks.sort(() => 0.5 - Math.random());
+
+    // 2. Loop through the randomized array
+    for (const fallback of shuffledFallbacks) {
+      // Stop checking once we have exactly 3 photos
+      if (displayPhotos.length >= 3) break;
+
+      // Only push if the photo isn't already in the array (prevents duplicates)
+      if (!displayPhotos.includes(fallback)) {
         displayPhotos.push(fallback);
       }
-    });
+    }
   }
 
   const remainingCount = displayPhotos.length - 3;
@@ -648,7 +674,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
             <Input
               name="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={formData.name}
               onChange={handleInputChange}
               className={`${getFieldStatus(validations.name, formData.name).className}`}
@@ -672,7 +698,7 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="email@example.com"
               className={
                 getFieldStatus(validations.email, formData.email).className
               }
@@ -943,7 +969,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
             <Input
               name="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={formData.name}
               onChange={handleInputChange}
               className={`${getFieldStatus(validations.name, formData.name).className}`}
@@ -967,7 +993,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="email@example.com"
               className={
                 getFieldStatus(validations.email, formData.email).className
               }
@@ -1211,7 +1237,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
             <User className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/50 size-4" />
             <Input
               name="name"
-              placeholder="John Doe"
+              placeholder="Your Name"
               value={formData.name}
               onChange={handleInputChange}
               className={`${getFieldStatus(validations.name, formData.name).className}`}
@@ -1235,7 +1261,7 @@ export const StartOffer = ({ listing }: { listing: any }) => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="john@example.com"
+              placeholder="email@example.com"
               className={
                 getFieldStatus(validations.email, formData.email).className
               }

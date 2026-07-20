@@ -50,10 +50,12 @@ const accessToken = process.env.BRIDGE_API_TOKEN;
 const supabase_js_1 = require("@supabase/supabase-js");
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-if (!supabaseUrl || !supabaseAnonKey) {
+const supabaseServiceKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
     throw new Error("Missing Supabase URL or Anon Key in environment variables");
 }
 exports.supabase = (0, supabase_js_1.createClient)(supabaseUrl, supabaseAnonKey);
+const supabaseAdmin = (0, supabase_js_1.createClient)(supabaseUrl, supabaseServiceKey);
 // --- HELPERS ---
 const formatArrayToString = (arr) => arr && Array.isArray(arr) ? arr.join(", ") : "";
 const formatParcelNumber = (pid) => pid?.replace(/^(\d{3})(\d{3})(\d{3})$/, "$1-$2-$3") || "";
@@ -322,19 +324,19 @@ async function enrichAndSyncListings(processedListings, listingType) {
     switch (listingType) {
         case "detached":
             targetListingTable = "detached_listings";
-            sourceParcelTable = "parcels_duplicate";
+            sourceParcelTable = "parcels";
             break;
         case "strata":
             targetListingTable = "strata_listings";
-            sourceParcelTable = "strata_duplicate";
+            sourceParcelTable = "strata";
             break;
         case "land":
             targetListingTable = "land_listings";
-            sourceParcelTable = "parcels_duplicate"; // Land usually uses the main parcel table
+            sourceParcelTable = "parcels"; // Land usually uses the main parcel table
             break;
         case "multifamily":
             targetListingTable = "multifamily_listings";
-            sourceParcelTable = "parcels_duplicate"; // Land usually uses the main parcel table
+            sourceParcelTable = "parcels"; // Land usually uses the main parcel table
             break;
     }
     const finalListingUploads = [];
@@ -350,9 +352,6 @@ async function enrichAndSyncListings(processedListings, listingType) {
         if (parcel) {
             let mlsHistory = Array.isArray(parcel.mls_data) ? parcel.mls_data : [];
             let lastMlsDate = parcel.last_mls_date;
-            if (listing.pid === "025-394-843") {
-                console.log(parcel.mls_data);
-            }
             // 3. History Logic (Pending / Closed)
             if (listing.market_status === "Pending") {
                 const exists = mlsHistory.some((h) => String(h.price) === String(listing.sold_price) &&
@@ -482,17 +481,17 @@ async function enrichAndSyncListings(processedListings, listingType) {
         }
         console.log(`✅ ${targetListingTable} updated.`);
     }
-    // if (parcelUpdateBatch.length > 0) {
-    //   const { error } = await supabase
-    //     .from(sourceParcelTable)
-    //     .upsert(parcelUpdateBatch, { onConflict: "pid" });
-    //   if (error) {
-    //     console.log("Error in properties upload");
-    //     console.log(error);
-    //     throw error;
-    //   }
-    //   console.log(`✅ ${sourceParcelTable} updated.`);
-    // }
+    if (parcelUpdateBatch.length > 0) {
+        const { error } = await supabaseAdmin
+            .from(sourceParcelTable)
+            .upsert(parcelUpdateBatch, { onConflict: "pid" });
+        if (error) {
+            console.log("Error in properties upload");
+            console.log(error);
+            throw error;
+        }
+        console.log(`✅ ${sourceParcelTable} updated.`);
+    }
 }
 const fetchOpenHouseListings = async (allListings) => {
     const batchSize = 200;
@@ -582,22 +581,22 @@ async function syncAllListings() {
     try {
         // 1. Define your sync configurations
         const syncConfigs = [
-            // {
-            //   type: "detached",
-            //   apiFilter: "Residential Detached",
-            //   fields: detachedFields,
-            // },
+            {
+                type: "detached",
+                apiFilter: "Residential Detached",
+                fields: detachedFields,
+            },
             {
                 type: "strata",
                 apiFilter: "Residential Attached",
                 fields: strataFields,
             },
-            // { type: "land", apiFilter: "Land Only", fields: landFields },
-            // {
-            //   type: "multifamily",
-            //   apiFilter: "MultiFamily Only",
-            //   fields: multifamilyFields,
-            // },
+            { type: "land", apiFilter: "Land Only", fields: landFields },
+            {
+                type: "multifamily",
+                apiFilter: "MultiFamily Only",
+                fields: multifamilyFields,
+            },
         ];
         let allProcessed = [];
         console.log("🚀 Starting Full Property Sync...");
