@@ -365,7 +365,6 @@ export const fetchFloorPlans = async (
   property: any,
   type: string,
 ): Promise<string[]> => {
-  console.log("Fetching Floor Plans for:", type);
   let bucketName = "";
   let folderPath = "";
   let targetPrefix = "";
@@ -395,14 +394,13 @@ export const fetchFloorPlans = async (
         civic_address[1][0].toUpperCase() +
         civic_address[1].slice(1).toLowerCase();
       folderPath = `${civic_address[1]}/fp`;
-      targetPrefix = `${civic_address[0]}-${civic_address[1]}}`;
+      targetPrefix = `${civic_address[0]}-${civic_address[1]}`;
     }
   }
 
   // --- CASE 2: STRATA ---
   else if (isStrata) {
     bucketName = "strata";
-    console.log("Strata bucket name:", bucketName);
 
     if (!property.civic_address) return [];
 
@@ -416,7 +414,6 @@ export const fetchFloorPlans = async (
 
     // Target prefix for filtering files inside that folder
     targetPrefix = `${civic_address[0]}-${civic_address[1]}-${civic_address[2]}-Floor-Plan`;
-    console.log("Strata target prefix:", targetPrefix);
   } else {
     return [];
   }
@@ -442,9 +439,6 @@ export const fetchFloorPlans = async (
     }
 
     if (!files || files.length === 0) {
-      console.log(
-        `No assets returned by Supabase API for path: ${bucketName}/${folderPath} with search prefix: ${searchPrefix}`,
-      );
       return [];
     }
 

@@ -90,7 +90,6 @@ function RegisterContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Attempting to submit form..."); // Debugging log
     setTriedToSubmit(true);
 
     if (!isFormValid) {
@@ -121,7 +120,6 @@ function RegisterContent() {
         setError(authError.message);
         setLoading(false);
       } else if (data) {
-        console.log("User created:", data);
         router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
       }
     } catch (error) {

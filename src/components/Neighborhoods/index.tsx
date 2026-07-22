@@ -61,7 +61,6 @@ export default function Neighborhoods() {
             rawCounts[name] = (rawCounts[name] || 0) + 1;
           });
 
-          console.log("Neighborhood counts:", rawCounts);
           setCountsMap(rawCounts);
         }
 

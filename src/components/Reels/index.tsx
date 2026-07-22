@@ -161,7 +161,6 @@ export default function Reels() {
       }
 
       const { data, error } = await query;
-      console.log("data:", data);
 
       if (!error) setReels(data || []);
       setLoading(false);

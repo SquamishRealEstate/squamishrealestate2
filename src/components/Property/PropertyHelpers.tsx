@@ -41,8 +41,6 @@ export const BackToMapButton = ({ activePopup }: { activePopup: any }) => {
   const router = useRouter();
   const { setMapExpanded, setActivePopup } = useMap();
 
-  console.log("BackToMapButton activePopup:", activePopup);
-
   const handleClick = () => {
     setMapExpanded(true); // Open the map
     setActivePopup(activePopup);
@@ -107,7 +105,6 @@ export const SocialInteractions = ({
   const loadData = async (currentUser: any) => {
     // 1. Run view interaction FIRST so the database decides whether to increment or skip
     if (!hasIncrementedView.current) {
-      console.log("Incrementing view count for PID:", pid);
       hasIncrementedView.current = true;
       await supabase.rpc("handle_property_interaction", {
         target_pid: pid,
@@ -893,7 +890,6 @@ export const LastSold = ({
   property: any;
   type: string;
 }) => {
-  console.log("Property MLS Data:", property);
   const propertyInfoArray: any[] = property.mls_data || [];
   const isListing = type.includes("Listing");
   const isLandListing = type.includes("land");
@@ -1035,8 +1031,6 @@ export const LastSold = ({
 };
 
 export const Photos = ({ photos }: { photos: any[] }) => {
-  console.log("Property Photos:", photos);
-
   return (
     <ListingGallery
       photos={photos}
@@ -1545,7 +1539,6 @@ export const ReviewForm = ({
     if (!isFormValid || validateMessage) return;
 
     setIsSubmitting(true);
-    console.log(user);
 
     if (!user) {
       const cache = { formData, sliderValues };

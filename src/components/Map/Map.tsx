@@ -137,7 +137,6 @@ function MapInnerLayout({
       formattedPid = formatPid(pid);
     }
 
-    console.log("formattedPid:", formattedPid);
     const table = propertyType === "strata" ? "strata" : "parcels";
 
     try {
@@ -217,7 +216,6 @@ function MapInnerLayout({
       event.stopPropagation();
       event.preventDefault();
 
-      console.log(listing);
       const status = listing.market_status;
       const isAccessDenied =
         !isLoggedIn && !["Active", "Active Under Contract"].includes(status);
@@ -234,23 +232,6 @@ function MapInnerLayout({
         data: listing,
         lngLat: [Number(listing.longitude), Number(listing.latitude)],
       });
-
-      // console.log(`Access Granted for PID: ${listing.pid}`);
-
-      // const popupContent = await createListingPopupContent(
-      //   listing,
-      //   listingType,
-      // );
-
-      // const map = mapRef.current;
-      // if (!map) return;
-
-      // new mapboxgl.Popup({ offset: 15 })
-      //   .setLngLat([Number(listing.longitude), Number(listing.latitude)])
-      //   .setDOMContent(popupContent)
-      //   .addTo(map);
-
-      // Open standard popup logic here if applicable
     });
   };
 
@@ -313,9 +294,6 @@ function MapInnerLayout({
     });
 
     if (isAlreadyCached) {
-      console.log(
-        `ℹ️ View area already queried for [${type}]. Using existing markers.`,
-      );
       return;
     }
 
@@ -839,20 +817,15 @@ function MapInnerLayout({
   useEffect(() => {
     const map = mapRef.current;
 
-    console.log("useEffect:", activePopup);
-
     if (!map || !mapLoaded) return;
 
     const renderPopup = async () => {
-      console.log("In renderPopup");
       // 1. Clean up existing popups / filters to prevent duplicates
       if (currentPopupRef.current) {
-        console.log("Removing currentPopupRef");
         currentPopupRef.current.remove();
         currentPopupRef.current = null;
       }
       if (map.getLayer("houses-highlighted")) {
-        console.log("Removing houses-highlighted");
         map.setFilter("houses-highlighted", ["in", "OBJECTID", ""]);
       }
 
@@ -861,9 +834,6 @@ function MapInnerLayout({
 
       let popupContent: HTMLDivElement | null = null;
 
-      console.log("still in renderPopup");
-      console.log("activePopup:", activePopup.source);
-
       // 3. Generate content based on source
       if (activePopup.source === "listing") {
         popupContent = await createListingPopupContent(
@@ -871,13 +841,11 @@ function MapInnerLayout({
           activePopup.propertyType,
         );
       } else if (activePopup.source === "parcel") {
-        console.log("activePopup:", activePopup);
         const getProperty = await getPropertyData(
           activePopup.pid,
           activePopup.propertyType,
         );
         if (getProperty) {
-          console.log("getProperty:", getProperty);
           popupContent = await createPropertyPopupContent(
             getProperty,
             activePopup.propertyType,
@@ -896,7 +864,6 @@ function MapInnerLayout({
 
       // 4. Mount the Mapbox Popup
       if (popupContent) {
-        console.log("popupContent:");
         const popup = new mapboxgl.Popup({ offset: 15 })
           .setLngLat(activePopup.lngLat)
           .setDOMContent(popupContent)

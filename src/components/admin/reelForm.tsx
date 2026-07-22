@@ -126,8 +126,6 @@ export default function ReelForm({
             .select()
         : await supabase.from("reels").insert([formData]).select();
 
-      console.log(data);
-
       if (error) throw error;
 
       setStatus({

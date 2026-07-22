@@ -162,7 +162,6 @@ function DashboardContent({ user }: { user: any }) {
     },
   });
 
-  console.log("Tab State:", user);
   const loadData = useCallback(
     async (tabName: string, pageToLoad: number) => {
       if (!user?.id) return;
@@ -305,7 +304,6 @@ function DashboardContent({ user }: { user: any }) {
   };
 
   const userInitials = getUserInitials(user);
-  console.log("user", user);
   return (
     <div className="h-screen bg-muted/10 text-foreground font-body">
       <Navbar />

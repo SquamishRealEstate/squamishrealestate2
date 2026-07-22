@@ -40,10 +40,6 @@ const GoogleOneTap = () => {
                   return;
                 }
 
-                console.log(
-                  "Successfully logged in with Google One Tap!",
-                  data,
-                );
                 // Optionally redirect the user or update state here
               } catch (error) {
                 console.error("Unexpected error during sign-in:", error);

@@ -148,15 +148,11 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
   };
 
   const handleUpdate = async () => {
-    console.log("Form Data:", formData);
     setTriedToSubmit(true);
     if (!isFormValid) {
-      console.log(validations);
-      console.log("Invalid form data");
       setTriedToSubmit(false);
       return;
     }
-    console.log(formData);
 
     try {
       const updateData: any = {
@@ -175,7 +171,6 @@ export default function EditProfileForm({ user }: EditProfileFormProps) {
 
       // 3. Update password only if provided
       if (formData.newPassword.trim()) {
-        console.log("Updating password");
         const { error: passError } = await supabase.auth.updateUser({
           password: formData.newPassword,
         });

@@ -93,7 +93,6 @@ export function ContactBody() {
   };
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Attempting to submit form..."); // Debugging log
     setTriedToSubmit(true);
 
     if (!isFormValid) {
@@ -119,8 +118,6 @@ export function ContactBody() {
       });
 
       const result = await response.json();
-      console.log("Server responded with:", result);
-
       const { error: supabaseError } = await supabase.from("inquiries").insert([
         {
           name: formData.name,

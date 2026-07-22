@@ -79,7 +79,6 @@ export const Neighborhood = () => {
         if (match) {
           setNeighborhood(match as NeighborhoodType);
         } else {
-          console.log("No data found matching slug:", neighborhoodname);
           setNeighborhood(null);
         }
       }

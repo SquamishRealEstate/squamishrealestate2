@@ -522,13 +522,6 @@ export const ScheduleTour = ({ listing }: { listing: any }) => {
 
       if (!response.ok) throw new Error("Failed");
 
-      console.log("Form submitted with data:", {
-        ...formData,
-        listingAddress: listing.civic_address,
-        date: formatDate(selectedDate),
-        time: selectedTime,
-      });
-
       setMessage("Schedule Tour Request Submitted! We will be in touch soon.");
       setFormData({
         name: "",
@@ -866,7 +859,6 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
       });
 
       const result = await response.json();
-      console.log("Server responded with:", result);
 
       if (response.ok) {
         setMessage("Message successfully sent! We'll be in touch soon.");
@@ -1174,8 +1166,6 @@ export const StartOffer = ({ listing }: { listing: any }) => {
       });
 
       const result = await response.json();
-      console.log("Server responded with:", result);
-
       if (response.ok) {
         setMessage("Offer request submitted! We will be in touch soon.");
         setFormData({

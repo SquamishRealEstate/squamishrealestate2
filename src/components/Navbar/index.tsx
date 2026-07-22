@@ -11,8 +11,6 @@ export default function Navbar() {
   const { user, isAdmin } = useAuth(); // Instantly reactive!
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  console.log("isAdmin:", isAdmin);
-
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) setIsMenuOpen(false);

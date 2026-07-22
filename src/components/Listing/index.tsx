@@ -151,8 +151,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
 
       if (data) {
         // data = fixCivicAddress(data, type); // Format the civic address for display
-        console.log("Fetched listing data:", data); // Debug log to verify data structure
-
         setListing(data);
       }
       setLoading(false);
@@ -198,11 +196,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       const fetchOpenHouses = async () => {
         if (!listing?.listing_id) return;
 
-        console.log(
-          "Fetching open house data for listing_id:",
-          listing.listing_id,
-        );
-
         const { data, error } = await supabase
           .from("openhouse_listings")
           .select("*")
@@ -214,8 +207,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
         }
 
         setOpenHouses(data || []);
-
-        console.log("Open House Data:", data, "Error:", error);
       };
 
       fetchOpenHouses();
@@ -233,8 +224,6 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
 
   const listingInfo = useMemo(() => {
     if (!listing) return [];
-
-    console.log("Listing Info:", listing.photos);
 
     return [
       {

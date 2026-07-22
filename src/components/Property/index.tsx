@@ -68,7 +68,6 @@ import { AuthGuard } from "../Auth/authGuard";
 export const PropertyDetailPage = ({ type }: { type: string }) => {
   const { pid } = useParams();
 
-  console.log("Type", type);
   const [property, setProperty] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   // const [landingImage, setLandingImage] = useState<string>("");
@@ -209,8 +208,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
         { name: "Street Average", value: "Coming Soon", icon: Briefcase },
         { name: "Appreciation/year", value: "Coming Soon", icon: Home },
       ];
-
-      console.log("Property Details:", propertyDetails);
       setPropertyDetails(propertyDetails);
 
       const fetchReviews = async () => {

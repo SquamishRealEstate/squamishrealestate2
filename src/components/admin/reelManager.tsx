@@ -56,8 +56,6 @@ export default function ReelManager() {
         .order("created_at", { ascending: false })
         .range(start, end);
 
-      console.log(data);
-
       if (!error && data) {
         if (isInitial) {
           setReels(data as any);

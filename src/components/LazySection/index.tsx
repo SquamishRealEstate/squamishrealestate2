@@ -11,12 +11,8 @@ export default function LazySection({
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    console.log("Observer created");
-
     const observer = new IntersectionObserver(
       ([entry]) => {
-        console.log("Intersection triggered:", entry.isIntersecting);
-
         if (entry.isIntersecting) {
           setVisible(true);
           observer.disconnect();

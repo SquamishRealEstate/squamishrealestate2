@@ -28,7 +28,6 @@ export const ShareMenu = ({ title, url }: ShareMenuProps) => {
   useEffect(() => {
     setShareUrl(url || window.location.href);
 
-    console.log("Share URL set to:", url || window.location.href);
     // Close menu when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {

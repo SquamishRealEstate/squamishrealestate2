@@ -28,8 +28,6 @@ function CheckEmailContent() {
       email,
     });
 
-    console.log("Resend response:", { data, error }); // Debug log
-
     if (error) {
       setMessage(error.message);
     } else {
