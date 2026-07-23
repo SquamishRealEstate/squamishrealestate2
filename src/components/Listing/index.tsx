@@ -228,7 +228,9 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
     return [
       {
         name: `Sold History`,
-        renderComponent: () => <LastSold property={listing} type={type} />,
+        renderComponent: () => (
+          <LastSold property={listing} type={`${type}Listing`} />
+        ),
         isRendered: true,
       },
       {
@@ -251,7 +253,9 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
 
       {
         name: "BC Assessment",
-        renderComponent: () => <BCAssessment property={listing} type={type} />,
+        renderComponent: () => (
+          <BCAssessment property={listing} type={`${type}Listing`} />
+        ),
         isRendered: true,
       },
       {

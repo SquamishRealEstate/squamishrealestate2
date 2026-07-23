@@ -646,7 +646,7 @@ export const RecentSolds = ({ type }: { type: string }) => {
       try {
         if (type === "strata") {
           const { data, error } = await supabase
-            .from("strata_duplicate")
+            .from("strata")
             .select("*")
             .eq("market_status", "Closed")
             .order("last_mls_date", { ascending: false })
@@ -656,7 +656,7 @@ export const RecentSolds = ({ type }: { type: string }) => {
           setSolds((data as any[]) || []);
         } else {
           const { data, error } = await supabase
-            .from("parcels_duplicate")
+            .from("parcels")
             .select("*")
             .eq("market_status", "Closed")
             .order("last_mls_date", { ascending: false })
@@ -894,7 +894,7 @@ export const LastSold = ({
   const isListing = type.includes("Listing");
   const isLandListing = type.includes("land");
 
-  function getGarageSituation(availableParking: string): string {
+  function getGarageSituation(availableParking: string[]): string {
     const answer: string = "Other";
     try {
       const rank: string[] = [
@@ -906,9 +906,8 @@ export const LastSold = ({
         "Parking Available",
         "Underground",
       ];
-      const parkingArray: string[] = availableParking.split(",");
       for (const parkingType of rank) {
-        for (const word of parkingArray) {
+        for (const word of availableParking) {
           if (word.includes(parkingType)) return parkingType;
         }
       }
