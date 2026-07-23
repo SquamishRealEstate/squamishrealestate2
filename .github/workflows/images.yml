@@ -1,11 +1,13 @@
 name: Weekly Image Sync
 
 on:
-  # Runs automatically once a week (Sunday at midnight UTC)
   schedule:
     - cron: '0 0 * * 0'
-  # Allows you to trigger the run manually from the GitHub Actions tab
   workflow_dispatch:
+
+# 🌟 NEW: This permission is required to allow the bot to push code back to your repo
+permissions:
+  contents: write
 
 jobs:
   run-image-script:
@@ -18,19 +20,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22' # Keeping Node 22 for Supabase compatibility
+          node-version: '22'
 
       - name: Install Dependencies
         run: npm install
 
       - name: Execute Images Script
-        # Include your environment variables here if images.js needs to connect to Supabase or Bridge
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY }}
           BRIDGE_API_TOKEN: ${{ secrets.BRIDGE_API_TOKEN }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
-        # If your file is strictly JavaScript, use node. If it's TypeScript renamed to .js, use npx tsx.
-        run: node images.js
+        run: node images.js 
+
+      # 🌟 NEW: This step saves the updated JSON file back to your GitHub repository
+      - name: Commit and push updated database
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add synced_mls.json
+          git commit -m "Auto-update synced_mls.json [skip ci]" || echo "No new listings to sync"
+          git push
