@@ -20,6 +20,7 @@ import ReelManager from "./reelManager";
 import InquiryManager from "./inquiryManager";
 import FeaturedManager from "./featuredManager";
 import { useAuth } from "@/components/context/AuthProvider";
+import Image from "next/image";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("users");
@@ -57,7 +58,7 @@ export default function AdminDashboard() {
       <div className="lg:hidden flex items-center justify-between p-4 bg-slate-900 text-white sticky top-0 z-50 shadow-md h-16">
         <div className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white">
-            <img src="/images/icon.ico" alt="Home" className="w-8 h-8" />
+            <Image src="/images/icon.ico" alt="Home" width={30} height={30} />
           </div>
           <h2 className="font-bold tracking-tight">Admin Portal</h2>
         </div>
@@ -88,7 +89,7 @@ export default function AdminDashboard() {
       >
         <div className="mb-10 hidden lg:flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-white">
-            <img src="/images/icon.ico" alt="Home" className="w-8 h-8" />
+            <Image src="/images/icon.ico" alt="Home" width={30} height={30} />
           </div>
           <h2 className="text-xl font-bold tracking-tight">Admin Portal</h2>
         </div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Footer() {
   return (
@@ -8,7 +9,12 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center">
-                <img src="/images/icon.ico" alt="Home" className="w-5 h-5" />
+                <Image
+                  src="/images/icon.ico"
+                  alt="Home"
+                  width={20}
+                  height={20}
+                />
               </div>
               <span className="font-bold">Squamish Real Estate</span>
             </div>

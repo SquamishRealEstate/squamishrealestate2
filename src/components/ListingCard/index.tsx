@@ -1,8 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { formatString, getS3Image } from "@/lib/utils";
+import Image from "next/image";
 
 export type Listing = {
   pid: string;
@@ -57,6 +58,17 @@ export function ListingCard({ listing }: { listing: Listing }) {
     detailPageUrl = `/listing/landing/${listing.property_category}/${listing.pid}/${formatString(civicAddress)}`;
   }
 
+  const DEFAULT_IMAGE = "/images/Default-Card.jpg";
+  const FALLBACK_IMAGE = listing.photos?.[0] || DEFAULT_IMAGE;
+
+  // Initialize state with firstPhoto, falling back to the others if it's undefined
+  const [imgSrc, setImgSrc] = useState(firstPhoto || FALLBACK_IMAGE);
+
+  // Keep image in sync if the firstPhoto prop changes
+  useEffect(() => {
+    setImgSrc(firstPhoto || FALLBACK_IMAGE);
+  }, [firstPhoto, listing.photos]);
+
   return (
     <Link
       href={detailPageUrl}
@@ -67,13 +79,19 @@ export function ListingCard({ listing }: { listing: Listing }) {
       <div className="border border-gray-200/60 rounded-2xl overflow-hidden shadow-sm bg-white h-full flex flex-col justify-between hover:shadow-md transition-all">
         <div>
           <div className="relative overflow-hidden">
-            <img
-              src={firstPhoto}
-              alt="Property"
+            <Image
+              src={imgSrc}
+              alt={listing.civic_address || "Squamish Property"}
+              width={800}
+              height={600}
               className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  `${listing.photos?.[0] || "/images/Default-Card.jpg"}`;
+              onError={() => {
+                // If the current image fails, gracefully step down to the next fallback
+                if (imgSrc === firstPhoto && listing.photos?.[0]) {
+                  setImgSrc(listing.photos[0]);
+                } else if (imgSrc !== DEFAULT_IMAGE) {
+                  setImgSrc(DEFAULT_IMAGE);
+                }
               }}
             />
             {listing.market_status && (

@@ -20,6 +20,7 @@ import { Button } from "../ui/button";
 import Link from "next/link";
 import { ContactItem } from "../Contact";
 import { Input } from "@/components/ui/input";
+import Image from "next/image";
 
 export function ListingGallery({
   listing,
@@ -144,10 +145,11 @@ export function ListingGallery({
                 className="relative group flex-shrink-0 w-full h-[260px] sm:h-[360px] bg-neutral-100 rounded-3xl overflow-hidden cursor-pointer border border-slate-200 shadow-sm snap-center"
                 onClick={() => setActivePhotoIndex(index)}
               >
-                <img
+                <Image
                   src={url}
+                  fill
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-                  alt={`Property Preview ${index + 1}`}
+                  alt={listing.civic_address}
                 />
 
                 {/* Counter Badge on every slide */}
@@ -171,37 +173,44 @@ export function ListingGallery({
         </div>
       ) : (
         /* Original 3-image panel grid layout */
+        /* Original 3-image panel grid layout */
         <div className="grid grid-cols-2 md:grid-cols-3 grid-rows-2 gap-4 h-[300px] sm:h-[400px] md:h-[450px] lg:h-[600px] w-full p-4">
+          {/* Note the added 'relative' class to the parent div */}
           <div
-            className="col-span-2 row-span-2 h-full w-full cursor-pointer overflow-hidden rounded-lg"
+            className="relative col-span-2 row-span-2 h-full w-full cursor-pointer overflow-hidden rounded-lg"
             onClick={() => displayPhotos.length > 0 && setActivePhotoIndex(0)}
           >
-            <img
-              className="h-full w-full object-fill transition-transform duration-300 hover:scale-[1.02]"
+            <Image
+              className="object-cover transition-transform duration-300 hover:scale-[1.02]"
               src={mainImageUrl}
-              alt="Main Property Image"
+              fill
+              alt={listing.civic_address}
             />
           </div>
 
+          {/* Note the added 'relative' class to the parent div */}
           <div
-            className="hidden md:block col-span-1 row-span-1 h-full w-full cursor-pointer overflow-hidden rounded-lg"
+            className="relative hidden md:block col-span-1 row-span-1 h-full w-full cursor-pointer overflow-hidden rounded-lg"
             onClick={() => displayPhotos.length > 1 && setActivePhotoIndex(1)}
           >
-            <img
-              className="h-full w-full object-fill transition-transform duration-300 hover:scale-[1.02]"
+            <Image
+              className="object-cover transition-transform duration-300 hover:scale-[1.02]"
               src={imageUrl1}
-              alt="Property Image 1"
+              fill
+              alt={listing.civic_address}
             />
           </div>
 
+          {/* This one already had 'relative' for your button, which is perfect! */}
           <div
-            className="hidden md:block col-span-1 row-span-1 h-full w-full cursor-pointer overflow-hidden rounded-lg group relative"
+            className="relative hidden md:block col-span-1 row-span-1 h-full w-full cursor-pointer overflow-hidden rounded-lg group"
             onClick={() => displayPhotos.length > 2 && setActivePhotoIndex(2)}
           >
-            <img
-              className="h-full w-full object-fill transition-transform duration-300 group-hover:scale-[1.02]"
+            <Image
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               src={imageUrl2}
-              alt="Property Image 2"
+              fill
+              alt={listing.civic_address}
             />
 
             {remainingCount > 0 && (
@@ -236,11 +245,13 @@ export function ListingGallery({
           </button>
 
           <div className="relative max-w-5xl max-h-[85vh] w-full h-full px-4 flex flex-col items-center justify-center select-none">
-            <img
-              className="max-w-full max-h-[80vh] object-contain rounded-md shadow-2xl animate-in zoom-in-95 duration-200"
+            <Image
               src={displayPhotos[activePhotoIndex]}
+              alt={listing.civic_address}
+              width={1920}
+              height={1080}
               onClick={(e) => e.stopPropagation()}
-              alt="Enlarged gallery item"
+              className="w-auto h-auto max-w-full max-h-[80vh] object-contain rounded-md shadow-2xl animate-in zoom-in-95 duration-200"
             />
             <p className="text-white/60 text-xs font-medium tracking-wider mt-4 bg-neutral-950/40 px-3 py-1 rounded-full backdrop-blur">
               {activePhotoIndex + 1} / {displayPhotos.length}
@@ -916,12 +927,14 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
             Your Expert
           </h3>
           <div className="flex items-center gap-4">
-            <div className="h-20 w-20 rounded-2xl overflow-hidden">
-              <img
+            <div className="rounded-2xl overflow-hidden">
+              <Image
                 src="https://lh3.googleusercontent.com/d/1OgL1mWWWQijCzPwQWjpIjoamLsUECTQH"
                 alt="Sean Brawley"
+                width={60}
+                height={60}
                 referrerPolicy="no-referrer"
-                className="h-full w-full object-cover"
+                className="object-cover"
               />
             </div>
             <div>

@@ -171,9 +171,10 @@ export function ContactBody() {
 
       {/* HEADER SECTION */}
       <div className="relative h-[45vh] w-full bg-slate-900 flex items-center justify-center overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
           alt="Squamish"
+          fill
           className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
         <div className="relative z-10 text-center text-white px-4">
@@ -196,12 +197,13 @@ export function ContactBody() {
                 Squamish Expert
               </h3>
               <div className="flex items-center gap-4">
-                <div className="h-20 w-20 rounded-2xl overflow-hidden">
-                  <img
+                <div className="rounded-2xl overflow-hidden">
+                  <Image
                     src="https://lh3.googleusercontent.com/d/1N02fnHn6r8AWbQJMz0D6Rv1hO-8F6Kcl"
                     alt="Sean Brawley"
                     referrerPolicy="no-referrer"
-                    className="h-full w-full object-cover"
+                    width={60}
+                    height={60}
                   />
                 </div>
                 <div>
@@ -263,12 +265,12 @@ export function ContactBody() {
             </div>
             <Image
               src="/images/REMAX-Masters.jpg"
-              alt="Squamish Real Estate Logo"
+              alt="REMAX-Masters"
               style={{ display: "block", margin: "0 auto" }}
               height={80}
               width={80}
               priority
-            ></Image>
+            />
           </div>
 
           {/* RIGHT COLUMN: MESSAGE FORM */}

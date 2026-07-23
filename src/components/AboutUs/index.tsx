@@ -1,6 +1,5 @@
 import HomeButton from "../ui/homeButton";
 import Footer from "../Footer";
-
 import React from "react";
 import {
   MapPin,
@@ -10,6 +9,7 @@ import {
   Home,
   DollarSign,
 } from "lucide-react";
+import Image from "next/image";
 
 function AboutBody() {
   const features = [
@@ -196,9 +196,10 @@ export default function AboutUs() {
 
       {/* HEADER SECTION */}
       <div className="relative h-[45vh] w-full bg-slate-900 flex items-center justify-center overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
           alt="Squamish"
+          fill
           className="absolute inset-0 w-full h-full object-cover opacity-50"
         />
         <div className="relative z-10 text-center text-white px-4">

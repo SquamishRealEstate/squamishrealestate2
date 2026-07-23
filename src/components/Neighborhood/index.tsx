@@ -18,6 +18,7 @@ import Link from "next/link";
 import { Price } from "./price";
 import { SliderDiv } from "./sliderDiv";
 import Footer from "../Footer";
+import Image from "next/image";
 
 export const Neighborhood = () => {
   const { neighborhoodname } = useParams();
@@ -283,9 +284,10 @@ export const Neighborhood = () => {
               <div className="rounded-2xl border bg-card overflow-hidden shadow-sm h-full flex flex-col">
                 {/* Main Image - flex-1 allows it to stretch to match the right column's height */}
                 <div className="relative w-full flex-1 min-h-[350px] bg-black">
-                  <img
+                  <Image
                     src={photos[photoIndex]}
-                    alt="Neighborhood photo"
+                    alt={neighborhood.name}
+                    fill
                     className="absolute inset-0 w-full h-full object-contain transition-all duration-500"
                   />
 
@@ -324,12 +326,14 @@ export const Neighborhood = () => {
                 {/* Thumbnails - automatically pushed to the bottom */}
                 <div className="flex gap-2 p-3 overflow-x-auto bg-card scrollbar-none shrink-0 border-t border-border">
                   {photos.map((img, idx) => (
-                    <img
+                    <Image
                       key={idx}
                       src={img}
-                      alt="Neighborhood photo"
+                      width={40}
+                      height={40}
+                      alt={neighborhood.name}
                       onClick={() => setPhotoIndex(idx)}
-                      className={`shrink-0 w-16 h-16 object-cover rounded-md cursor-pointer border transition-all ${
+                      className={`shrink-0 object-cover rounded-md cursor-pointer border transition-all ${
                         idx === photoIndex
                           ? "border-primary scale-105"
                           : "border-transparent opacity-70 hover:opacity-100"

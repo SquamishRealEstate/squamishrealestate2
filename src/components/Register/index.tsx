@@ -17,6 +17,7 @@ import Link from "next/link";
 import VowModal from "@/components/Register/vowModal";
 import HomeButton from "../ui/homeButton";
 import { Input } from "../ui/input";
+import Image from "next/image";
 
 function RegisterContent() {
   const router = useRouter();
@@ -157,16 +158,17 @@ function RegisterContent() {
       <HomeButton />
       {/* LEFT SIDE: Visual Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 items-center justify-center overflow-hidden">
-        <img
+        <Image
           src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
           alt="Squamish Mountains"
-          className="absolute inset-0 w-full h-full object-cover opacity-60 scale-105 hover:scale-100 transition-transform duration-700"
+          fill
+          className="absolute inset-0 object-cover opacity-60 scale-105 hover:scale-100 transition-transform duration-700"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/40 to-transparent" />
         <div className="relative z-10 p-12 max-w-xl text-white">
           <div className="flex items-center gap-2 mb-8">
             <div className="bg-white p-2 rounded-lg border border-white/20">
-              <img src="/images/icon.ico" alt="Home" className="w-8 h-8" />
+              <Image src="/images/icon.ico" alt="Home" width={30} height={30} />
             </div>
             <span className="text-2xl font-bold tracking-tight">
               Squamish Real Estate
