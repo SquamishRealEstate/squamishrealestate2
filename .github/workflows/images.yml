@@ -26,8 +26,11 @@ jobs:
       - name: Execute Images Script
         # Include your environment variables here if images.js needs to connect to Supabase or Bridge
         env:
-          BRIDGE_API_TOKEN: ${{ secrets.BRIDGE_API_TOKEN }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY }}
+          BRIDGE_API_TOKEN: ${{ secrets.BRIDGE_API_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
         # If your file is strictly JavaScript, use node. If it's TypeScript renamed to .js, use npx tsx.
         run: node images.js
