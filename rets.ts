@@ -203,7 +203,7 @@ async function fetchFromBridge(structureType: string, fields: string[]) {
   let skip = 0;
   let url = " ";
 
-  console.log(`📡 Starting fetch for: ${structureType}`);
+  console.log(`Starting fetch for: ${structureType}`);
 
   while (true) {
     if (structureType === "MultiFamily Only") {
@@ -216,7 +216,7 @@ async function fetchFromBridge(structureType: string, fields: string[]) {
 
     allListings = allListings.concat(data);
 
-    console.log(`✅ Fetched ${allListings.length} total...`);
+    console.log(`Fetched ${allListings.length} total...`);
 
     if (data.length < 200) break;
     skip += 200;
@@ -233,9 +233,6 @@ function processAndTransformListings(
 
   rawListings.forEach((raw) => {
     const pid = formatParcelNumber(raw.ParcelNumber);
-    if (pid === "026-578-379") {
-      console.log(raw);
-    }
 
     const existingListing = latestByPid[pid];
     const isNewer =
@@ -347,7 +344,7 @@ async function enrichAndSyncListings(
   const parcelUpdateBatch = [];
 
   console.log(
-    `🔍 Enriching ${processedListings.length} ${listingType} listings using ${sourceParcelTable}...`,
+    `Enriching ${processedListings.length} ${listingType} listings using ${sourceParcelTable}...`,
   );
 
   for (const listing of processedListings) {
@@ -500,11 +497,10 @@ async function enrichAndSyncListings(
       .from(targetListingTable)
       .insert(finalListingUploads);
     if (error) {
-      console.log("Error in listinsg upload");
       console.log(error);
       throw error;
     }
-    console.log(`✅ ${targetListingTable} updated.`);
+    console.log(`${targetListingTable} updated.`);
   }
 
   if (parcelUpdateBatch.length > 0) {
@@ -516,7 +512,7 @@ async function enrichAndSyncListings(
       console.log(error);
       throw error;
     }
-    console.log(`✅ ${sourceParcelTable} updated.`);
+    console.log(`${sourceParcelTable} updated.`);
   }
 }
 
@@ -540,7 +536,7 @@ const fetchOpenHouseListings = async (allListings: any[]) => {
     const listingIdsString = `'${mlsList.join("','")}'`;
 
     console.log(
-      `📡 Fetching Open Houses for batch of ${mlsList.length} listings...`,
+      `Fetching Open Houses for batch of ${mlsList.length} listings...`,
     );
 
     try {
@@ -549,14 +545,14 @@ const fetchOpenHouseListings = async (allListings: any[]) => {
       );
 
       if (!response.ok) {
-        console.error(`❌ Bridge API Error: ${response.statusText}`);
+        console.error(`Bridge API Error: ${response.statusText}`);
         continue;
       }
 
       const data = await response.json();
 
       if (!data.value || data.value.length === 0) {
-        console.log("ℹ️ No open houses found in this batch.");
+        console.log("No open houses found in this batch.");
         continue;
       }
 
@@ -585,9 +581,9 @@ const fetchOpenHouseListings = async (allListings: any[]) => {
       });
 
       allOpenHouseListings = [...allOpenHouseListings, ...mappedBatch];
-      console.log(`✅ Found ${mappedBatch.length} Open Houses.`);
+      console.log(`Found ${mappedBatch.length} Open Houses.`);
     } catch (error: any) {
-      console.error("❌ Error in Open House batch processing:", error.message);
+      console.error("Error in Open House batch processing:", error.message);
     }
   }
 
@@ -597,12 +593,12 @@ const fetchOpenHouseListings = async (allListings: any[]) => {
 
 async function postOpenHouseListings(openhouseListings: any[]) {
   if (!openhouseListings || openhouseListings.length === 0) {
-    console.log("ℹ️ No Open Houses to post.");
+    console.log("No Open Houses to post.");
     return;
   }
 
   try {
-    console.log(`🧹 Clearing old open houses from Supabase...`);
+    console.log(`Clearing old open houses from Supabase...`);
     // Use a filter that catches everything, like 'mls_number' is not null
     const { error: delErr } = await supabase
       .from("openhouse_listings")
@@ -612,7 +608,7 @@ async function postOpenHouseListings(openhouseListings: any[]) {
     if (delErr) throw delErr;
 
     console.log(
-      `📤 Inserting ${openhouseListings.length} open houses into Supabase...`,
+      `Inserting ${openhouseListings.length} open houses into Supabase...`,
     );
 
     const { data, error: insErr } = await supabase
@@ -621,9 +617,9 @@ async function postOpenHouseListings(openhouseListings: any[]) {
 
     if (insErr) throw insErr;
 
-    console.log("🚀 Open Houses synced successfully to Supabase!");
+    console.log("Open Houses synced successfully to Supabase!");
   } catch (error: any) {
-    console.error("❌ Error updating Open Houses in Supabase:", error.message);
+    console.error("Error updating Open Houses in Supabase:", error);
   }
 }
 
@@ -651,7 +647,7 @@ async function syncAllListings() {
 
     let allProcessed: any[] = [];
 
-    console.log("🚀 Starting Full Property Sync...");
+    console.log("Starting Full Property Sync...");
 
     // 2. Loop through each configuration
     for (const config of syncConfigs) {
@@ -661,7 +657,7 @@ async function syncAllListings() {
       const rawData = await fetchFromBridge(config.apiFilter, config.fields);
 
       if (!rawData || rawData.length === 0) {
-        console.log(`⚠️ No listings found for ${config.type}, skipping...`);
+        console.log(`No listings found for ${config.type}, skipping...`);
         continue;
       }
 
@@ -682,15 +678,15 @@ async function syncAllListings() {
 
       await enrichAndSyncListings(processed, config.type as any);
 
-      console.log(`✅ Completed sync for ${config.type}`);
+      console.log(`Completed sync for ${config.type}`);
     }
 
     const openhouses = await fetchOpenHouseListings(allProcessed);
     await postOpenHouseListings(openhouses);
 
-    console.log("🎉 ALL SYNC PROCESSES COMPLETE!");
+    console.log("ALL SYNC PROCESSES COMPLETE!");
   } catch (error: any) {
-    console.error("❌ Critical Sync Failure:", error.message);
+    console.error("Critical Sync Failure:", error.message);
   }
 }
 
