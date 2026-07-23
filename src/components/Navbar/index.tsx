@@ -6,6 +6,7 @@ import Link from "next/link";
 import { supabase } from "@/config/supabaseClient";
 import { Menu, X } from "lucide-react";
 import { useAuth } from "@/components/context/AuthProvider";
+import Image from "next/image";
 
 export default function Navbar() {
   const { user, isAdmin } = useAuth(); // Instantly reactive!
@@ -30,8 +31,8 @@ export default function Navbar() {
       <div className="container mx-auto flex items-center justify-between h-20">
         <Link href="/" className="flex items-center gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-12 h-12 rounded-lg flex ">
-              <img src="/images/icon.ico" alt="Home" />
+            <div className="rounded-lg flex ">
+              <Image src="/images/icon.ico" width={40} height={40} alt="Home" />
             </div>
             <div className=" mb-[-6px]">
               <h1 className="text-xl font-bold">Squamish Real Estate</h1>

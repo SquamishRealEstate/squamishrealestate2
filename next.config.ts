@@ -23,6 +23,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "mxafchaojljgapdzatra.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "dvvjkgh94f2v6.cloudfront.net",
+      },
+      {
+        protocol: "https",
+        hostname: "cdnparap130.paragonrels.com",
+      },
     ],
   },
 };

@@ -36,6 +36,7 @@ import { AuthGuard } from "../Auth/authGuard";
 import Link from "next/link";
 import { Input } from "../ui/input";
 import { useMap } from "@/components/context/MapContext";
+import Image from "next/image";
 
 export const BackToMapButton = ({ activePopup }: { activePopup: any }) => {
   const router = useRouter();
@@ -282,12 +283,13 @@ export const ReviewCard = ({ review }: { review: any }) => {
       {/* Image Section with Internal Dot Navigation */}
       {review.photo_urls?.length > 0 && (
         <div className="w-28 h-36 md:w-32 md:h-44 flex-shrink-0 relative group">
-          <div className="w-full h-full overflow-hidden rounded-[18px] bg-gray-50 border border-gray-100">
-            <img
+          <div className="overflow-hidden bg-gray-50 border border-gray-100">
+            <Image
               src={review.photo_urls[photoIndex].replace("http://", "https://")}
               referrerPolicy="no-referrer"
-              alt="Property"
-              className="w-full h-full object-cover transition-opacity duration-300"
+              alt="Squamish Property"
+              fill
+              className="object-cover transition-opacity duration-300 rounded-md"
             />
           </div>
 
@@ -1139,13 +1141,15 @@ export const FloorPlans = ({
                     <button
                       type="button"
                       onClick={() => setModalImage(doc)}
-                      className="relative w-full max-w-[600px] bg-gray-50 p-4 border border-dashed border-gray-200 rounded-sm hover:border-gray-400 transition-colors cursor-zoom-in overflow-hidden focus:outline-none"
+                      className="relative  bg-gray-50 p-4 border border-dashed border-gray-200 rounded-sm hover:border-gray-400 transition-colors cursor-zoom-in overflow-hidden focus:outline-none"
                       title="Click to view full screen"
                     >
-                      <img
+                      <Image
                         src={doc}
-                        className="block mx-auto max-w-full h-auto max-h-[450px] object-contain transition-transform duration-300 group-hover:scale-[1.01]"
-                        alt={`Floor Plan ${index + 1}`}
+                        width={600}
+                        height={450}
+                        className="block object-contain transition-transform duration-300 group-hover:scale-[1.01]"
+                        alt={property.civic_address}
                         onError={(e) =>
                           console.error("Image failed to load:", e)
                         }
@@ -1182,13 +1186,15 @@ export const FloorPlans = ({
 
           {/* Enlarged Blueprint View Box */}
           <div
-            className="max-w-5xl max-h-[90vh] flex items-center justify-center"
+            className=" flex items-center justify-center"
             onClick={(e) => e.stopPropagation()} // Stop closing click bubble
           >
-            <img
+            <Image
               src={modalImage}
-              className="max-w-full max-h-[85vh] object-contain rounded-sm select-none shadow-2xl animate-in zoom-in-95 duration-200"
-              alt="Enlarged Floor Plan View"
+              width={800}
+              height={600}
+              className="object-contain rounded-sm select-none shadow-2xl animate-in zoom-in-95 duration-200"
+              alt={property.civic_address}
             />
           </div>
         </div>

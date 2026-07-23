@@ -802,7 +802,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
               height={300}
               priority
               src={`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${property.longitude},${property.latitude},17,0/600x300?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`}
-              alt=""
+              alt={property.civic_address}
             ></Image>
           </div>
           <div className="bg-white flex justify-center mb-5">
@@ -821,12 +821,12 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
           </AuthGuard>
           <Image
             src="/images/REMAX-Masters.jpg"
-            alt="Squamish Real Estate Logo"
+            alt="REMAX-Masters"
             style={{ display: "block", margin: "0 auto" }}
             height={80}
             width={80}
             priority
-          ></Image>
+          />
         </div>
       </div>
       <Footer />

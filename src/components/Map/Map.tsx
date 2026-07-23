@@ -359,7 +359,7 @@ function MapInnerLayout({
       innerHTML = `
           <img
       src="${imgSrc}"
-      alt="${listing.civic_address || "Property preview"}"
+      alt="${listing.civic_address || "Squamish Listing"}"
       class="h-48 w-full object-cover transition-opacity duration-300"
       loading="lazy"
       onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
@@ -395,30 +395,37 @@ function MapInnerLayout({
 
         const units = relatedStrata ?? [];
 
-        const dropdownOptions = units
-          .sort((a: any, b: any) => {
-            const getNumbers = (address: string) =>
-              address.match(/\d+/g)?.map(Number) || [];
+        const filteredUnits = units.filter((unit: any) =>
+          selectedStatuses.includes(unit.market_status),
+        );
 
-            const aNums = getNumbers(a.civic_address);
-            const bNums = getNumbers(b.civic_address);
+        const dropdownOptions =
+          filteredUnits.length > 0
+            ? filteredUnits
+                .sort((a: any, b: any) => {
+                  const getNumbers = (address: string) =>
+                    address.match(/\d+/g)?.map(Number) || [];
 
-            // Sort by street number (1365)
-            const streetCompare = aNums[1] - bNums[1];
+                  const aNums = getNumbers(a.civic_address);
+                  const bNums = getNumbers(b.civic_address);
 
-            if (streetCompare !== 0) {
-              return streetCompare;
-            }
+                  // Sort by street number (1365)
+                  const streetCompare = aNums[1] - bNums[1];
 
-            // Sort by unit number (301, 403, 407)
-            return aNums[0] - bNums[0];
-          })
-          .map((unit: any) => {
-            return `<option value="${unit.pid}|${unit.civic_address}">
+                  if (streetCompare !== 0) {
+                    return streetCompare;
+                  }
+
+                  // Sort by unit number (301, 403, 407)
+                  return aNums[0] - bNums[0];
+                })
+                .map((unit: any) => {
+                  return `<option value="${unit.pid}|${unit.civic_address}">
             ${unit.civic_address}
         </option>`;
-          })
-          .join("");
+                })
+                .join("")
+            : `<option disabled selected>No matching units found</option>`;
 
         const imgSrc = getS3Image(listing, type, "card");
         await preloadImage(imgSrc);
@@ -427,7 +434,7 @@ function MapInnerLayout({
       <div class="popup-card default-cursor">
        <img
       src="${imgSrc}"
-      alt="${listing.civic_address || "Property preview"}"
+      alt="${listing.civic_address || "Squamish Listing"}"
       class="h-48 w-full object-cover transition-opacity duration-300"
       loading="lazy"
       onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
@@ -436,9 +443,11 @@ function MapInnerLayout({
           <p class="popup-address">${listing.neighbourhood || "Squamish"} | ${listing.postal_code}</p>
           <div class="field-group">
             <label class="popup-label">Select Unit:</label>
-            <select id="strata-unit-select" class="popup-select">${dropdownOptions}</select>
+            <select id="strata-unit-select" class="popup-select" ${filteredUnits.length === 0 ? "disabled" : ""}>
+              ${dropdownOptions}
+            </select>
           </div>
-          <button id="view-unit-btn" class="popup-btn-primary">
+          <button id="view-unit-btn" class="popup-btn-primary" ${filteredUnits.length === 0 ? "disabled opacity-50 cursor-not-allowed" : ""}>
             View Property Details
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M5 12h14"></path>
@@ -492,7 +501,7 @@ function MapInnerLayout({
       innerHTML = `
           <img
       src="${imgSrc}"
-      alt="${property.civic_address || "Property preview"}"
+      alt="${property.civic_address || "Squamish Property"}"
       class="h-48 w-full object-cover transition-opacity duration-300"
       loading="lazy"
       onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
@@ -545,7 +554,7 @@ function MapInnerLayout({
       <div class="popup-card default-cursor">
         <img
       src="${imgSrc}"
-      alt="${property.civic_address || "Property preview"}"
+      alt="${property.civic_address || "Squamish Property"}"
       class="h-48 w-full object-cover transition-opacity duration-300"
       loading="lazy"
       onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
@@ -814,27 +823,26 @@ function MapInnerLayout({
     renderMarkers(activeMarkersPool, isLoggedIn, setLockedListing);
   }, [allUniqueListings, selectedStatuses, isLoggedIn]);
 
+  // 1. Handles opening, closing, and switching between different property popups
   useEffect(() => {
     const map = mapRef.current;
-
     if (!map || !mapLoaded) return;
 
-    const renderPopup = async () => {
-      // 1. Clean up existing popups / filters to prevent duplicates
-      if (currentPopupRef.current) {
-        currentPopupRef.current.remove();
-        currentPopupRef.current = null;
+    const handlePopupChange = async () => {
+      // If user closed the popup
+      if (!activePopup) {
+        if (currentPopupRef.current) {
+          currentPopupRef.current.remove();
+          currentPopupRef.current = null;
+        }
+        if (map.getLayer("houses-highlighted")) {
+          map.setFilter("houses-highlighted", ["in", "OBJECTID", ""]);
+        }
+        return;
       }
-      if (map.getLayer("houses-highlighted")) {
-        map.setFilter("houses-highlighted", ["in", "OBJECTID", ""]);
-      }
-
-      // 2. If activePopup was set to null (e.g. user closed it), abort here.
-      if (!activePopup) return;
 
       let popupContent: HTMLDivElement | null = null;
 
-      // 3. Generate content based on source
       if (activePopup.source === "listing") {
         popupContent = await createListingPopupContent(
           activePopup.data,
@@ -851,7 +859,6 @@ function MapInnerLayout({
             activePopup.propertyType,
           );
 
-          // Restore blue parcel highlight
           if (activePopup.objectId && map.getLayer("houses-highlighted")) {
             map.setFilter("houses-highlighted", [
               "in",
@@ -862,26 +869,76 @@ function MapInnerLayout({
         }
       }
 
-      // 4. Mount the Mapbox Popup
       if (popupContent) {
-        const popup = new mapboxgl.Popup({ offset: 15 })
-          .setLngLat(activePopup.lngLat)
-          .setDOMContent(popupContent)
-          .addTo(map);
+        // If a popup is already open, update it in place instead of removing it
+        if (currentPopupRef.current) {
+          currentPopupRef.current
+            .setLngLat(activePopup.lngLat)
+            .setDOMContent(popupContent);
 
-        currentPopupRef.current = popup;
+          if (!currentPopupRef.current.isOpen()) {
+            currentPopupRef.current.addTo(map);
+          }
+        } else {
+          // Otherwise, create a brand new one
+          const popup = new mapboxgl.Popup({ offset: 15 })
+            .setLngLat(activePopup.lngLat)
+            .setDOMContent(popupContent)
+            .addTo(map);
 
-        // Optional: Ensure the popup is centered when coming back to the map
-        map.easeTo({
-          center: activePopup.lngLat,
-          offset: [0, 100],
-          duration: 800,
-        });
+          popup.on("close", () => {
+            currentPopupRef.current = null;
+            setActivePopup(null);
+          });
+
+          currentPopupRef.current = popup;
+
+          map.easeTo({
+            center: activePopup.lngLat,
+            offset: [0, 100],
+            duration: 800,
+          });
+        }
       }
     };
 
-    renderPopup();
+    handlePopupChange();
   }, [activePopup, mapLoaded]);
+
+  // 2. Handles updating ONLY the content inside the popup when filter statuses change
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !mapLoaded || !activePopup || !currentPopupRef.current) return;
+
+    const refreshActivePopupContent = async () => {
+      let popupContent: HTMLDivElement | null = null;
+
+      if (activePopup.source === "listing") {
+        popupContent = await createListingPopupContent(
+          activePopup.data,
+          activePopup.propertyType,
+        );
+      } else if (activePopup.source === "parcel") {
+        const getProperty = await getPropertyData(
+          activePopup.pid,
+          activePopup.propertyType,
+        );
+        if (getProperty) {
+          popupContent = await createPropertyPopupContent(
+            getProperty,
+            activePopup.propertyType,
+          );
+        }
+      }
+
+      // Smoothly update the DOM content without closing or removing the popup window
+      if (popupContent && currentPopupRef.current) {
+        currentPopupRef.current.setDOMContent(popupContent);
+      }
+    };
+
+    refreshActivePopupContent();
+  }, [selectedStatuses]);
 
   const toggleStatusFilter = (status: MarketStatusType) => {
     if (!isLoggedIn) return; // Prevent selection mutations if logged out

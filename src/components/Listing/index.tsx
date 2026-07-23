@@ -779,12 +779,12 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
                   </AuthGuard>
                   <Image
                     src="/images/REMAX-Masters.jpg"
-                    alt="Squamish Real Estate Logo"
+                    alt="REMAX-Masters"
                     style={{ display: "block", margin: "0 auto" }}
                     height={80}
                     width={80}
                     priority
-                  ></Image>
+                  />
                 </div>
               </div>
             </>

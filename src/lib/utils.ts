@@ -397,7 +397,6 @@ export const fetchFloorPlans = async (
       targetPrefix = `${civic_address[0]}-${civic_address[1]}`;
     }
   }
-
   // --- CASE 2: STRATA ---
   else if (isStrata) {
     bucketName = "strata";
@@ -433,6 +432,7 @@ export const fetchFloorPlans = async (
         sortBy: { column: "name", order: "asc" },
       });
 
+    console.log(files);
     if (error) {
       console.error("Supabase Storage error:", error.message);
       return [];
