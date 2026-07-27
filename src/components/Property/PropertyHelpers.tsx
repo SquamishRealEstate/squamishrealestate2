@@ -1031,11 +1031,18 @@ export const LastSold = ({
   );
 };
 
-export const Photos = ({ photos }: { photos: any[] }) => {
+export const Photos = ({
+  photos,
+  listing,
+}: {
+  photos: any[];
+  listing: any;
+}) => {
   return (
     <ListingGallery
       photos={photos}
       singlePhotoOnly={true} // Reuses carousel layout with single preview layout
+      listing={listing}
     />
   );
 };

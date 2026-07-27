@@ -291,7 +291,9 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       },
       {
         name: `Photos (${property?.photos?.length || 0})`,
-        renderComponent: () => <Photos photos={property.photos || []} />,
+        renderComponent: () => (
+          <Photos photos={property.photos || []} listing={property} />
+        ),
         ref: photosRef,
         isRendered: property?.photos?.length > 0,
       },

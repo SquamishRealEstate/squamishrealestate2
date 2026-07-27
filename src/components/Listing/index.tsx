@@ -235,7 +235,9 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       },
       {
         name: `Photos (${listing?.photos?.length})`,
-        renderComponent: () => <Photos photos={listing.photos || []} />,
+        renderComponent: () => (
+          <Photos photos={listing.photos || []} listing={listing} />
+        ),
         isRendered: listing?.photos?.length > 0,
       },
       {
