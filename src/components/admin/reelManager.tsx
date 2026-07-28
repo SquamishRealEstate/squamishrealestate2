@@ -21,62 +21,82 @@ type Reel = {
   priority: number;
   address: string;
   description: string;
-  lat: number | null;
-  lng: number | null;
+  property_type: string;
+  pid: string;
   created_at: string;
 };
 
 const PAGE_SIZE = 6; // Adjust based on your preference
 
-export default function ReelManager() {
-  const [view, setView] = useState<"list" | "form">("list");
+interface ReelManagerProps {
+  view: "list" | "form";
+  setView: (view: "list" | "form") => void;
+  editReelData: Reel | undefined;
+  setEditReelData: (reel: Reel | undefined) => void;
+  reelFormData: any;
+  setReelFormData: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export default function ReelManager({
+  view,
+  setView,
+  editReelData,
+  setEditReelData,
+  reelFormData,
+  setReelFormData,
+}: ReelManagerProps) {
   const [reels, setReels] = useState<Reel[]>([]);
-  const [loadingReels, setLoadingReels] = useState(true);
+  const [loadingReels, setLoadingReels] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const [editReelData, setEditReelData] = useState<Reel | undefined>(undefined);
   const [reelIDToDelete, setReelIDToDelete] = useState<string>();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  // Modified fetch to support pagination
-  const fetchReels = useCallback(
-    async (isInitial = true) => {
-      if (isInitial) setLoadingReels(true);
-      else setLoadingMore(true);
+  const fetchReels = async (offset = 0) => {
+    const isInitial = offset === 0;
 
-      const start = isInitial ? 0 : reels.length;
-      const end = start + PAGE_SIZE - 1;
+    if (isInitial) {
+      setLoadingReels(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-      const { data, error } = await supabase
-        .from("reels")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .range(start, end);
+    const { data, error } = await supabase
+      .from("reels")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
 
-      if (!error && data) {
-        if (isInitial) {
-          setReels(data as any);
-        } else {
-          setReels((prev) => [...prev, ...(data as any)]);
-        }
+    if (error) {
+      console.error(error);
+    } else if (data) {
+      if (isInitial) {
+        setReels(data);
+      } else {
+        setReels((prev) => {
+          const existingIds = new Set(prev.map((reel) => reel.id));
 
-        // If we fetched fewer items than the page size, there are no more records
-        setHasMore(data.length === PAGE_SIZE);
+          const newReels = data.filter((reel) => !existingIds.has(reel.id));
+
+          return [...prev, ...newReels];
+        });
       }
 
-      setLoadingReels(false);
-      setLoadingMore(false);
-    },
-    [reels.length],
-  );
+      // Only show "Load More" if another page may exist
+      setHasMore(data.length === PAGE_SIZE);
+    }
+
+    setLoadingReels(false);
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
-    fetchReels(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+    fetchReels(0);
+  }, []);
 
   const getEmbedUrl = (url: string) => {
     if (!url) return "";
@@ -100,6 +120,34 @@ export default function ReelManager() {
       console.error("Error parsing URL:", e);
       return url;
     }
+  };
+
+  const startEdit = (reel: Reel) => {
+    setEditReelData(reel);
+    setReelFormData({
+      category: reel.category || [],
+      link: reel.link || "",
+      priority: reel.priority || 0,
+      address: reel.address || "",
+      description: reel.description || "",
+      property_type: reel.property_type || "",
+      pid: reel.pid || "",
+    });
+    setView("form");
+  };
+
+  const startNew = () => {
+    setEditReelData(undefined);
+    setReelFormData({
+      category: [],
+      link: "",
+      priority: 0,
+      address: "",
+      description: "",
+      property_type: "",
+      pid: "",
+    });
+    setView("form");
   };
 
   const handleDelete = async () => {
@@ -132,8 +180,7 @@ export default function ReelManager() {
         {view === "list" && (
           <Button
             onClick={() => {
-              setEditReelData(undefined);
-              setView("form");
+              startNew();
             }}
             size="sm"
           >
@@ -160,20 +207,25 @@ export default function ReelManager() {
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col"
                 >
                   <div className="relative aspect-[9/16] w-full bg-slate-100 overflow-hidden group border-b border-slate-200">
-                    <iframe
-                      src={getEmbedUrl(reel.link)}
-                      className="absolute inset-0 w-full h-full"
-                      scrolling="no"
-                      allowFullScreen
-                      style={{ border: "none" }}
-                    />
+                    {reel.link && getEmbedUrl(reel.link) ? (
+                      <iframe
+                        src={getEmbedUrl(reel.link)}
+                        className="absolute inset-0 w-full h-full"
+                        scrolling="no"
+                        allowFullScreen
+                        style={{ border: "none" }}
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full bg-slate-100 text-slate-400 text-sm font-medium">
+                        no video
+                      </div>
+                    )}
                     <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Button
                         size="icon"
                         variant="secondary"
                         onClick={() => {
-                          setEditReelData(reel);
-                          setView("form");
+                          startEdit(reel);
                         }}
                       >
                         <FileEdit size={16} />
@@ -226,7 +278,7 @@ export default function ReelManager() {
             <div className="mt-12 flex justify-center">
               <Button
                 variant="outline"
-                onClick={() => fetchReels(false)}
+                onClick={() => fetchReels(reels.length)}
                 disabled={loadingMore}
                 className="px-8 py-6 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50"
               >
@@ -242,9 +294,11 @@ export default function ReelManager() {
         </>
       ) : (
         <ReelForm
-          reelData={editReelData as any}
+          reelData={editReelData}
+          formData={reelFormData}
+          setFormData={setReelFormData}
           onSuccess={() => {
-            fetchReels(true); // Refresh from start on success
+            fetchReels(0); // Refresh from start on success
             setView("list");
             setEditReelData(undefined);
           }}

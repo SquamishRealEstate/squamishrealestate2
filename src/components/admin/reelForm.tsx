@@ -14,17 +14,22 @@ import {
 import { X, CheckCircle, Loader2, PlusCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type Reel = {
-  id: string;
-  category: string[];
-  link: "";
-  priority: number;
-  address: "";
-  description: "";
-  created_at: string;
-  pid: string;
-  property_type: string;
-};
+interface ReelFormProps {
+  reelData?: any;
+  formData: {
+    category: string[];
+    link: string;
+    priority: number;
+    address: string;
+    description: string;
+    property_type: string;
+    pid: string;
+  };
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  onSuccess: () => void;
+  onCancel: () => void;
+}
+
 // Define all available categories
 const CATEGORY_OPTIONS = [
   "Homes",
@@ -38,27 +43,14 @@ const CATEGORY_OPTIONS = [
   "Favourites",
 ];
 
-interface ReelFormProps {
-  reelData?: Reel | null; // If provided, the form acts as an "Edit" form
-  onSuccess: () => void; // Callback to refresh the list or redirect
-  onCancel?: () => void; // Optional cancel button handler
-}
-
 export default function ReelForm({
   reelData,
+  formData,
+  setFormData,
   onSuccess,
   onCancel,
 }: ReelFormProps) {
-  const [formData, setFormData] = useState({
-    category: [] as string[],
-    link: "",
-    priority: 0,
-    address: "",
-    description: "",
-    pid: "",
-    property_type: "",
-  });
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{
     message: string;
     type: "success" | "error" | null;
@@ -82,32 +74,18 @@ export default function ReelForm({
     setListings(data || []);
   };
 
-  useEffect(() => {
-    if (reelData) {
-      setFormData({
-        category: Array.isArray(reelData.category) ? reelData.category : [],
-        link: reelData.link ?? "",
-        priority: reelData.priority ?? 0,
-        address: reelData.address ?? "",
-        description: reelData.description ?? "", // If DB is NULL, state becomes ""
-        pid: reelData.pid ?? "",
-        property_type: reelData.property_type ?? "",
-      });
-    }
-  }, [reelData]);
-
   const toggleCategory = (cat: string) => {
-    setFormData((prev) => ({
+    setFormData((prev: any) => ({
       ...prev,
       category: prev.category.includes(cat)
-        ? prev.category.filter((c) => c !== cat)
+        ? prev.category.filter((c: any) => c !== cat)
         : [...prev.category, cat],
     }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setLoading(true);
 
     try {
       const {
@@ -157,7 +135,7 @@ export default function ReelForm({
         type: "error",
       });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
@@ -204,7 +182,7 @@ export default function ReelForm({
               key={formData.priority}
               value={String(formData.priority ?? 0)}
               onValueChange={(val) =>
-                setFormData((prev) => ({
+                setFormData((prev: any) => ({
                   ...prev,
                   priority: Number(val),
                 }))
@@ -225,30 +203,6 @@ export default function ReelForm({
           </div>
         </div>
 
-        {/* LISTING LOCATION BLOCK */}
-        {/* <div className="space-y-4 rounded-xl">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-              <MapPin size={14} className="text-slate-500" />
-              Listing Address Search
-            </label>
-
-            <AddressAutocomplete
-              value={formData.address} // Pass this so it can clear on reset
-              onSelect={(data: any) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  address: data.address,
-                  lat: data.lat,
-                  lng: data.lng,
-                }))
-              }
-            />
-          </div>
-        </div>
-        
-        */}
-
         <div className="relative space-y-2">
           <label className="text-sm font-semibold text-slate-700">
             Listing Address
@@ -260,7 +214,7 @@ export default function ReelForm({
             onChange={(e) => {
               const val = e.target.value;
               // If user clears the address, clear the linked fields too
-              setFormData((prev) => ({
+              setFormData((prev: any) => ({
                 ...prev,
                 address: val,
                 pid: val === "" ? "" : prev.pid,
@@ -281,7 +235,7 @@ export default function ReelForm({
                   type="button"
                   className="w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 border-b border-slate-100 last:border-none"
                   onClick={() => {
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
                       address: item.civic_address,
                       pid: item.pid, // Captured from item
@@ -368,8 +322,8 @@ export default function ReelForm({
               Cancel
             </Button>
           )}
-          <Button className="flex-[2]" disabled={saving}>
-            {saving ? (
+          <Button className="flex-[2]" disabled={loading}>
+            {loading ? (
               <Loader2 className="animate-spin mr-2" />
             ) : (
               <PlusCircle className="mr-2" size={20} />

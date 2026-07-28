@@ -17,41 +17,42 @@ import {
 } from "lucide-react";
 import { handleUpload } from "@/lib/utils";
 
-type Blog = {
-  id: string;
-  title: string;
-  category: string;
-  author: string;
-  image: string;
-  content: string;
-  created_at: string;
-  slug: string;
-};
-
 interface BlogFormProps {
-  blogData?: Blog | null; // If provided, the form acts as an "Edit" form
-  onSuccess: () => void; // Callback to refresh the list or redirect
-  onCancel?: () => void; // Optional cancel button handler
+  blogData?: any;
+  formData: {
+    title: string;
+    category: string;
+    author: string;
+    image: string;
+    content: string;
+  };
+  setFormData: React.Dispatch<React.SetStateAction<any>>;
+  onSuccess: () => void;
+  onCancel: () => void;
 }
 
 export default function BlogForm({
   blogData,
+  formData,
+  setFormData,
   onSuccess,
   onCancel,
 }: BlogFormProps) {
-  const [formData, setFormData] = useState({
-    title: "",
-    category: "",
-    author: "",
-    image: "",
-    content: "",
-  });
-
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploadMethod, setUploadMethod] = useState<"url" | "upload">("url");
-  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
 
   const [status, setStatus] = useState<{
     message: string;
@@ -70,13 +71,6 @@ export default function BlogForm({
       setPreviewUrl(null);
     }
   }, [imageFile, formData.image, uploadMethod]);
-
-  useEffect(() => {
-    if (blogData) {
-      setFormData(blogData);
-      setPreviewUrl(blogData.image);
-    }
-  }, [blogData]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -124,7 +118,7 @@ export default function BlogForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setLoading(true);
 
     try {
       let finalImageUrl = formData.image;
@@ -189,16 +183,12 @@ export default function BlogForm({
         type: "error",
       });
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   };
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
-      {/* <h3 className="text-2xl font-bold text-slate-900 mb-6">
-        Create New Blog Post
-      </h3> */}
-
       <form
         onSubmit={handleSubmit}
         className="bg-white p-6 md:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-8"
@@ -319,10 +309,10 @@ export default function BlogForm({
             </label>
             <Input
               placeholder="The Ultimate Guide to Squamish"
+              type="text"
+              name="title"
               value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
+              onChange={handleChange}
               required
             />
           </div>
@@ -347,7 +337,7 @@ export default function BlogForm({
             Author Name
           </label>
           <Input
-            placeholder="Sarah Makkar"
+            placeholder="Author Name"
             value={formData.author}
             onChange={(e) =>
               setFormData({ ...formData, author: e.target.value })
@@ -394,8 +384,8 @@ export default function BlogForm({
               Cancel
             </Button>
           )}
-          <Button className="flex-[2]" disabled={saving}>
-            {saving ? (
+          <Button className="flex-[2]" disabled={loading}>
+            {loading ? (
               <Loader2 className="animate-spin mr-2" />
             ) : (
               <PlusCircle className="mr-2" size={20} />

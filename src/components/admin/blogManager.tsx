@@ -26,52 +26,99 @@ type Blog = {
 
 const PAGE_SIZE = 6; // How many blogs to show per "page"
 
-export default function BlogManager() {
-  const [view, setView] = useState<"list" | "form">("list");
+interface BlogManagerProps {
+  view: "list" | "form";
+  setView: (view: "list" | "form") => void;
+  editBlogData: Blog | undefined;
+  setEditBlogData: (blog: Blog | undefined) => void;
+  blogFormData: any;
+  setBlogFormData: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export default function BlogManager({
+  view,
+  setView,
+  editBlogData,
+  setEditBlogData,
+  blogFormData,
+  setBlogFormData,
+}: BlogManagerProps) {
+  // const [view, setView] = useState<"list" | "form">("list");
   const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loadingBlogs, setLoadingBlogs] = useState(true);
+  const [loadingBlogs, setLoadingBlogs] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
-  const [editBlogData, setEditBlogData] = useState<Blog>();
+  // const [editBlogData, setEditBlogData] = useState<Blog>();
   const [blogIDToDelete, setBlogIDToDelete] = useState<string>();
   const [isDeleting, setIsDeleting] = useState(false);
   const [showToast, setShowToast] = useState(false);
 
-  const fetchBlogs = useCallback(
-    async (isInitial = true) => {
-      if (isInitial) setLoadingBlogs(true);
-      else setLoadingMore(true);
+  const fetchBlogs = async (offset = 0) => {
+    const isInitial = offset === 0;
 
-      const start = isInitial ? 0 : blogs.length;
-      const end = start + PAGE_SIZE - 1;
+    if (isInitial) {
+      setLoadingBlogs(true);
+    } else {
+      setLoadingMore(true);
+    }
 
-      const { data, error } = await supabase
-        .from("blogs")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .range(start, end);
+    const { data, error } = await supabase
+      .from("blogs")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(offset, offset + PAGE_SIZE - 1);
 
-      if (!error && data) {
-        if (isInitial) {
-          setBlogs(data);
-        } else {
-          setBlogs((prev) => [...prev, ...data]);
-        }
-        // If we got fewer results than PAGE_SIZE, we've hit the end
-        setHasMore(data.length === PAGE_SIZE);
+    if (error) {
+      console.error(error);
+    } else if (data) {
+      if (isInitial) {
+        setBlogs(data);
+      } else {
+        setBlogs((prev) => {
+          const existingIds = new Set(prev.map((blog) => blog.id));
+
+          const newBlogs = data.filter((blog) => !existingIds.has(blog.id));
+
+          return [...prev, ...newBlogs];
+        });
       }
 
-      setLoadingBlogs(false);
-      setLoadingMore(false);
-    },
-    [blogs.length],
-  );
+      // Only show "Load More" if another page may exist
+      setHasMore(data.length === PAGE_SIZE);
+    }
+
+    setLoadingBlogs(false);
+    setLoadingMore(false);
+  };
 
   useEffect(() => {
-    fetchBlogs(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    fetchBlogs(0);
   }, []);
+  const startEdit = (blog: Blog) => {
+    setEditBlogData(blog);
+    setBlogFormData({
+      title: blog.title || "",
+      category: blog.category || "",
+      author: blog.author || "",
+      image: blog.image || "",
+      content: blog.content || "",
+    });
+    setView("form");
+  };
+
+  const startNew = () => {
+    setEditBlogData(undefined);
+    setBlogFormData({
+      title: "",
+      category: "",
+      author: "",
+      image: "",
+      content: "",
+    });
+    setView("form");
+  };
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -88,10 +135,7 @@ export default function BlogManager() {
     setIsDeleting(false);
   };
 
-  const startEdit = (blog: Blog) => {
-    setEditBlogData(blog);
-    setView("form");
-  };
+  console.log(blogs);
 
   return (
     <div className="max-w-5xl pb-12 px-4">
@@ -108,8 +152,7 @@ export default function BlogManager() {
         {view === "list" && (
           <Button
             onClick={() => {
-              setEditBlogData(undefined);
-              setView("form");
+              startNew();
             }}
             size="sm"
           >
@@ -138,12 +181,19 @@ export default function BlogManager() {
                   className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
                 >
                   <div className="aspect-video relative bg-slate-100">
-                    <img
-                      src={blog.image}
-                      alt={blog.title}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
+                    {blog.image ? (
+                      <img
+                        src={blog.image}
+                        alt={blog.title}
+                        className="w-full h-full object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center w-full h-full bg-slate-100 text-slate-400 text-sm font-medium">
+                        no image
+                      </div>
+                    )}
+
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                       <Button
                         size="icon"
@@ -182,7 +232,7 @@ export default function BlogManager() {
             <div className="mt-12 flex justify-center">
               <Button
                 variant="outline"
-                onClick={() => fetchBlogs(false)}
+                onClick={() => fetchBlogs(blogs.length)}
                 disabled={loadingMore}
                 className="px-8 h-12 rounded-xl border-slate-200 text-slate-600"
               >
@@ -199,8 +249,10 @@ export default function BlogManager() {
       ) : (
         <BlogForm
           blogData={editBlogData}
+          formData={blogFormData}
+          setFormData={setBlogFormData}
           onSuccess={() => {
-            fetchBlogs(true); // Reset list to first page on success
+            fetchBlogs(0); // Reset list to first page on success
             setView("list");
             setEditBlogData(undefined);
           }}

@@ -27,6 +27,34 @@ export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { isAdmin, isCheckingRole } = useAuth();
 
+  // --- LIFTED STATES TO SURVIVE BROWSER TAB SWITCHES ---
+  // 1. User Management State
+  const [userSearch, setUserSearch] = useState("");
+
+  // 2. Blog Manager States
+  const [blogView, setBlogView] = useState<"list" | "form">("list");
+  const [editBlogData, setEditBlogData] = useState<any>(undefined);
+  const [blogFormData, setBlogFormData] = useState({
+    title: "",
+    category: "",
+    author: "",
+    image: "",
+    content: "",
+  });
+
+  // 3. Reel Manager States
+  const [reelView, setReelView] = useState<"list" | "form">("list");
+  const [editReelData, setEditReelData] = useState<any>(undefined);
+  const [reelFormData, setReelFormData] = useState({
+    category: [] as string[],
+    link: "",
+    priority: 0,
+    address: "",
+    description: "",
+    lat: null as number | null,
+    lng: null as number | null,
+  });
+
   // 2. Prevent the dashboard from rendering at all if not authorized
   if (isCheckingRole) {
     return (
@@ -171,11 +199,38 @@ export default function AdminDashboard() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-x-hidden">
         <div className="p-4 md:p-8 lg:p-12 max-w-7xl mx-auto">
-          {activeTab === "users" && <UserManagement />}
-          {activeTab === "blogs" && <BlogManager />}
-          {activeTab === "reels" && <ReelManager />}
-          {activeTab === "inquiries" && <InquiryManager />}
-          {activeTab === "featured" && <FeaturedManager />}
+          <div className={activeTab === "users" ? "block" : "hidden"}>
+            <UserManagement
+              searchQuery={userSearch}
+              setSearchQuery={setUserSearch}
+            />
+          </div>
+          <div className={activeTab === "blogs" ? "block" : "hidden"}>
+            <BlogManager
+              view={blogView}
+              setView={setBlogView}
+              editBlogData={editBlogData}
+              setEditBlogData={setEditBlogData}
+              blogFormData={blogFormData}
+              setBlogFormData={setBlogFormData}
+            />
+          </div>
+          <div className={activeTab === "reels" ? "block" : "hidden"}>
+            <ReelManager
+              view={reelView}
+              setView={setReelView}
+              editReelData={editReelData}
+              setEditReelData={setEditReelData}
+              reelFormData={reelFormData}
+              setReelFormData={setReelFormData}
+            />
+          </div>
+          <div className={activeTab === "inquiries" ? "block" : "hidden"}>
+            <InquiryManager />
+          </div>
+          <div className={activeTab === "featured" ? "block" : "hidden"}>
+            <FeaturedManager />
+          </div>
         </div>
       </main>
     </div>

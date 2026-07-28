@@ -6,10 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, Loader2, CheckCircle } from "lucide-react";
 
-export default function UserManagement() {
+interface UserManagementProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}
+
+export default function UserManagement({
+  searchQuery,
+  setSearchQuery,
+}: UserManagementProps) {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
 
   // Inside UserManagement component
   const [userToDelete, setUserToDelete] = useState<{
@@ -29,7 +36,6 @@ export default function UserManagement() {
       .eq("id", userToDelete.id);
 
     if (error) {
-      // Show error in your status state instead of alert
       console.error(error.message);
     } else {
       setUsers(users.filter((u) => u.id !== userToDelete.id));
@@ -53,8 +59,9 @@ export default function UserManagement() {
     fetchUsers();
   }, []);
 
+  // FIXED: Using searchQuery from props instead of local searchTerm state
   const filteredUsers = users.filter((u) =>
-    u.email?.toLowerCase().includes(searchTerm.toLowerCase()),
+    u.email?.toLowerCase().includes((searchQuery || "").toLowerCase()),
   );
 
   return (
@@ -69,8 +76,8 @@ export default function UserManagement() {
         <Input
           className="w-full md:max-w-sm bg-white shadow-sm"
           placeholder="Search by email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
       </header>
 
