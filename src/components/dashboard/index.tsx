@@ -12,6 +12,7 @@ import {
   ArrowRight,
   Home,
   CheckSquare,
+  CircleStar,
 } from "lucide-react";
 import { AuthGuard } from "../Auth/authGuard";
 import Navbar from "@/components/Navbar";
@@ -21,6 +22,7 @@ import { ReferralBalance } from "./referralBalance";
 import { PaginatedList } from "./paginatedList";
 import { HomeBuyingChecklist } from "./homeBuyingChecklist";
 import { HomeSellerChecklist } from "./homeSellerChecklist";
+import { MemberBenefits } from "./memberBenefits";
 
 const PAGE_SIZE = 10;
 
@@ -160,6 +162,13 @@ function DashboardContent({ user }: { user: any }) {
       isLoading: false,
       initialized: true,
     },
+    "Member Benefits": {
+      items: [],
+      page: 0,
+      hasMore: false,
+      isLoading: false,
+      initialized: true,
+    },
   });
 
   const loadData = useCallback(
@@ -278,6 +287,7 @@ function DashboardContent({ user }: { user: any }) {
     { name: "Saved", icon: Heart },
     { name: "Home Buying Checklist", icon: CheckSquare },
     { name: "Sell Your Home Checklist", icon: CheckSquare },
+    { name: "Member Benefits", icon: CircleStar },
     { name: "Messages", icon: MessageSquare },
     // { name: "Reviews", icon: Star },
 
@@ -400,6 +410,8 @@ function DashboardContent({ user }: { user: any }) {
                 <HomeBuyingChecklist />
               ) : activeTab === "Sell Your Home Checklist" ? (
                 <HomeSellerChecklist />
+              ) : activeTab === "Member Benefits" ? (
+                <MemberBenefits />
               ) : (
                 <PaginatedList
                   tabState={tabState[activeTab]}
@@ -451,408 +463,6 @@ function DashboardContent({ user }: { user: any }) {
 //       </div>
 //       <div className="text-sm text-foreground/90 bg-muted/30 p-3 rounded-lg border border-border/50">
 //         <p className="line-clamp-2">{issue.issue_details}</p>
-//       </div>
-//     </div>
-//   );
-// };
-
-// const HomeBuyingChecklist = () => {
-//   // Initializing the checklist state based on the provided source[cite: 1]
-//   const [checklist, setChecklist] = useState([
-//     { id: 1, text: "Create Squamish.realestate account", checked: false },
-//     { id: 2, text: "View properties, Save homes", checked: false },
-//     { id: 3, text: "Speak with Sean to discuss options", checked: false },
-//     { id: 4, text: "Mortgage pre-approval", checked: false },
-//     { id: 5, text: "Book showings", checked: false },
-//     { id: 6, text: "Make offer", checked: false },
-//     { id: 7, text: "Due diligence", checked: false },
-//     { id: 8, text: "Remove subjects", checked: false },
-//     { id: 9, text: "Prepare to move", checked: false },
-//     { id: 10, text: "Meet with lawyer / notary", checked: false },
-//     { id: 11, text: "Completion", checked: false },
-//   ]);
-
-//   // Toggle checkbox state
-//   const handleToggle = (id: number) => {
-//     setChecklist((prevChecklist) =>
-//       prevChecklist.map((item) =>
-//         item.id === id ? { ...item, checked: !item.checked } : item,
-//       ),
-//     );
-//   };
-
-//   // Function to dynamically generate and download the checklist as a text file
-//   const handleDownloadChecklist = () => {
-//     const fileHeader = "Home Buying Checklist\nBuying Journey\n\n";
-//     const fileBody = checklist
-//       .map((item) => `${item.checked ? "✓" : "□"} ${item.text}`)
-//       .join("\n");
-
-//     const content = fileHeader + fileBody;
-//     const blob = new Blob([content], { type: "text/plain" });
-//     const url = URL.createObjectURL(blob);
-
-//     const link = document.createElement("a");
-//     link.href = url;
-//     link.download = "Home_Buying_Checklist.txt";
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-//     URL.revokeObjectURL(url);
-//   };
-
-//   // Calculate Progress (UI enhancement only, logic remains untouched)
-//   const completedItems = checklist.filter((item) => item.checked).length;
-//   const progressPercentage = Math.round(
-//     (completedItems / checklist.length) * 100,
-//   );
-
-//   return (
-//     <div className=" p-8 bg-card rounded-[var(--radius-lg)] shadow-lg border border-border">
-//       {/* Header Section */}
-//       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
-//         <div>
-//           <h2 className="text-2xl font-bold text-foreground tracking-tight">
-//             Home Buying Checklist {/*[cite: 1] */}
-//           </h2>
-//           <div className="flex items-center gap-2 mt-2">
-//             <svg
-//               className="w-4 h-4 text-accent"
-//               fill="none"
-//               stroke="currentColor"
-//               viewBox="0 0 24 24"
-//             >
-//               <path
-//                 strokeLinecap="round"
-//                 strokeLinejoin="round"
-//                 strokeWidth={2}
-//                 d="M13 10V3L4 14h7v7l9-11h-7z"
-//               />
-//             </svg>
-//             <p className="text-muted-foreground font-medium uppercase tracking-wider text-xs">
-//               Buying Journey {/*[cite: 1] */}
-//             </p>
-//           </div>
-//         </div>
-
-//         <button
-//           onClick={handleDownloadChecklist}
-//           className="flex text-sm items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2.5 px-4 rounded-[var(--radius-md)] shadow-sm transition-all duration-200 active:scale-95"
-//         >
-//           <svg
-//             className="w-5 h-5"
-//             fill="none"
-//             stroke="currentColor"
-//             viewBox="0 0 24 24"
-//           >
-//             <path
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//               strokeWidth={2}
-//               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-//             />
-//           </svg>
-//           Download List
-//         </button>
-//       </div>
-
-//       {/* Progress Bar Area */}
-//       <div className="mb-8 bg-background p-5 rounded-[var(--radius-md)] border border-border">
-//         <div className="flex justify-between items-center mb-2">
-//           <span className="text-sm font-semibold text-secondary-foreground">
-//             Journey Progress
-//           </span>
-//           <span className="text-sm font-bold text-primary">
-//             {progressPercentage}%
-//           </span>
-//         </div>
-//         <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-//           <div
-//             className="bg-primary h-2 rounded-full transition-all duration-700 ease-out"
-//             style={{ width: `${progressPercentage}%` }}
-//           ></div>
-//         </div>
-//       </div>
-
-//       {/* Checklist Area */}
-//       <div className="bg-background rounded-[var(--radius-lg)] p-2 sm:p-4 border border-border shadow-sm">
-//         <ul className="space-y-1">
-//           {checklist.map((item) => (
-//             <li key={item.id}>
-//               <label
-//                 htmlFor={`check-${item.id}`}
-//                 className={`flex items-center p-3 rounded-[var(--radius-md)] cursor-pointer transition-all duration-200 group border ${
-//                   item.checked
-//                     ? "bg-muted/30 border-transparent"
-//                     : "bg-transparent border-transparent hover:bg-muted/50 hover:border-border"
-//                 }`}
-//               >
-//                 <div className="relative flex items-center justify-center shrink-0">
-//                   <input
-//                     type="checkbox"
-//                     id={`check-${item.id}`}
-//                     checked={item.checked}
-//                     onChange={() => handleToggle(item.id)}
-//                     className="peer sr-only"
-//                   />
-//                   {/* Custom Checkbox mapping to your theme */}
-//                   <div className="w-4 h-4 border-2 border-border rounded-[var(--radius-sm)] bg-background flex items-center justify-center transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary group-hover:border-primary/50">
-//                     {item.checked && (
-//                       <svg
-//                         className="w-4 h-4 text-primary-foreground"
-//                         fill="none"
-//                         stroke="currentColor"
-//                         viewBox="0 0 24 24"
-//                       >
-//                         <path
-//                           strokeLinecap="round"
-//                           strokeLinejoin="round"
-//                           strokeWidth={3}
-//                           d="M5 13l4 4L19 7"
-//                         />
-//                       </svg>
-//                     )}
-//                   </div>
-//                 </div>
-
-//                 <span
-//                   className={`ml-4 font-medium transition-all duration-200 select-none text-sm ${
-//                     item.checked
-//                       ? "text-muted-foreground line-through"
-//                       : "text-foreground group-hover:text-primary"
-//                   }`}
-//                 >
-//                   {item.text}
-//                 </span>
-//               </label>
-//             </li>
-//           ))}
-//         </ul>
-//       </div>
-//     </div>
-//   );
-// };
-
-// const HomeSellerChecklist = () => {
-//   // Initializing the checklist state based on the provided source[cite: 2]
-//   const [checklist, setChecklist] = useState([
-//     { id: 1, text: "Create Squamish.realestate account", checked: true },
-//     {
-//       id: 2,
-//       text: "View properties, compare values of similar homes",
-//       checked: true,
-//     },
-//     {
-//       id: 3,
-//       text: "Speak with Sean to discuss Phase 1 – Legal & Financial Groundwork",
-//       checked: false,
-//     },
-//     { id: 4, text: "Mortgage review", checked: false },
-//     { id: 5, text: "Title Review", checked: false },
-//     { id: 6, text: "Gather Strata Documents / review", checked: false },
-//     { id: 7, text: "Access Tenancies", checked: false },
-//     { id: 8, text: "Phase 2 – Prep & Declutter", checked: false },
-//     { id: 9, text: "The 50% Rule", checked: false },
-//     { id: 10, text: "Pack person items / Clear counters", checked: false },
-//     { id: 11, text: "Deep clean glass & grout", checked: false },
-//     { id: 12, text: "Pre-Listing Home Inspection", checked: false },
-//     { id: 13, text: "Phase 3 - Outdoor & First Impressions", checked: false },
-//     { id: 14, text: "Maximize Curb Appeal", checked: false },
-//     { id: 15, text: "Ensure the key features are presentable", checked: false },
-//     {
-//       id: 16,
-//       text: "Complete the Property Disclosure Statement (PDS)",
-//       checked: false,
-//     },
-//     { id: 17, text: "Identify Inclusions & Remove Exclusions", checked: false },
-//     { id: 18, text: "Phase 4 – Launch Listing", checked: false },
-//     {
-//       id: 19,
-//       text: "Prepare For Media (photos, floor plans & feature sheet)",
-//       checked: false,
-//     },
-//     { id: 20, text: "Confirm Showing & Open House Schedule", checked: false },
-//     { id: 21, text: "Complete Final Staging", checked: false },
-//     { id: 22, text: "Secure Valuables", checked: false },
-//     {
-//       id: 23,
-//       text: "Phase 5 – Prepare For Offer, Closing & Moving",
-//       checked: false,
-//     },
-//     { id: 24, text: "Contact lawyer / notary", checked: false },
-//     { id: 25, text: "Contact lender / mortgage broker", checked: false },
-//     { id: 26, text: "Fulfill conditions of the contract", checked: false },
-//     { id: 27, text: "Contact movers & utility providers", checked: false },
-//     { id: 28, text: "Property handover prep", checked: false },
-//   ]);
-
-//   // Toggle checkbox state
-//   const handleToggle = (id: number) => {
-//     setChecklist((prevChecklist) =>
-//       prevChecklist.map((item) =>
-//         item.id === id ? { ...item, checked: !item.checked } : item,
-//       ),
-//     );
-//   };
-
-//   // Function to dynamically generate and download the checklist as a text file
-//   const handleDownloadChecklist = () => {
-//     const fileHeader =
-//       "Home Seller Checklist\nPreparing to Sell a property\n\n";
-//     const fileBody = checklist
-//       .map((item) => `${item.checked ? "✓" : "□"} ${item.text}`)
-//       .join("\n");
-
-//     const content = fileHeader + fileBody;
-//     const blob = new Blob([content], { type: "text/plain" });
-//     const url = URL.createObjectURL(blob);
-
-//     const link = document.createElement("a");
-//     link.href = url;
-//     link.download = "Home_Seller_Checklist.txt";
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-//     URL.revokeObjectURL(url);
-//   };
-
-//   // Calculate Progress (UI enhancement only, logic remains untouched)
-//   const completedItems = checklist.filter((item) => item.checked).length;
-//   const progressPercentage = Math.round(
-//     (completedItems / checklist.length) * 100,
-//   );
-
-//   return (
-//     <div className="max-w-3xl mx-auto p-8 bg-card rounded-[var(--radius-lg)] shadow-lg border border-border">
-//       {/* Header Section */}
-//       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-8">
-//         <div>
-//           <h2 className="text-3xl font-bold text-foreground font-display tracking-tight">
-//             Home Seller Checklist {/*[cite: 2] */}
-//           </h2>
-//           <div className="flex items-center gap-2 mt-2">
-//             <svg
-//               className="w-5 h-5 text-accent"
-//               fill="none"
-//               stroke="currentColor"
-//               viewBox="0 0 24 24"
-//             >
-//               <path
-//                 strokeLinecap="round"
-//                 strokeLinejoin="round"
-//                 strokeWidth={2}
-//                 d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-//               />
-//             </svg>
-//             <p className="text-muted-foreground font-accent font-medium uppercase tracking-wider text-sm">
-//               Preparing to Sell a property {/*[cite: 2] */}
-//             </p>
-//           </div>
-//         </div>
-
-//         <button
-//           onClick={handleDownloadChecklist}
-//           className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-accent font-semibold py-2.5 px-6 rounded-[var(--radius-md)] shadow-sm transition-all duration-200 active:scale-95"
-//         >
-//           <svg
-//             className="w-5 h-5"
-//             fill="none"
-//             stroke="currentColor"
-//             viewBox="0 0 24 24"
-//           >
-//             <path
-//               strokeLinecap="round"
-//               strokeLinejoin="round"
-//               strokeWidth={2}
-//               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-//             />
-//           </svg>
-//           Download List
-//         </button>
-//       </div>
-
-//       {/* Progress Bar Area */}
-//       <div className="mb-8 bg-background p-5 rounded-[var(--radius-md)] border border-border">
-//         <div className="flex justify-between items-center mb-2 font-accent">
-//           <span className="text-sm font-semibold text-secondary-foreground">
-//             Preparation Progress
-//           </span>
-//           <span className="text-sm font-bold text-primary">
-//             {progressPercentage}%
-//           </span>
-//         </div>
-//         <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-//           <div
-//             className="bg-primary h-2 rounded-full transition-all duration-700 ease-out"
-//             style={{ width: `${progressPercentage}%` }}
-//           ></div>
-//         </div>
-//       </div>
-
-//       {/* Checklist Area */}
-//       <div className="bg-background rounded-[var(--radius-lg)] p-2 sm:p-4 border border-border shadow-sm max-h-[600px] overflow-y-auto">
-//         <ul className="space-y-1">
-//           {checklist.map((item) => (
-//             <li key={item.id}>
-//               <label
-//                 htmlFor={`check-${item.id}`}
-//                 className={`flex items-center p-4 rounded-[var(--radius-md)] cursor-pointer transition-all duration-200 group border ${
-//                   item.checked
-//                     ? "bg-muted/30 border-transparent"
-//                     : "bg-transparent border-transparent hover:bg-muted/50 hover:border-border"
-//                 }`}
-//               >
-//                 <div className="relative flex items-center justify-center shrink-0">
-//                   <input
-//                     type="checkbox"
-//                     id={`check-${item.id}`}
-//                     checked={item.checked}
-//                     onChange={() => handleToggle(item.id)}
-//                     className="peer sr-only"
-//                   />
-//                   {/* Custom Checkbox mapping to the theme */}
-//                   <div className="w-6 h-6 border-2 border-border rounded-[var(--radius-sm)] bg-background flex items-center justify-center transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary group-hover:border-primary/50">
-//                     {item.checked && (
-//                       <svg
-//                         className="w-4 h-4 text-primary-foreground"
-//                         fill="none"
-//                         stroke="currentColor"
-//                         viewBox="0 0 24 24"
-//                       >
-//                         <path
-//                           strokeLinecap="round"
-//                           strokeLinejoin="round"
-//                           strokeWidth={3}
-//                           d="M5 13l4 4L19 7"
-//                         />
-//                       </svg>
-//                     )}
-//                   </div>
-//                 </div>
-
-//                 <span
-//                   className={`ml-4 text-[1.05rem] font-medium transition-all duration-200 select-none ${
-//                     item.checked
-//                       ? "text-muted-foreground line-through"
-//                       : "text-foreground group-hover:text-primary"
-//                   } ${item.text.includes("Phase") ? "font-bold text-primary" : ""}`}
-//                 >
-//                   {item.text}
-//                 </span>
-//               </label>
-//             </li>
-//           ))}
-//         </ul>
-//       </div>
-
-//       {/* Note Area */}
-//       <div className="mt-8 p-5 bg-muted/30 rounded-[var(--radius-md)] border border-border text-sm text-secondary-foreground">
-//         <p>
-//           <strong>Note:</strong> I am working on complete (Home Selling planning
-//           guide) document to accompany the checklist. I would like the checklist
-//           and planning guide to be downloadable from the Member Dashboard.{" "}
-//           {/*[cite: 2] */}
-//         </p>
 //       </div>
 //     </div>
 //   );
