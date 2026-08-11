@@ -368,8 +368,7 @@ function MapInnerLayout({
         <p>
          ${formatPrice(listing.asking_price)}<br/>
           ${listing.civic_address}<br/>
-          ${listing.neighbourhood} | ${listing.postal_code}<br/>
-          ${specsLine} Floor Area ${listing.total_floor_area ? `${formatNumber(listing.total_floor_area)} sf` : "—"}<br/>
+       ${listing.neighbourhood ? `${listing.neighbourhood}` : "-"} |  ${listing.postal_code ? `${listing.postal_code}` : "-"}<br/>          ${specsLine} Floor Area ${listing.total_floor_area ? `${formatNumber(listing.total_floor_area)} sf` : "—"}<br/>
           Lot Size ${listing.lot_size ? `${formatNumber(listing.lot_size)} sf` : "—"}<br/>
           MLS® ${listing.mls_number}<br/>
           Listing By ${listing.listing_office}<br/>
@@ -509,7 +508,7 @@ function MapInnerLayout({
         <div class="bottom-left">
         <p>
           ${property.civic_address}<br/>
-          ${property.neighbourhood} | ${property.postal_code}<br/>
+               ${property.neighbourhood ? `${property.neighbourhood}` : "-"} |  ${property.postal_code ? `${property.postal_code}` : "-"}<br/>
           Beds ${property.bedrooms} | Baths ${property.bathrooms} | Floor Area ${property.floor_area ? `${formatNumber(property.floor_area)} sf` : "—"}<br/>
           Lot Size ${property.lot_size ? `${formatNumber(property.lot_size)} sf` : "—"}
         </p>
@@ -560,7 +559,7 @@ function MapInnerLayout({
       onerror="this.onerror=null; this.src='${localDefaultPlaceholder}';"
     />
         <div class="popup-content">
-          <p class="popup-address">${property.neighbourhood} | ${property.postal_code}</p>
+          <p class="popup-address">${property.neighbourhood ? `${property.neighbourhood}` : "-"} |  ${property.postal_code ? `${property.postal_code}` : "-"}</p>
           <div class="field-group">
             <label class="popup-label">Select Unit:</label>
             <select id="strata-unit-select" class="popup-select">${dropdownOptions}</select>

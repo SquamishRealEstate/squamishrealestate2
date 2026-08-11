@@ -474,8 +474,12 @@ export const getS3Image = (
 
   if (!property || !property.civic_address) return "";
 
-  const civicAddress = property.civic_address.replace(/-/g, " ");
-  const civic_address = civicAddress.split(" ");
+  console.log(property.civic_address);
+
+  // const civicAddress = property.civic_address.replace(/-/g, " ");
+  // console.log(civicAddress);
+  const civic_address = property.civic_address.split(" ");
+  console.log(civic_address);
 
   if (
     propertyType === "detached" ||
@@ -494,24 +498,45 @@ export const getS3Image = (
     }
 
     const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${civic_address[1]}/${imageType}/${civic_address[0]}-${civic_address[1]}.webp`;
+    console.log(civic_address[1]);
+    console.log(civic_address[0]);
     return encodeURI(card_image_path);
   } else if (propertyType.includes("strata")) {
     const cleanedAddress = property.civic_address
       .replace("-", " ")
-      .replace(/[^a-zA-Z0-9\s]/g, "")
+      .replace(/[^a-zA-Z0-9\s]/g, " ") // Replace special characters with a space
       .toLowerCase()
-      .split(" ");
-    cleanedAddress[2] =
-      cleanedAddress[2][0].toUpperCase() +
-      cleanedAddress[2].slice(1).toLowerCase();
-    const address =
-      cleanedAddress[0] + "-" + cleanedAddress[1] + "-" + cleanedAddress[2];
+      .split(/\s+/) // Split on one OR MORE spaces
+      .filter(Boolean);
+
+    let address = "";
+
+    // Helper function to capitalize first letter
+    const capitalize = (str: string) =>
+      str ? str[0].toUpperCase() + str.slice(1).toLowerCase() : "";
+
+    // Check if the 2nd token is a number (e.g., "1500" in "30-1500 JUDD RD")
+    if (cleanedAddress[1] && /^\d+$/.test(cleanedAddress[1])) {
+      // Case: Unit + Street Number (e.g., ["30", "1500", "judd", "rd"])
+      const unit = cleanedAddress[0];
+      const streetNum = cleanedAddress[1];
+      const streetName = capitalize(cleanedAddress[2]); // "Judd"
+
+      address = `${unit}-${streetNum}-${streetName}`; // "30-1500-Judd"
+    } else {
+      // Case: No Unit (e.g., ["39822", "no", "name", "rd"])
+      const streetNum = cleanedAddress[0];
+      const streetName = capitalize(cleanedAddress[1]); // "No"
+
+      address = `${streetNum}-${streetName}`; // "39822-No"
+    }
 
     if (imageType === "card") {
       const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/card.webp`;
       return encodeURI(card_image_path);
     } else {
       const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/landing/${address}.webp`;
+
       return encodeURI(card_image_path);
     }
   }
