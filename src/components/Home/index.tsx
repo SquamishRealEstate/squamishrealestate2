@@ -1,0 +1,42 @@
+import React from "react";
+import Navbar from "@/components/Navbar";
+import Hero from "@/components/Hero";
+import Reels from "@/components/Reels";
+import FeaturedProperties from "@/components/FeaturedProperties";
+import CollapsibleMap from "@/components/Map/collapsibleMap";
+import LazySection from "@/components/LazySection";
+import Footer from "@/components/Footer";
+import Blogs from "@/components/Blogs";
+import { HomeListingsSection } from "@/components/HomeListingsSection";
+import GoogleOneTap from "@/components/Login/googleOneTap";
+import { AuthGuard } from "../Auth/authGuard";
+export default function Home() {
+  return (
+    <>
+      <Navbar />
+      <GoogleOneTap />
+      <Hero />
+      <LazySection>
+        <AuthGuard renderPrivate={false}>
+          {(user) => <HomeListingsSection user={user} />}
+        </AuthGuard>
+      </LazySection>
+
+      <LazySection>
+        <Reels />
+      </LazySection>
+
+      <LazySection>
+        <FeaturedProperties />
+      </LazySection>
+
+      <LazySection>
+        <Blogs />
+      </LazySection>
+
+      <Footer />
+
+      <CollapsibleMap />
+    </>
+  );
+}
