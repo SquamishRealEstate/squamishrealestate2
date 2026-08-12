@@ -154,68 +154,137 @@ export default function FeaturedManager() {
         />
 
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">
-                  Address
-                </th>
-                <th className="px-6 py-3 text-xs font-semibold text-slate-500 text-right">
-                  Available Slots
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {results.length > 0 ? (
-                results.map((prop) => (
-                  <tr
-                    key={prop.pid}
-                    className="hover:bg-slate-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-sm font-medium text-slate-900">
-                      {prop.civic_address}
-                    </td>
-                    <td className="px-6 py-4 text-right flex justify-end gap-2">
-                      {SLOTS.filter((s) => {
-                        if (s.type === "detached")
-                          return prop.property_category === "detached";
-                        if (s.type === "townhouse")
-                          return prop.dwell_type === "Townhouse";
-                        if (s.type === "apartment")
-                          return prop.dwell_type === "Apartment/Condo";
-                        return false;
-                      }).map((slot) => (
-                        <Button
-                          key={slot.id}
-                          variant="outline"
-                          size="sm"
-                          className="text-xs"
-                          onClick={() =>
-                            assignSlot(
-                              prop.pid,
-                              slot.id,
-                              prop.property_category,
-                            )
-                          }
-                        >
-                          Slot {slot.id}
-                        </Button>
-                      ))}
-                    </td>
+          {/* Helper to filter slots */}
+          {/* (Place this or inline it inside your component) */}
+          {results.length > 0 ? (
+            <>
+              {/* 📱 MOBILE VIEW: Compact Stacked Cards (Hidden on md+) */}
+              <div className="divide-y divide-slate-100 md:hidden">
+                {results.map((prop) => {
+                  const availableSlots = SLOTS.filter((s) => {
+                    if (s.type === "detached")
+                      return prop.property_category === "detached";
+                    if (s.type === "townhouse")
+                      return prop.dwell_type === "Townhouse";
+                    if (s.type === "apartment")
+                      return prop.dwell_type === "Apartment/Condo";
+                    return false;
+                  });
+
+                  return (
+                    <div
+                      key={prop.pid}
+                      className="p-4 space-y-3 hover:bg-slate-50 transition-colors"
+                    >
+                      <div>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">
+                          Address
+                        </span>
+                        <p className="text-sm font-semibold text-slate-900 mt-0.5">
+                          {prop.civic_address}
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5">
+                          Available Slots
+                        </span>
+                        <div className="flex flex-wrap gap-2">
+                          {availableSlots.length > 0 ? (
+                            availableSlots.map((slot) => (
+                              <Button
+                                key={slot.id}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs h-8 px-2.5"
+                                onClick={() =>
+                                  assignSlot(
+                                    prop.pid,
+                                    slot.id,
+                                    prop.property_category,
+                                  )
+                                }
+                              >
+                                Slot {slot.id}
+                              </Button>
+                            ))
+                          ) : (
+                            <span className="text-xs text-slate-400 italic">
+                              No slots available
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 🖥️ DESKTOP VIEW: Full Table (Hidden on mobile) */}
+              <table className="w-full text-left hidden md:table">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-6 py-3 text-xs font-semibold text-slate-500 uppercase">
+                      Address
+                    </th>
+                    <th className="px-6 py-3 text-xs font-semibold text-slate-500 text-right">
+                      Available Slots
+                    </th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={2}
-                    className="px-6 py-8 text-center text-slate-400 text-sm"
-                  >
-                    Use the search to find properties
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {results.map((prop) => {
+                    const availableSlots = SLOTS.filter((s) => {
+                      if (s.type === "detached")
+                        return prop.property_category === "detached";
+                      if (s.type === "townhouse")
+                        return prop.dwell_type === "Townhouse";
+                      if (s.type === "apartment")
+                        return prop.dwell_type === "Apartment/Condo";
+                      return false;
+                    });
+
+                    return (
+                      <tr
+                        key={prop.pid}
+                        className="hover:bg-slate-50 transition-colors"
+                      >
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900">
+                          {prop.civic_address}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex justify-end flex-wrap gap-2">
+                            {availableSlots.map((slot) => (
+                              <Button
+                                key={slot.id}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                                onClick={() =>
+                                  assignSlot(
+                                    prop.pid,
+                                    slot.id,
+                                    prop.property_category,
+                                  )
+                                }
+                              >
+                                Slot {slot.id}
+                              </Button>
+                            ))}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            /* Empty State (Shared for both Mobile and Desktop) */
+            <div className="px-6 py-8 text-center text-slate-400 text-sm">
+              Use the search to find properties
+            </div>
+          )}
         </div>
       </div>
     </div>

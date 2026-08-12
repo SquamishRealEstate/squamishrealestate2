@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { usePersistFn } from "@/hooks/usePersistFn";
-import * as mapboxgl from "mapbox-gl";
+import mapboxgl from "mapbox-gl";
 import type { LngLatLike } from "mapbox-gl";
 import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
 import "mapbox-gl/dist/mapbox-gl.css";

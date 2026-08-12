@@ -70,7 +70,7 @@ export default function CollapsibleMap() {
           "fixed z-50 bg-background shadow-2xl transition-all duration-500 ease-out",
           isFullscreen
             ? "inset-0 rounded-none"
-            : "top-20 right-6 bottom-6 w-[600px] rounded-2xl",
+            : "top-20 left-4 right-4 sm:left-auto sm:right-6 bottom-6 sm:w-[600px] rounded-2xl",
           isMapExpanded
             ? "translate-x-0 opacity-100"
             : "translate-x-full opacity-0",
