@@ -1,0 +1,43 @@
+name: Weekly Image Sync
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  workflow_dispatch:
+
+# 🌟 NEW: This permission is required to allow the bot to push code back to your repo
+permissions:
+  contents: write
+
+jobs:
+  run-image-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Execute Images Script
+        env:
+          BRIDGE_API_TOKEN: ${{ secrets.BRIDGE_API_TOKEN }}
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: node images.js 
+
+      # 🌟 NEW: This step saves the updated JSON file back to your GitHub repository
+      - name: Commit and push updated database
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add synced_mls.json
+          git commit -m "Auto-update synced_mls.json [skip ci]" || echo "No new listings to sync"
+          git push
