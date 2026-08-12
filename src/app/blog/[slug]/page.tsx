@@ -133,10 +133,9 @@ export default function BlogPost() {
           )}
 
           <div className="flex flex-col gap-12">
-            <div
-              className="font-body text-[17px] leading-[1.8] text-muted-foreground prose prose-headings:font-display prose-headings:text-primary prose-strong:text-primary prose-a:text-accent max-w-none"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
-            />
+            <div className="font-body text-[17px] leading-[1.8] text-muted-foreground prose prose-headings:font-display prose-headings:text-primary prose-strong:text-primary prose-a:text-accent max-w-none whitespace-pre-line">
+              {blog.content}
+            </div>
           </div>
 
           <footer className="mt-20 pt-10 border-t border-border">
