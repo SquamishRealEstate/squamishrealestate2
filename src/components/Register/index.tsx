@@ -33,7 +33,7 @@ function RegisterContent() {
   useEffect(() => {
     const callbackUrl = searchParams.get("callback") || "/";
     // Now window is safe to access because we are in useEffect
-    setRedirectTo(`${window.location.origin}${callbackUrl}`);
+    setRedirectTo(`${process.env.NEXT_PUBLIC_SITE_URL}${callbackUrl}`);
   }, [searchParams]);
 
   const [loading, setLoading] = useState(false);

@@ -9,5 +9,5 @@ export const header = `
 `;
 
 export const footer = `
-    <p style="font-size: 14px; color: #777; margin-top: 20px; text-align: center;">© Sean Brawley PREC* 2026. All rights reserved.</p>
+    <p style="font-size: 14px; color: #777; margin-top: 20px; text-align: center;">© Sean Brawley PREC* 2026. All rights reserved.RE/MAX Masters Realty</p>
 `;

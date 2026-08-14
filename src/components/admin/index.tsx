@@ -105,7 +105,7 @@ export default function AdminDashboard() {
         className={`
         /* Mobile: below header, expands/contracts height */
         bg-slate-900 text-white overflow-hidden transition-all duration-300 ease-in-out
-        fixed top-16 left-0 right-0 z-40 overflow-y-auto 
+        fixed left-0 right-0 z-40 overflow-y-auto top-16 lg:top-0
         lg:relative lg:translate-x-0 lg:w-72 lg:min-h-screen lg:p-6 lg:block lg:opacity-100
         
         /* Apply these only on mobile */
