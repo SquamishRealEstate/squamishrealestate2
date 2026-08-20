@@ -529,7 +529,7 @@ export const NewListings = ({ type }: { type: string }) => {
   return (
     <div className="w-full py-2">
       <div className="overflow-x-auto border border-gray-200/60 rounded-xl bg-white shadow-xs">
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="w-full text-left border-collapse text-xs overflow-x-auto">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium uppercase tracking-wider">
               <th scope="col" className="px-6 py-3">
@@ -683,7 +683,7 @@ export const RecentSolds = ({ type }: { type: string }) => {
   return (
     <div className="w-full py-2">
       <div className="overflow-x-auto border border-gray-200/60 rounded-xl bg-white shadow-xs">
-        <table className="w-full text-left border-collapse text-xs">
+        <table className="w-full text-left border-collapse text-xs overflow-x-auto">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium uppercase tracking-wider">
               <th scope="col" className="px-6 py-3">
@@ -971,7 +971,7 @@ export const LastSold = ({
       {/* Sales History Table - Financial Style */}
       {property.mls_data && property.mls_data.length > 0 && (
         <div className="border border-border shadow-sm">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm overflow-x-auto">
             <thead className="bg-muted border-b border-border">
               <tr className="uppercase tracking-[0.15em] text-[10px] text-muted-foreground">
                 <th className="px-6 py-4 font-bold">Sold Date</th>
@@ -1267,8 +1267,8 @@ export const BCAssessment = ({
 
       {/* Historical Assessment Table - Financial Style */}
       {bcAssessmentDataArray.length > 0 && (
-        <div className="border border-border shadow-sm overflow-hidden">
-          <table className="w-full text-left text-sm">
+        <div className="border border-border shadow-sm overflow-x-auto">
+          <table className="w-full text-left text-sm overflow-x-auto">
             <thead className="bg-muted border-b border-border">
               <tr className="uppercase tracking-[0.15em] text-[10px] text-muted-foreground">
                 <th className="px-6 py-4 font-bold">July 1</th>
@@ -1338,7 +1338,7 @@ export const Taxes = ({ property, type }: { property: any; type: string }) => {
       {/* Historical Tax Table - Financial Style */}
       {property.gross_tax_data && (
         <div className="border border-border shadow-sm overflow-hidden">
-          <table className="w-full text-left text-sm">
+          <table className="w-full text-left text-sm overflow-x-auto">
             <thead className="bg-muted border-b border-border">
               <tr className="uppercase tracking-[0.12em] text-[10px] text-muted-foreground font-bold">
                 <th className="px-6 py-4">Tax Year</th>
