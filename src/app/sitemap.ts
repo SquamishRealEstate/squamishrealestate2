@@ -90,6 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const { data: listings, error: listingsError } = await supabase
       .from("all_listings")
       .select("pid, property_category, civic_address")
+      .eq("market_status", "Active")
       .range(
         listing_page * listing_pageSize,
         (listing_page + 1) * listing_pageSize - 1,
