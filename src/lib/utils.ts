@@ -542,3 +542,75 @@ export const getS3Image = (
   }
   return "";
 };
+export function formatCurrentHonestDoorPrice(
+  currentPrice: number | null | undefined,
+  currentMonth: string | null | undefined,
+) {
+  // If either value is missing, return "N/A" immediately
+  if (currentPrice == null || currentMonth == null) {
+    return "N/A";
+  }
+
+  const formattedPrice = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(currentPrice);
+
+  if (currentMonth.includes("-")) {
+    const [year, monthStr, dayStr] = currentMonth.split("T")[0].split("-");
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
+    const monthIndex = parseInt(monthStr, 10) - 1;
+    const day = parseInt(dayStr, 10);
+    const abbreviatedMonth = monthNames[monthIndex];
+
+    return `${formattedPrice} (${day} ${abbreviatedMonth} ${year})`;
+  }
+
+  // Legacy Fallback
+  const currentYear = new Date().getFullYear();
+  const monthIndex = new Date().getMonth();
+  let dataYear = currentYear;
+
+  const dataMonthIndex =
+    Object.keys(monthAbbreviations).indexOf(currentMonth) + 1;
+
+  if (dataMonthIndex > monthIndex + 1) {
+    dataYear--;
+  }
+
+  const abbreviatedMonth =
+    monthAbbreviations[currentMonth as keyof typeof monthAbbreviations];
+
+  return `${formattedPrice} (${abbreviatedMonth}, ${dataYear})`;
+}
+
+export const monthAbbreviations = {
+  January: "Jan",
+  February: "Feb",
+  March: "Mar",
+  April: "Apr",
+  May: "May",
+  June: "Jun",
+  July: "Jul",
+  August: "Aug",
+  September: "Sep",
+  October: "Oct",
+  November: "Nov",
+  December: "Dec",
+};
