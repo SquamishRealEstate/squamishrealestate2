@@ -10,6 +10,7 @@ import {
   preloadImage,
   fetchFloorPlans,
   getS3Image,
+  formatCurrentHonestDoorPrice,
 } from "@/lib/utils";
 import {
   MapPin,
@@ -38,6 +39,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HDMyHomeWidgetComponent from "./HDMyHomeWidgetComponent";
 import HDWidgetComponent from "./HDWidgetComponent";
+import Link from "next/link";
 
 // Import our new helpers
 import {
@@ -64,6 +66,7 @@ import {
 } from "@/components/Property/PropertyHelpers";
 import { ShareMenu } from "../ShareMenu";
 import { AuthGuard } from "../Auth/authGuard";
+import HonestDoorPriceChart from "./HonestdoorPriceChart";
 
 export const PropertyDetailPage = ({ type }: { type: string }) => {
   const { pid } = useParams();
@@ -159,56 +162,168 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
 
   useEffect(() => {
     if (property) {
-      // Calculate age based on current year and year built
-      const yearConstructed = property.year_constructed;
-      const age =
-        yearConstructed === "0"
-          ? "-"
-          : (new Date().getFullYear() - parseInt(yearConstructed)).toString();
+      const fetchPropertyData = async () => {
+        // Calculate age
+        const yearConstructed = property.year_constructed;
+        const age =
+          yearConstructed === "0"
+            ? "-"
+            : (new Date().getFullYear() - parseInt(yearConstructed)).toString();
 
-      const propertyDetails = [
-        { name: "Bedrooms", value: property.bedrooms, icon: Bed },
-        { name: "Bathrooms", value: property.bathrooms, icon: Bath },
-        {
-          name: "Floor Area",
-          value: `${numberWithCommas(property.floor_area)} sf`,
-          icon: Maximize,
-        },
-        { name: "Age", value: age, icon: Clock },
-        {
-          name: "Tax",
-          value: `$ ${formatTax(property.tax_paid)}`,
-          icon: Landmark,
-        },
-        {
-          name: "Tax Trend",
-          value: property.tax_trend,
-          icon: DollarSign,
-        },
-        {
-          name: "Assessment Trend",
-          value: property.bc_assessment_trend,
-          icon: BarChart3,
-        },
-        {
-          name: "Property Size",
-          value: `${numberWithCommas(property.lot_size)} sf`,
-          icon: Ruler,
-        },
-        {
-          name: "Market Status",
-          value: property.market_status,
-          icon: TrendingUp,
-        },
-        {
-          name: "HonestDoor Price",
-          value: "Coming Soon",
-          icon: CircleDollarSign,
-        },
-        { name: "Street Average", value: "Coming Soon", icon: Briefcase },
-        { name: "Appreciation/year", value: "Coming Soon", icon: Home },
-      ];
-      setPropertyDetails(propertyDetails);
+        // RPC Fetch Logic (Unchanged)
+        let streetAvgDisplay = "N/A";
+
+        if (type === "strata" && property.gis_id) {
+          const { data, error } = await supabase.rpc("get_strata_avg_price", {
+            p_gis_id: property.gis_id,
+          });
+          if (error) {
+            console.error("Error fetching strata average:", error);
+            streetAvgDisplay = "Unavailable";
+          } else if (data) {
+            streetAvgDisplay = new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(data);
+          }
+        } else if (property.street) {
+          const { data, error } = await supabase.rpc("get_street_avg_price", {
+            street_name: property.street,
+          });
+          if (error) {
+            console.error("Error fetching street average:", error);
+            streetAvgDisplay = "Unavailable";
+          } else if (data) {
+            streetAvgDisplay = new Intl.NumberFormat("en-US", {
+              style: "currency",
+              currency: "USD",
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            }).format(data);
+          }
+        }
+
+        // 1. Protected Appreciation Math
+        const appreciation = () => {
+          // Safely check for missing price, mls_data, or last updated date
+          if (
+            property.honestdoor_current_price == null ||
+            property.honestdoor_current_price === "Coming Soon" ||
+            property.honestdoor_current_price === 0 ||
+            !property.mls_data ||
+            property.mls_data === "[]" ||
+            !property.honestdoor_last_updated
+          ) {
+            return "N/A";
+          }
+
+          let parsedMlsData;
+          try {
+            parsedMlsData =
+              typeof property.mls_data === "string"
+                ? JSON.parse(property.mls_data)
+                : property.mls_data;
+          } catch (error) {
+            return "N/A";
+          }
+
+          // Ensure array has data and specifically check if price/date exist
+          if (
+            !parsedMlsData ||
+            parsedMlsData.length === 0 ||
+            !parsedMlsData[0]?.price ||
+            !parsedMlsData[0]?.date
+          ) {
+            return "N/A";
+          }
+
+          const lastSoldPrice = parsedMlsData[0].price;
+          const lastSoldDate = new Date(parsedMlsData[0].date);
+          const honestDoorDate = new Date(property.honestdoor_last_updated);
+
+          const timeDifference = Math.abs(
+            lastSoldDate.getTime() - honestDoorDate.getTime(),
+          );
+          const millisecondsInYear = 1000 * 60 * 60 * 24 * 365.25;
+          const differenceInYears = timeDifference / millisecondsInYear;
+
+          const appreciationValue = (
+            ((property.honestdoor_current_price - lastSoldPrice) * 100) /
+            lastSoldPrice /
+            differenceInYears
+          ).toFixed(2);
+
+          return `${appreciationValue}%`;
+        };
+
+        // 2. Protected Details Array
+        const details = [
+          { name: "Bedrooms", value: property.bedrooms ?? "N/A", icon: Bed },
+          { name: "Bathrooms", value: property.bathrooms ?? "N/A", icon: Bath },
+          {
+            name: "Floor Area",
+            // Only format if it's not null/undefined
+            value:
+              property.floor_area != null
+                ? `${numberWithCommas(property.floor_area)} sf`
+                : "N/A",
+            icon: Maximize,
+          },
+          { name: "Age", value: age ?? "N/A", icon: Clock },
+          {
+            name: "Tax",
+            value:
+              property.tax_paid != null
+                ? `$ ${formatTax(property.tax_paid)}`
+                : "N/A",
+            icon: Landmark,
+          },
+          {
+            name: "Tax Trend",
+            value: property.tax_trend ?? "N/A",
+            icon: DollarSign,
+          },
+          {
+            name: "Assessment Trend",
+            value: property.bc_assessment_trend ?? "N/A",
+            icon: BarChart3,
+          },
+          {
+            name: "Property Size",
+            value:
+              property.lot_size != null
+                ? `${numberWithCommas(property.lot_size)} sf`
+                : "N/A",
+            icon: Ruler,
+          },
+          {
+            name: "Market Status",
+            value: property.market_status ?? "N/A",
+            icon: TrendingUp,
+          },
+          {
+            name: "HonestDoor Price",
+            value: formatCurrentHonestDoorPrice(
+              property.honestdoor_current_price,
+              property.honestdoor_current_month,
+            ),
+            icon: CircleDollarSign,
+            // Safely apply href; fallback to undefined so Link doesn't break
+            href: property.honestdoor_url || undefined,
+          },
+          {
+            name: "Street Average",
+            value: streetAvgDisplay,
+            icon: Briefcase,
+          },
+          { name: "Appreciation/year", value: appreciation(), icon: Home },
+        ];
+        setPropertyDetails(details);
+      };
+
+      fetchPropertyData();
 
       const fetchReviews = async () => {
         if (!property?.pid) return;
@@ -564,8 +679,15 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                     {detail.name}
                   </p>
 
-                  {detail.name === "Market Status" &&
-                  detail.value === "Active" ? (
+                  {detail.href && detail.value !== "N/A" ? (
+                    <Link
+                      href={detail.href}
+                      className="text-sm font-bold text-brand hover:underline truncate"
+                    >
+                      {checkIfEmpty(detail.value)}
+                    </Link>
+                  ) : detail.name === "Market Status" &&
+                    detail.value === "Active" ? (
                     <a
                       href={`/listing/landing/${type}/${encodeURIComponent(property.PID)}/${encodeURIComponent(formatString(property.civic_address))}`}
                       className="text-sm font-bold text-brand hover:underline truncate"
@@ -680,6 +802,27 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                           /* PUBLIC CONTENT */
                           <div className="w-full">
                             {info.name === "HonestDoor Price History" ? (
+                              property.honestdoor_price_history.length > 0 ? (
+                                <div className="w-full flex flex-col justify-center items-center min-w-0 mb-8">
+                                  <div className="w-full lg:w-3/4 xl:w-1/2 min-w-[330px] custom-chart-container">
+                                    {/* Pass the safe data to the new chart */}
+                                    <HonestDoorPriceChart
+                                      priceHistory={
+                                        property.honestdoor_price_history
+                                      }
+                                    />
+                                  </div>
+
+                                  <div className="bg-white flex justify-center p-6 mb-5">
+                                    <HDMyHomeWidgetComponent />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="bg-white flex justify-center p-6 mb-5">
+                                  <HDMyHomeWidgetComponent />
+                                </div>
+                              )
+                            ) : (
                               //(
                               // (honestDoorPrice as any).PriceHistory && (honestDoorPrice as any).CurrentMonth ? (
                               //   <div className="flex flex-col items-center">
@@ -692,10 +835,6 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
                               //      <HDMyHomeWidgetComponent />
                               //   </div>
                               // ) :
-                              <div className="bg-white flex justify-center p-6 mb-5">
-                                <HDMyHomeWidgetComponent />
-                              </div>
-                            ) : (
                               <div className="overflow-x-auto">
                                 {info.renderComponent()}
                               </div>
