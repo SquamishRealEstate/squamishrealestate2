@@ -365,65 +365,81 @@ export const fetchFloorPlans = async (
   property: any,
   type: string,
 ): Promise<string[]> => {
-  let bucketName = "";
-  let folderPath = "";
-  let targetPrefix = "";
-
-  const isDetachedOrLand = ["detached", "multifamily", "land"].some((t) =>
-    type.includes(t),
-  );
-  const isStrata = type.includes("strata");
-
-  const civicAddress = property.civic_address.replace(/-/g, " ");
-  const civic_address = civicAddress.split(" ");
-
-  // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
-  if (isDetachedOrLand) {
-    if (!property.civic_address) return [];
-
-    bucketName = "streetview";
-
-    if (!isNaN(Number(civic_address[1]))) {
-      civic_address[2] =
-        civic_address[2][0].toUpperCase() +
-        civic_address[2].slice(1).toLowerCase();
-      folderPath = `${civic_address[2]}/fp`;
-      targetPrefix = `${civic_address[0]}-${civic_address[1]}-${civic_address[2]}`;
-    } else {
-      civic_address[1] =
-        civic_address[1][0].toUpperCase() +
-        civic_address[1].slice(1).toLowerCase();
-      folderPath = `${civic_address[1]}/fp`;
-      targetPrefix = `${civic_address[0]}-${civic_address[1]}`;
-    }
-  }
-  // --- CASE 2: STRATA ---
-  else if (isStrata) {
-    bucketName = "strata";
-
-    if (!property.civic_address) return [];
-
-    // FIX: Ensure no trailing or double slashes are built into this string path
-    folderPath = `${property.gis_id}/fp`;
-
-    civic_address[0] = civic_address[0].replace(/,/g, "");
-    civic_address[2] =
-      civic_address[2][0].toUpperCase() +
-      civic_address[2].slice(1).toLowerCase();
-
-    // Target prefix for filtering files inside that folder
-    targetPrefix = `${civic_address[0]}-${civic_address[1]}-${civic_address[2]}-Floor-Plan`;
-  } else {
-    return [];
-  }
-
-  // --- CORE UTILITY: EXECUTE STORAGE LOOKUP ---
   try {
-    // Clean and explicitly trim the target prefix to prevent invisible spaces from breaking matches
+    // 1. Initial Safety Checks
+    if (
+      !property ||
+      typeof property.civic_address !== "string" ||
+      !property.civic_address.trim()
+    ) {
+      return [];
+    }
+
+    if (typeof type !== "string") {
+      return [];
+    }
+
+    // Helper for safe capitalization
+    const capitalize = (str: string) =>
+      typeof str === "string" && str.length > 0
+        ? str[0].toUpperCase() + str.slice(1).toLowerCase()
+        : "";
+
+    let bucketName = "";
+    let folderPath = "";
+    let targetPrefix = "";
+
+    const isDetachedOrLand = ["detached", "multifamily", "land"].some((t) =>
+      type.includes(t),
+    );
+    const isStrata = type.includes("strata");
+
+    // Replace hyphens and split, filtering out any empty strings
+    const civic_address = property.civic_address
+      .replace(/-/g, " ")
+      .split(" ")
+      .filter(Boolean);
+
+    // --- CASE 1: DETACHED / MULTIFAMILY / LAND ---
+    if (isDetachedOrLand) {
+      // Need at least 2 parts to build a folder path
+      if (civic_address.length < 2) return [];
+
+      bucketName = "streetview";
+
+      if (!isNaN(Number(civic_address[1]))) {
+        // Needs at least 3 parts (e.g., "123", "456", "Main")
+        if (civic_address.length < 3) return [];
+
+        const streetName = capitalize(civic_address[2]);
+        folderPath = `${streetName}/fp`;
+        targetPrefix = `${civic_address[0]}-${civic_address[1]}-${streetName}`;
+      } else {
+        const streetName = capitalize(civic_address[1]);
+        folderPath = `${streetName}/fp`;
+        targetPrefix = `${civic_address[0]}-${streetName}`;
+      }
+    }
+    // --- CASE 2: STRATA ---
+    else if (isStrata) {
+      // Ensure gis_id exists and address has enough parts
+      if (!property.gis_id || civic_address.length < 3) return [];
+
+      bucketName = "strata";
+      folderPath = `${property.gis_id}/fp`;
+
+      const unitOrNum = civic_address[0].replace(/,/g, "");
+      const streetNum = civic_address[1];
+      const streetName = capitalize(civic_address[2]);
+
+      targetPrefix = `${unitOrNum}-${streetNum}-${streetName}-Floor-Plan`;
+    } else {
+      return [];
+    }
+
+    // --- CORE UTILITY: EXECUTE STORAGE LOOKUP ---
     const searchPrefix = targetPrefix.trim();
 
-    // FIX 1: Pass the search option directly to Supabase.
-    // This instructs Supabase to only return files matching "1855-Alder-Floor-Plan" inside "Alder/fp"
     const { data: files, error } = await supabase.storage
       .from(bucketName)
       .list(folderPath, {
@@ -432,7 +448,6 @@ export const fetchFloorPlans = async (
         sortBy: { column: "name", order: "asc" },
       });
 
-    console.log(files);
     if (error) {
       console.error("Supabase Storage error:", error.message);
       return [];
@@ -442,24 +457,20 @@ export const fetchFloorPlans = async (
       return [];
     }
 
-    // FIX 2: Relax validation using case-insensitive extension matching (.png vs .PNG)
     const matchedUrls = files
       .filter((file) => {
-        const lowerName = file.name.toLowerCase();
+        const lowerName = file.name?.toLowerCase() || "";
         return lowerName.endsWith(".png") || lowerName.endsWith(".webp");
       })
       .map((file) => {
-        // Build absolute public URLs safely
         const fullPath = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${bucketName}/${folderPath}/${file.name}`;
         return encodeURI(fullPath);
       });
 
     return matchedUrls;
   } catch (err) {
-    console.error(
-      "Critical failure during floor plan recovery execution:",
-      err,
-    );
+    // Ultimate Fallback: Catch any unforeseen errors and return empty array
+    console.error("Critical failure generating floor plan path:", err);
     return [];
   }
 };
@@ -469,79 +480,107 @@ export const getS3Image = (
   propertyType: any,
   imageType: string,
 ) => {
-  const PARCELS_BUCKET_NAME = "streetview";
-  const STRATA_BUCKET_NAME = "strata";
+  try {
+    const PARCELS_BUCKET_NAME = "streetview";
+    const STRATA_BUCKET_NAME = "strata";
 
-  if (!property || !property.civic_address) return "";
-
-  console.log(property.civic_address);
-
-  // const civicAddress = property.civic_address.replace(/-/g, " ");
-  // console.log(civicAddress);
-  const civic_address = property.civic_address.split(" ");
-  console.log(civic_address);
-
-  if (
-    propertyType === "detached" ||
-    propertyType === "multifamily" ||
-    propertyType === "land" ||
-    propertyType === "parcel"
-  ) {
-    if (!isNaN(Number(civic_address[1]))) {
-      civic_address[2] =
-        civic_address[2][0].toUpperCase() +
-        civic_address[2].slice(1).toLowerCase();
-    } else {
-      civic_address[1] =
-        civic_address[1][0].toUpperCase() +
-        civic_address[1].slice(1).toLowerCase();
+    // 1. Core safety checks: Ensure property, address, and types are valid strings
+    if (
+      !property ||
+      typeof property.civic_address !== "string" ||
+      !property.civic_address.trim()
+    ) {
+      return "";
     }
 
-    const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${civic_address[1]}/${imageType}/${civic_address[0]}-${civic_address[1]}.webp`;
-    console.log(civic_address[1]);
-    console.log(civic_address[0]);
-    return encodeURI(card_image_path);
-  } else if (propertyType.includes("strata")) {
-    const cleanedAddress = property.civic_address
-      .replace("-", " ")
-      .replace(/[^a-zA-Z0-9\s]/g, " ") // Replace special characters with a space
-      .toLowerCase()
-      .split(/\s+/) // Split on one OR MORE spaces
-      .filter(Boolean);
+    if (typeof propertyType !== "string") {
+      return "";
+    }
 
-    let address = "";
-
-    // Helper function to capitalize first letter
+    // Helper function for safe capitalization (prevents "Cannot read properties of undefined (reading '0')" error)
     const capitalize = (str: string) =>
-      str ? str[0].toUpperCase() + str.slice(1).toLowerCase() : "";
+      typeof str === "string" && str.length > 0
+        ? str[0].toUpperCase() + str.slice(1).toLowerCase()
+        : "";
 
-    // Check if the 2nd token is a number (e.g., "1500" in "30-1500 JUDD RD")
-    if (cleanedAddress[1] && /^\d+$/.test(cleanedAddress[1])) {
-      // Case: Unit + Street Number (e.g., ["30", "1500", "judd", "rd"])
-      const unit = cleanedAddress[0];
-      const streetNum = cleanedAddress[1];
-      const streetName = capitalize(cleanedAddress[2]); // "Judd"
+    const civic_address = property.civic_address.split(" ");
 
-      address = `${unit}-${streetNum}-${streetName}`; // "30-1500-Judd"
-    } else {
-      // Case: No Unit (e.g., ["39822", "no", "name", "rd"])
-      const streetNum = cleanedAddress[0];
-      const streetName = capitalize(cleanedAddress[1]); // "No"
+    if (
+      propertyType === "detached" ||
+      propertyType === "multifamily" ||
+      propertyType === "land" ||
+      propertyType === "parcel"
+    ) {
+      // 2. Array length check: Ensure address actually has at least 2 parts
+      if (civic_address.length < 2) return "";
 
-      address = `${streetNum}-${streetName}`; // "39822-No"
+      if (!isNaN(Number(civic_address[1]))) {
+        if (civic_address[2]) {
+          civic_address[2] = capitalize(civic_address[2]);
+        }
+      } else {
+        if (civic_address[1]) {
+          civic_address[1] = capitalize(civic_address[1]);
+        }
+      }
+
+      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${PARCELS_BUCKET_NAME}/${civic_address[1]}/${imageType}/${civic_address[0]}-${civic_address[1]}.webp`;
+      console.log(card_image_path);
+
+      return encodeURI(card_image_path);
+    } else if (propertyType.includes("strata")) {
+      // 3. Strata edge case check: ensure gis_id exists before building the URL
+      if (!property.gis_id) return "";
+
+      const cleanedAddress = property.civic_address
+        .replace("-", " ")
+        .replace(/[^a-zA-Z0-9\s]/g, " ") // Replace special characters with a space
+        .toLowerCase()
+        .split(/\s+/) // Split on one OR MORE spaces
+        .filter(Boolean); // Removes any empty strings from the array
+
+      // 4. Ensure cleanedAddress actually produced valid data
+      if (cleanedAddress.length === 0) return "";
+
+      let address = "";
+
+      // Check if the 2nd token is a number (e.g., "1500" in "30-1500 JUDD RD")
+      if (cleanedAddress[1] && /^\d+$/.test(cleanedAddress[1])) {
+        // Case: Unit + Street Number (e.g., ["30", "1500", "judd", "rd"])
+        const unit = cleanedAddress[0];
+        const streetNum = cleanedAddress[1];
+        const streetName = capitalize(cleanedAddress[2] || ""); // Safe fallback if no street name
+
+        address = `${unit}-${streetNum}-${streetName}`; // "30-1500-Judd"
+      } else {
+        // Case: No Unit (e.g., ["39822", "no", "name", "rd"])
+        const streetNum = cleanedAddress[0];
+        const streetName = capitalize(cleanedAddress[1] || ""); // Safe fallback
+
+        address = `${streetNum}-${streetName}`; // "39822-No"
+      }
+
+      if (imageType === "card") {
+        const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/card.webp`;
+        return encodeURI(card_image_path);
+      } else {
+        const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/landing/${address}.webp`;
+        return encodeURI(card_image_path);
+      }
     }
 
-    if (imageType === "card") {
-      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/card.webp`;
-      return encodeURI(card_image_path);
-    } else {
-      const card_image_path = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/${STRATA_BUCKET_NAME}/${property.gis_id}/landing/${address}.webp`;
-
-      return encodeURI(card_image_path);
-    }
+    // Fallback if propertyType doesn't match known types
+    return "";
+  } catch (error) {
+    // 5. Ultimate Fallback: If ANY unexpected edge case occurs, catch it and return an empty string
+    console.error(
+      "Error generating S3 image path, falling back to empty string:",
+      error,
+    );
+    return "";
   }
-  return "";
 };
+
 export function formatCurrentHonestDoorPrice(
   currentPrice: number | null | undefined,
   currentMonth: string | null | undefined,

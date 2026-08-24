@@ -1,4 +1,4 @@
-## [0.x.x] - 2026-xx-xx
+## [1.0.0] - 2026-08-21
 
 ### Added
 
@@ -36,3 +36,9 @@
 - Added User Dashboard
 - Added Home Buying Checklist
 - Added Home Selling Checklist
+
+## [x..x.x] - 2026-xx-xx
+
+- Added Google Analytics Tag
+- Added Canonical Tag
+- Fixed getS3Image and fetchFloorPlans functions
