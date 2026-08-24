@@ -485,6 +485,8 @@ function MapInnerLayout({
     result: any,
     type: "detached" | "strata",
   ): Promise<HTMLDivElement> => {
+    console.log("createPropertyPopupContent");
+    console.log(result);
     const container = document.createElement("div");
     container.className = "popup-clickable-container";
     container.style.cursor = "pointer";
@@ -716,6 +718,8 @@ function MapInnerLayout({
     map.on("click", "parcels-fill", async (e) => {
       if (!e.features?.length) return;
 
+      console.log("click");
+      console.log(e.features);
       const feature = e.features[0];
       const props = feature.properties;
       if (!props) return;
