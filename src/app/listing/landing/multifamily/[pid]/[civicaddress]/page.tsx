@@ -3,7 +3,7 @@ import { ListingDetailPage } from "@/components/Listing";
 import type { Metadata } from "next";
 
 type Props = {
-  params: { pid: string; civicaddress: string };
+  params: Promise<{ pid: string; civicaddress: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

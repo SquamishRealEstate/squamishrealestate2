@@ -1,14 +1,15 @@
 import BlogPost from "@/components/Blogs/blogPost";
 import type { Metadata } from "next";
 
-interface Props {
-  params: {
+type Props = {
+  params: Promise<{
     slug: string;
-  };
-}
+  }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
+
   return {
     alternates: {
       canonical: `https://squamish.realestate/blog/${slug}`,

@@ -3,7 +3,7 @@ import { Neighborhood } from "@/components/Neighborhood";
 import type { Metadata } from "next";
 
 type Props = {
-  params: { neighborhoodname: string };
+  params: Promise<{ neighborhoodname: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
