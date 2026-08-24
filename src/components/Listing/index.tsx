@@ -1,3 +1,5 @@
+"use client";
+
 import Navbar from "@/components/Navbar";
 import React, { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/config/supabaseClient";

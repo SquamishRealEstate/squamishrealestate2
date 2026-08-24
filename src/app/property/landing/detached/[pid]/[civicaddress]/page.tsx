@@ -1,6 +1,18 @@
-"use client";
-
 import { PropertyDetailPage } from "@/components/Property";
+import type { Metadata } from "next";
+
+type Props = {
+  params: { pid: string; civicaddress: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { pid, civicaddress } = await params;
+  return {
+    alternates: {
+      canonical: `https://squamish.realestate/property/landing/detached/${pid}/${civicaddress}`,
+    },
+  };
+}
 
 export default function Page() {
   return <PropertyDetailPage type="detached" />;
