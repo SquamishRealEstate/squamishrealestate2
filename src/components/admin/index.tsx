@@ -13,12 +13,14 @@ import {
   ExternalLink,
   Layers,
   Loader2,
+  Star,
 } from "lucide-react";
 import UserManagement from "./userManagement";
 import BlogManager from "./blogManager";
 import ReelManager from "./reelManager";
 import InquiryManager from "./inquiryManager";
 import FeaturedManager from "./featuredManager";
+import ReviewManager from "./reviewManager";
 import { useAuth } from "@/components/context/AuthProvider";
 import Image from "next/image";
 
@@ -154,6 +156,12 @@ export default function AdminDashboard() {
             active={activeTab === "featured"}
             onClick={() => switchTab("featured")}
           />
+          <SidebarItem
+            icon={<Star size={20} />}
+            label="Reviews"
+            active={activeTab === "reviews"}
+            onClick={() => switchTab("reviews")}
+          />
         </nav>
         <div className="lg:hidden pt-4 mt-4 border-t border-slate-800">
           <Link
@@ -231,6 +239,9 @@ export default function AdminDashboard() {
           </div>
           <div className={activeTab === "featured" ? "block" : "hidden"}>
             <FeaturedManager />
+          </div>
+          <div className={activeTab === "reviews" ? "block" : "hidden"}>
+            <ReviewManager />
           </div>
         </div>
       </main>
