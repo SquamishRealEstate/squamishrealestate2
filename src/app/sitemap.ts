@@ -52,16 +52,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly",
     },
     {
-      url: `${SITE_URL}/login`,
-      priority: 0.2,
-      changeFrequency: "monthly",
-    },
-    {
-      url: `${SITE_URL}/register`,
-      priority: 0.2,
-      changeFrequency: "monthly",
-    },
-    {
       url: `${SITE_URL}/blogs`,
       priority: 0.7,
       changeFrequency: "weekly",
@@ -78,6 +68,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   );
 
+  // NOTE: /login, /register and other auth pages are intentionally excluded
+  // — they are noindex-worthy utility pages that waste crawl budget.
+
   // ALL LISTINGS
   // LISTINGS
   let allListings: any[] = [];
@@ -87,14 +80,31 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // 1. Fetch all listings in batches of 1,000
   while (listing_hasMore) {
-    const { data: listings, error: listingsError } = await supabase
+    const from = listing_page * listing_pageSize;
+    const to = (listing_page + 1) * listing_pageSize - 1;
+
+    let listings: any[] | null = null;
+    let listingsError: any = null;
+
+    // Prefer last_mls_date for <lastmod>; fall back to the basic column
+    // set if that column is unavailable on the all_listings view.
+    const withLastmod = await supabase
       .from("all_listings")
-      .select("pid, property_category, civic_address")
+      .select("pid, property_category, civic_address, last_mls_date")
       .eq("market_status", "Active")
-      .range(
-        listing_page * listing_pageSize,
-        (listing_page + 1) * listing_pageSize - 1,
-      );
+      .range(from, to);
+
+    if (withLastmod.error) {
+      const withoutLastmod = await supabase
+        .from("all_listings")
+        .select("pid, property_category, civic_address")
+        .eq("market_status", "Active")
+        .range(from, to);
+      listings = withoutLastmod.data;
+      listingsError = withoutLastmod.error;
+    } else {
+      listings = withLastmod.data;
+    }
 
     if (listingsError) {
       console.error("Sitemap listings error:", listingsError);
@@ -131,8 +141,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     urls.push({
       url: `${SITE_URL}/listing/landing/${propertyType}/${pid}/${civicAddress}`,
+      lastModified: listing.last_mls_date
+        ? new Date(listing.last_mls_date)
+        : undefined,
       changeFrequency: "daily",
-      priority: 1,
+      priority: 0.6,
     });
   }
 
