@@ -10,7 +10,7 @@ import Blogs from "@/components/Blogs";
 import { HomeListingsSection } from "@/components/HomeListingsSection";
 import GoogleOneTap from "@/components/Login/googleOneTap";
 import { AuthGuard } from "../Auth/authGuard";
-export default function Home() {
+export default function Home({ latestBlogs = [] }: { latestBlogs?: any[] }) {
   return (
     <>
       <Navbar />
@@ -22,7 +22,7 @@ export default function Home() {
         </AuthGuard>
       </LazySection>
 
-      <LazySection>
+      <LazySection defer>
         <Reels />
       </LazySection>
 
@@ -31,7 +31,7 @@ export default function Home() {
       </LazySection>
 
       <LazySection>
-        <Blogs />
+        <Blogs initialBlogs={latestBlogs} />
       </LazySection>
 
       <Footer />
