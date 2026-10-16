@@ -68,11 +68,17 @@ import { ShareMenu } from "../ShareMenu";
 import { AuthGuard } from "../Auth/authGuard";
 import HonestDoorPriceChart from "./HonestdoorPriceChart";
 
-export const PropertyDetailPage = ({ type }: { type: string }) => {
+export const PropertyDetailPage = ({
+  type,
+  initialProperty,
+}: {
+  type: string;
+  initialProperty?: any;
+}) => {
   const { pid } = useParams();
 
-  const [property, setProperty] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [property, setProperty] = useState<any>(initialProperty || null);
+  const [loading, setLoading] = useState(!initialProperty);
   // const [landingImage, setLandingImage] = useState<string>("");
   const salesHistoryRef = React.useRef<HTMLDivElement>(null);
   const photosRef = React.useRef<HTMLDivElement>(null);
@@ -146,6 +152,13 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
   const localDefaultPlaceholder = "/images/landing.jpg";
 
   useEffect(() => {
+    // Property already server-rendered; sync it and skip the client fetch
+    if (initialProperty !== undefined) {
+      setProperty(initialProperty);
+      setLoading(false);
+      return;
+    }
+
     const fetchProperty = async () => {
       setLoading(true);
       const table = type === "strata" ? "strata" : "parcels";
@@ -158,7 +171,7 @@ export const PropertyDetailPage = ({ type }: { type: string }) => {
       setLoading(false);
     };
     if (pid) fetchProperty();
-  }, [pid, type]);
+  }, [pid, type, initialProperty]);
 
   useEffect(() => {
     if (property) {

@@ -18,12 +18,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShareMenu } from "@/components/ShareMenu";
 
-export default function BlogPost({ slug }: { slug: string }) {
+export default function BlogPost({
+  slug,
+  initialBlog,
+}: {
+  slug: string;
+  initialBlog?: any;
+}) {
   const router = useRouter();
-  const [blog, setBlog] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [blog, setBlog] = useState<any>(initialBlog || null);
+  const [loading, setLoading] = useState(!initialBlog);
 
   useEffect(() => {
+    // Post already server-rendered; sync it and skip the client fetch
+    if (initialBlog !== undefined) {
+      setBlog(initialBlog);
+      setLoading(false);
+      return;
+    }
+
     const fetchPost = async () => {
       setLoading(true);
       try {
@@ -56,7 +69,7 @@ export default function BlogPost({ slug }: { slug: string }) {
     };
 
     if (slug) fetchPost();
-  }, [slug]);
+  }, [slug, initialBlog]);
 
   if (loading) {
     return (

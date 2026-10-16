@@ -56,10 +56,16 @@ import {
   // fixCivicAddress,
 } from "@/lib/utils";
 
-export const ListingDetailPage = ({ type }: { type: string }) => {
+export const ListingDetailPage = ({
+  type,
+  initialListing,
+}: {
+  type: string;
+  initialListing?: any;
+}) => {
   const { pid } = useParams();
-  const [listing, setListing] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [listing, setListing] = useState<any>(initialListing || null);
+  const [loading, setLoading] = useState(!initialListing);
   const [listingAverageRating, setListingAverageRating] = useState<number>(0);
   const [reviews, setReviews] = useState<any[]>([]);
   const [openhouses, setOpenHouses] = useState<any[]>([]);
@@ -142,6 +148,13 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
   }, [listing, type]);
 
   useEffect(() => {
+    // Listing already server-rendered; sync it and skip the client fetch
+    if (initialListing !== undefined) {
+      setListing(initialListing);
+      setLoading(false);
+      return;
+    }
+
     const fetchListing = async () => {
       setLoading(true);
       const table = type + "_listings";
@@ -158,7 +171,7 @@ export const ListingDetailPage = ({ type }: { type: string }) => {
       setLoading(false);
     };
     if (pid) fetchListing();
-  }, [pid, type]);
+  }, [pid, type, initialListing]);
 
   useEffect(() => {
     if (listing) {
