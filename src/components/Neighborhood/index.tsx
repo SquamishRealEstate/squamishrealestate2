@@ -20,11 +20,15 @@ import { SliderDiv } from "./sliderDiv";
 import Footer from "../Footer";
 import Image from "next/image";
 
-export const Neighborhood = () => {
+export const Neighborhood = ({
+  initialNeighborhood,
+}: {
+  initialNeighborhood?: NeighborhoodType | null;
+}) => {
   const { neighborhoodname } = useParams();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialNeighborhood === undefined);
   const [neighborhood, setNeighborhood] = useState<NeighborhoodType | null>(
-    null,
+    initialNeighborhood ?? null,
   );
 
   const parsePhotos = (photos: any): string[] => {
@@ -50,6 +54,13 @@ export const Neighborhood = () => {
   const [photoIndex, setPhotoIndex] = useState(0);
 
   useEffect(() => {
+    // Data already server-rendered; sync it and skip the client fetch
+    if (initialNeighborhood !== undefined) {
+      setNeighborhood(initialNeighborhood);
+      setLoading(false);
+      return;
+    }
+
     if (!neighborhoodname) return;
 
     const fetchData = async () => {
@@ -88,7 +99,7 @@ export const Neighborhood = () => {
     };
 
     fetchData();
-  }, [neighborhoodname]);
+  }, [neighborhoodname, initialNeighborhood]);
 
   if (loading) {
     return (

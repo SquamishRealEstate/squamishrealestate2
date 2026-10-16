@@ -7,22 +7,19 @@ import CollapsibleMap from "@/components/Map/collapsibleMap";
 import LazySection from "@/components/LazySection";
 import Footer from "@/components/Footer";
 import Blogs from "@/components/Blogs";
-import { HomeListingsSection } from "@/components/HomeListingsSection";
+import HomeListingsGate from "@/components/Home/HomeListingsGate";
 import GoogleOneTap from "@/components/Login/googleOneTap";
-import { AuthGuard } from "../Auth/authGuard";
-export default function Home() {
+export default function Home({ latestBlogs = [] }: { latestBlogs?: any[] }) {
   return (
     <>
       <Navbar />
       <GoogleOneTap />
       <Hero />
       <LazySection>
-        <AuthGuard renderPrivate={false}>
-          {(user) => <HomeListingsSection user={user} />}
-        </AuthGuard>
+        <HomeListingsGate />
       </LazySection>
 
-      <LazySection>
+      <LazySection defer>
         <Reels />
       </LazySection>
 
@@ -31,7 +28,7 @@ export default function Home() {
       </LazySection>
 
       <LazySection>
-        <Blogs />
+        <Blogs initialBlogs={latestBlogs} />
       </LazySection>
 
       <Footer />

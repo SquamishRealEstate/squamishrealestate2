@@ -25,15 +25,66 @@ const spaceGrotesk = Space_Grotesk({
 });
 
 export const metadata: Metadata = {
-  title: "Squamish Real Estate",
+  metadataBase: new URL("https://squamish.realestate"),
+  title: "Squamish Real Estate | Homes, Condos & MLS® Listings",
   description:
-    "Discover mountain view properties, modern townhomes, and luxury estates in BC’s outdoor paradise.",
+    "Explore Squamish BC real estate: active MLS® listings, market trends, and neighbourhood guides with local agent Sean Brawley PREC*.",
   icons: {
     icon: "/images/icon.ico",
   },
   alternates: {
-    canonical: "/",
+    canonical: "https://squamish.realestate/",
   },
+  openGraph: {
+    type: "website",
+    url: "https://squamish.realestate/",
+    siteName: "Squamish Real Estate",
+    title: "Squamish Real Estate & MLS® Listings | Sean Brawley",
+    description:
+      "Discover mountain view properties, townhomes, and market insights in Squamish, BC.",
+    images: [
+      {
+        url: "/images/landing.jpg",
+        width: 1200,
+        height: 630,
+        alt: "Squamish, British Columbia — mountain view real estate",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Squamish Real Estate & MLS® Listings | Sean Brawley",
+    description:
+      "Discover mountain view properties, townhomes, and market insights in Squamish, BC.",
+    images: ["/images/landing.jpg"],
+  },
+};
+
+// Server-rendered structured data (visible to crawlers without JavaScript)
+const realEstateAgentJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "RealEstateAgent",
+  name: "Sean Brawley PREC*",
+  image: "https://squamish.realestate/images/landing.jpg",
+  "@id": "https://squamish.realestate/#agent",
+  url: "https://squamish.realestate",
+  telephone: "+1-604-849-0500",
+  email: "sean@squamish.realestate",
+  priceRange: "$$",
+  address: {
+    "@type": "PostalAddress",
+    addressLocality: "Squamish",
+    addressRegion: "BC",
+    addressCountry: "CA",
+  },
+  memberOf: {
+    "@type": "Organization",
+    name: "RE/MAX Masters Realty",
+  },
+  sameAs: [
+    "https://www.facebook.com/sean.squamish.realestate",
+    "https://www.instagram.com/sean.squamish.realestate/",
+  ],
 };
 
 export default function RootLayout({
@@ -46,6 +97,12 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${inter.variable} ${spaceGrotesk.variable}`}
       >
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(realEstateAgentJsonLd),
+          }}
+        />
         <AuthProvider>
           <MapProvider>
             <ConsoleLoggerSilencer />

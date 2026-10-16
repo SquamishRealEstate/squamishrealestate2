@@ -38,11 +38,14 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
   Businesses: <Store className="w-8 h-8" />,
 };
 
-export default function Blogs() {
-  const [blogs, setBlogs] = useState<Blog[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function Blogs({ initialBlogs }: { initialBlogs?: Blog[] }) {
+  const [blogs, setBlogs] = useState<Blog[]>(initialBlogs || []);
+  const [loading, setLoading] = useState(!initialBlogs);
 
   useEffect(() => {
+    // Data already server-rendered; nothing to fetch on mount
+    if (initialBlogs) return;
+
     const fetchLatestBlogs = async () => {
       setLoading(true);
       const { data, error } = await supabase
@@ -55,7 +58,7 @@ export default function Blogs() {
       setLoading(false);
     };
     fetchLatestBlogs();
-  }, []);
+  }, [initialBlogs]);
 
   return (
     <section
