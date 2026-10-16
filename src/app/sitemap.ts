@@ -7,14 +7,14 @@ export const revalidate = 86400;
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL || "https://squamish.realestate";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+function getSupabase() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error("Missing Supabase URL or Anon Key in environment variables");
+  if (!supabaseUrl || !supabaseAnonKey) return null;
+
+  return createClient(supabaseUrl, supabaseAnonKey);
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 function slugify(value: string) {
   return value
@@ -33,6 +33,8 @@ function formatPid(pid: string) {
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const urls: MetadataRoute.Sitemap = [];
+
+  const supabase = getSupabase();
 
   // Static pages
   urls.push(
@@ -70,6 +72,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // NOTE: /login, /register and other auth pages are intentionally excluded
   // — they are noindex-worthy utility pages that waste crawl budget.
+
+  // Without Supabase env vars (e.g. CI, preview builds) serve static URLs only.
+  if (!supabase) return urls;
 
   // ALL LISTINGS
   // LISTINGS

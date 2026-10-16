@@ -1,3 +1,5 @@
+"use client";
+
 /* Design Philosophy: Pacific Northwest Naturalism
    - Diagonal slide-in animation
    - Frosted glass controls

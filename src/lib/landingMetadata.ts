@@ -1,9 +1,5 @@
 import type { Metadata } from "next";
-import {
-  getListingByPid,
-  getPropertyByPid,
-  stripHtml,
-} from "@/lib/serverData";
+import { getListingByPid, getPropertyByPid } from "@/lib/serverData";
 
 function formatAddressFromSlug(slug: string) {
   return slug
