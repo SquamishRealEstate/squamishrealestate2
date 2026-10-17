@@ -119,6 +119,7 @@ export default function RootLayout({
             gtag('js', new Date());
             gtag('config', 'G-6PC9DFB2SQ');
             gtag('config', 'AW-1071980077');
+            gtag('config', 'G-3HD0JQTK9F');
           `}
             </Script>
           </MapProvider>
