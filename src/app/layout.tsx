@@ -109,7 +109,7 @@ export default function RootLayout({
             {children}
 
             <Script
-              src="https://www.googletagmanager.com/gtag/js?id=G-6PC9DFB2SQ"
+              src="https://www.googletagmanager.com/gtag/js?id=G-3HD0JQTK9F"
               strategy="afterInteractive"
             />
             <Script id="google-tags" strategy="afterInteractive">
@@ -117,9 +117,8 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-6PC9DFB2SQ');
-            gtag('config', 'AW-1071980077');
             gtag('config', 'G-3HD0JQTK9F');
+            gtag('config', 'AW-1071980077');
           `}
             </Script>
           </MapProvider>
