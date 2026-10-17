@@ -97,6 +97,27 @@ export const getPropertyByPid = cache(async function getPropertyByPid(
   return data || null;
 });
 
+/**
+ * First page of active listings for the /properties view, matching the
+ * anonymous-visitor query the client would run (Active only, newest
+ * listing_date first, 16 per page).
+ */
+export const getInitialListings = cache(async function getInitialListings(
+  limit = 16,
+) {
+  const supabase = getServerSupabase();
+  if (!supabase) return { listings: [] as any[], total: 0 };
+
+  const { data, count } = await supabase
+    .from("all_listings")
+    .select("*", { count: "exact" })
+    .in("market_status", ["Active"])
+    .order("listing_date", { ascending: false })
+    .range(0, limit - 1);
+
+  return { listings: data || [], total: count ?? 0 };
+});
+
 export function stripHtml(html: string) {
   return html.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
 }

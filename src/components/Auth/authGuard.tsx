@@ -21,7 +21,12 @@ export const AuthGuard = ({
   renderPrivate = true,
 }: AuthGuardProps) => {
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  // Public views (renderPrivate=false) must not gate rendering on the auth
+  // check — otherwise crawlers and first-time visitors only ever receive
+  // the "Verifying Access..." placeholder in the initial HTML. Render the
+  // children immediately with user=null and hydrate the user when the
+  // session resolves.
+  const [loading, setLoading] = useState(renderPrivate);
   const router = useRouter();
 
   useEffect(() => {

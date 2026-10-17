@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
 import Navbar from "../Navbar";
@@ -9,14 +9,28 @@ import { ListingFilters, FilterState } from "@/components/ListingFilters";
 import { ListingCard, Listing } from "@/components/ListingCard";
 import { deserializeFilters } from "@/lib/utils";
 
-function AllListingsPage({ user }: { user: any }) {
+function AllListingsPage({
+  user,
+  initialListings,
+  initialTotal,
+}: {
+  user: any;
+  initialListings?: any[];
+  initialTotal?: number;
+}) {
   const searchParams = useSearchParams();
   const ITEMS_PER_PAGE = 16;
 
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(
+    initialTotal ? Math.ceil(initialTotal / ITEMS_PER_PAGE) : 0,
+  );
+  const [listings, setListings] = useState<any[]>(initialListings || []);
+  const [loading, setLoading] = useState(!initialListings);
+
+  // When the server already rendered the first page (clean /properties URL),
+  // skip the first client fetch; any filter/page/auth change still refetches.
+  const skippedInitialFetch = useRef(!!initialListings);
 
   // Read URL fields straight into state variables
   const [appliedFilters, setAppliedFilters] = useState<FilterState>(() =>
@@ -24,6 +38,11 @@ function AllListingsPage({ user }: { user: any }) {
   );
 
   useEffect(() => {
+    if (skippedInitialFetch.current) {
+      skippedInitialFetch.current = false;
+      return;
+    }
+
     async function fetchListings() {
       setLoading(true);
       const from = (page - 1) * ITEMS_PER_PAGE;
@@ -152,9 +171,21 @@ function AllListingsPage({ user }: { user: any }) {
     <div className="bg-background min-h-screen">
       <Navbar />
       <div className="pt-32 pb-16 px-6 bg-gray-50 min-h-screen font-sans">
-        <h1 className="text-2xl font-extrabold text-gray-900 mb-8 tracking-tight">
+        <h1 className="text-2xl font-extrabold text-gray-900 mb-4 tracking-tight">
           Search Squamish Real Estate
         </h1>
+        <p className="text-gray-600 text-sm leading-relaxed max-w-3xl mb-8">
+          Every active MLS® listing in Squamish, BC — detached homes,
+          townhouses, condos and land — searchable by price, bedrooms, baths
+          and neighbourhood. Listings update daily from the MLS® feed;
+          off-market property records with BC Assessment history are included
+          when you toggle &ldquo;Properties Only&rdquo;. Questions about any
+          listing: Sean Brawley PREC*, RE/MAX Masters Realty,{" "}
+          <a href="tel:+16048490500" className="text-blue-600 hover:underline">
+            604-849-0500
+          </a>
+          .
+        </p>
 
         {/* Exact same shared component */}
         <ListingFilters
@@ -255,10 +286,22 @@ function AllListingsPage({ user }: { user: any }) {
   );
 }
 
-export default function Properties() {
+export default function Properties({
+  initialListings,
+  initialTotal,
+}: {
+  initialListings?: any[];
+  initialTotal?: number;
+}) {
   return (
     <AuthGuard renderPrivate={false}>
-      {(user) => <AllListingsPage user={user} />}
+      {(user) => (
+        <AllListingsPage
+          user={user}
+          initialListings={initialListings}
+          initialTotal={initialTotal}
+        />
+      )}
     </AuthGuard>
   );
 }
