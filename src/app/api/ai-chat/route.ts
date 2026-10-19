@@ -15,7 +15,10 @@ const DIFY_API_BASE =
   process.env.DIFY_API_BASE || "https://api-dify.squamish.realestate/v1";
 
 export async function POST(req: Request) {
-  // 1. Verify the caller has a live Supabase session
+  // 1. Verify the caller is logged in.
+  // Primary: the browser sends its Supabase access token (this site stores
+  // sessions in localStorage, not cookies, so cookie auth alone misses it).
+  // Fallback: a valid session cookie, if one exists.
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -29,11 +32,26 @@ export async function POST(req: Request) {
     },
   );
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
+  let userId: string | null = null;
 
-  if (!session?.user) {
+  const authHeader = req.headers.get("authorization");
+  const bearer = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
+  if (bearer) {
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(bearer);
+    if (!error && user) userId = user.id;
+  }
+
+  if (!userId) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    userId = session?.user?.id ?? null;
+  }
+
+  if (!userId) {
     return NextResponse.json(
       { message: "Login required to use AI search." },
       { status: 401 },
@@ -78,7 +96,7 @@ export async function POST(req: Request) {
       query,
       response_mode: "streaming",
       conversation_id: body.conversation_id ?? "",
-      user: session.user.id, // per-member conversation continuity in Dify
+      user: userId, // per-member conversation continuity in Dify
     }),
   });
 

@@ -9,6 +9,7 @@ import {
   RotateCcw,
   Bot,
 } from "lucide-react";
+import { supabase } from "@/config/supabaseClient";
 
 interface ChatMessage {
   role: "user" | "assistant";
@@ -50,9 +51,18 @@ export default function AiPropertyChat() {
     setSending(true);
 
     try {
+      // This site keeps the Supabase session in the browser (localStorage),
+      // so we pass the access token explicitly and the API route verifies it.
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       const res = await fetch("/api/ai-chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.access_token ?? ""}`,
+        },
         body: JSON.stringify({
           query: text,
           conversation_id: conversationIdRef.current,
@@ -144,7 +154,7 @@ export default function AiPropertyChat() {
   };
 
   return (
-    <div className="mt-8 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white overflow-hidden shadow-sm">
+    <div className="mt-8 mb-10 rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50/80 to-white overflow-hidden shadow-sm">
       {/* Header / collapse toggle */}
       <button
         type="button"
