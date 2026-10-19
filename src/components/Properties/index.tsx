@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/config/supabaseClient";
 import Navbar from "../Navbar";
@@ -8,6 +9,12 @@ import { AuthGuard } from "../Auth/authGuard";
 import { ListingFilters, FilterState } from "@/components/ListingFilters";
 import { ListingCard, Listing } from "@/components/ListingCard";
 import { deserializeFilters } from "@/lib/utils";
+import { DeferredMount } from "@/components/DeferredMount";
+
+// AI chatbot chunk is fetched separately, after page load, only when needed
+const AiPropertyChat = dynamic(() => import("@/components/AiPropertyChat"), {
+  ssr: false,
+});
 
 function AllListingsPage({
   user,
@@ -196,6 +203,13 @@ function AllListingsPage({
           }}
           user={user}
         />
+
+        {/* AI chatbot: registered users only, chunk loads after full page load */}
+        {user && (
+          <DeferredMount>
+            <AiPropertyChat />
+          </DeferredMount>
+        )}
 
         {loading ? (
           <div className="text-center py-24 text-gray-400">

@@ -20,11 +20,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "@/config/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { ListingFilters, FilterState } from "@/components/ListingFilters";
 import { ListingCard, Listing } from "@/components/ListingCard";
 import { serializeFilters } from "@/lib/utils";
+import { DeferredMount } from "@/components/DeferredMount";
+
+// AI chatbot chunk is fetched separately, after page load, only when needed
+const AiPropertyChat = dynamic(() => import("@/components/AiPropertyChat"), {
+  ssr: false,
+});
 
 export function HomeListingsSection({ user }: { user: any }) {
   const [listings, setListings] = useState<Listing[]>([]);
@@ -214,6 +221,13 @@ export function HomeListingsSection({ user }: { user: any }) {
         onChange={(newFilters) => setAppliedFilters(newFilters)}
         user={user}
       />
+
+      {/* AI chatbot: registered users only, chunk loads after full page load */}
+      {user && (
+        <DeferredMount>
+          <AiPropertyChat />
+        </DeferredMount>
+      )}
 
       {/* Preview Grid Rendering */}
       {loading ? (
