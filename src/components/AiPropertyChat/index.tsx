@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
 import {
   Sparkles,
   ChevronDown,
@@ -224,7 +225,11 @@ export default function AiPropertyChat() {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed whitespace-pre-wrap ${
+                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                    msg.role === "user" || msg.error
+                      ? "whitespace-pre-wrap"
+                      : ""
+                  } ${
                     msg.role === "user"
                       ? "bg-blue-600 text-white rounded-br-sm"
                       : msg.error
@@ -232,7 +237,34 @@ export default function AiPropertyChat() {
                         : "bg-white text-gray-800 border border-gray-200 rounded-bl-sm"
                   }`}
                 >
-                  {msg.content}
+                  {msg.role === "assistant" && !msg.error ? (
+                    <ReactMarkdown
+                      components={{
+                        a: (props) => (
+                          <a
+                            {...props}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 font-semibold hover:underline"
+                          />
+                        ),
+                        strong: (props) => (
+                          <strong {...props} className="font-bold text-gray-900" />
+                        ),
+                        ul: (props) => (
+                          <ul {...props} className="list-disc pl-5 my-1.5 space-y-1" />
+                        ),
+                        ol: (props) => (
+                          <ol {...props} className="list-decimal pl-5 my-1.5 space-y-1" />
+                        ),
+                        p: (props) => <p {...props} className="my-1" />,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    msg.content
+                  )}
                   {msg.pending && (
                     <span className="inline-flex gap-1 ml-1 align-middle">
                       <span className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-bounce" />
