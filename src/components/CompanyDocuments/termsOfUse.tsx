@@ -17,7 +17,7 @@ export const TermsOfUse = () => {
             <div className="flex items-center gap-3">
               <i className="text-sm font-accent text-muted-foreground uppercase tracking-widest not-italic">
                 Last Updated:{" "}
-                <span className="text-accent font-bold">August 28, 2024</span>
+                <span className="text-accent font-bold">October 20, 2026</span>
               </i>
             </div>
           </header>
