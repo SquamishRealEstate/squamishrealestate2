@@ -23,7 +23,7 @@ interface ChatMessage {
 
 const SUGGESTED_TOPICS = [
   "Homes for sale under $1.5 million",
-  "Townhouses for sale in Brackendale",
+  "Townhomes for sale in Brackendale",
   "2-bedroom condos in Downtown Squamish",
 ];
 
@@ -237,8 +237,8 @@ export default function AiPropertyChat({ user }: { user: any }) {
                 <Bot size={16} className="mt-0.5 shrink-0 text-blue-500" />
                 <span>
                   Try a suggested search above, or ask your own question — for
-                  example &quot;What&apos;s available near Quest University
-                  under $900k?&quot;
+                  example &quot;What&apos;s available near the Squamish Library
+                  under $700k?&quot;
                 </span>
               </div>
             )}
