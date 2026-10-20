@@ -222,12 +222,11 @@ export function HomeListingsSection({ user }: { user: any }) {
         user={user}
       />
 
-      {/* AI chatbot: registered users only, chunk loads after full page load */}
-      {user && (
-        <DeferredMount>
-          <AiPropertyChat />
-        </DeferredMount>
-      )}
+      {/* AI assistant: bar for everyone (Login prompt when logged out),
+          expansion for authenticated users; chunk loads after full page load */}
+      <DeferredMount>
+        <AiPropertyChat user={user} />
+      </DeferredMount>
 
       {/* Preview Grid Rendering */}
       {loading ? (

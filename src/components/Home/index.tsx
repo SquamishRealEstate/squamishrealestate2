@@ -15,12 +15,13 @@ export default function Home({ latestBlogs = [] }: { latestBlogs?: any[] }) {
       <Navbar />
       <GoogleOneTap />
       <Hero />
-      <LazySection>
-        <HomeListingsGate />
-      </LazySection>
 
       <LazySection defer>
         <Reels />
+      </LazySection>
+
+      <LazySection>
+        <HomeListingsGate />
       </LazySection>
 
       <LazySection>

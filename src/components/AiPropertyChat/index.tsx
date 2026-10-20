@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Sparkles,
   ChevronDown,
@@ -9,6 +10,7 @@ import {
   Send,
   RotateCcw,
   Bot,
+  Lock,
 } from "lucide-react";
 import { supabase } from "@/config/supabaseClient";
 
@@ -25,7 +27,9 @@ const SUGGESTED_TOPICS = [
   "2-bedroom condos in Downtown Squamish",
 ];
 
-export default function AiPropertyChat() {
+export default function AiPropertyChat({ user }: { user: any }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [expanded, setExpanded] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
@@ -38,9 +42,20 @@ export default function AiPropertyChat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages, expanded]);
 
+  // Logged-out visitors see a Login / Create Account prompt that routes to
+  // the login page and returns them here afterwards; only authenticated
+  // users get the expand/collapse arrow.
+  const handleHeaderClick = () => {
+    if (!user) {
+      router.push(`/login?callback=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    setExpanded((e) => !e);
+  };
+
   const sendMessage = async (rawText: string) => {
     const text = rawText.trim();
-    if (!text || sending) return;
+    if (!text || sending || !user) return;
 
     setExpanded(true);
     setMessages((prev) => [
@@ -159,7 +174,7 @@ export default function AiPropertyChat() {
       {/* Header / collapse toggle */}
       <button
         type="button"
-        onClick={() => setExpanded((e) => !e)}
+        onClick={handleHeaderClick}
         className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-blue-50/60 transition-colors"
       >
         <span className="bg-blue-600 text-white p-2 rounded-xl shrink-0">
@@ -167,16 +182,24 @@ export default function AiPropertyChat() {
         </span>
         <span className="flex-1 min-w-0">
           <span className="block font-bold text-gray-900">
-            AI Property Search
+            AI Search Assistant
           </span>
           <span className="block text-xs text-gray-500 truncate">
-            Ask in plain English — powered by live Squamish listing data
+            Ask anything — Active listings, off-market data, local dining &amp;
+            business guide.
           </span>
         </span>
-        {expanded ? (
-          <ChevronUp size={18} className="text-gray-400 shrink-0" />
+        {user ? (
+          expanded ? (
+            <ChevronUp size={18} className="text-gray-400 shrink-0" />
+          ) : (
+            <ChevronDown size={18} className="text-gray-400 shrink-0" />
+          )
         ) : (
-          <ChevronDown size={18} className="text-gray-400 shrink-0" />
+          <span className="shrink-0 inline-flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5">
+            <Lock size={12} />
+            Login / Create Account
+          </span>
         )}
       </button>
 

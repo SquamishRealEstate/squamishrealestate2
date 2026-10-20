@@ -204,12 +204,11 @@ function AllListingsPage({
           user={user}
         />
 
-        {/* AI chatbot: registered users only, chunk loads after full page load */}
-        {user && (
-          <DeferredMount>
-            <AiPropertyChat />
-          </DeferredMount>
-        )}
+        {/* AI assistant: bar for everyone (Login prompt when logged out),
+            expansion for authenticated users; chunk loads after full page load */}
+        <DeferredMount>
+          <AiPropertyChat user={user} />
+        </DeferredMount>
 
         {loading ? (
           <div className="text-center py-24 text-gray-400">
