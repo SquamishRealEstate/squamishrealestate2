@@ -75,7 +75,7 @@ export default function Blogs({ initialBlogs }: { initialBlogs?: Blog[] }) {
       <div
         className="absolute inset-0 opacity-10"
         style={{
-          backgroundImage: `url(https://private-us-east-1.manuscdn.com/sessionFile/s28JNvt7FNbqBDcvkeiXw5/sandbox/5xyNfUtj2D8ALW69YKw8jb_1770580502521_na1fn_dG9wb2dyYXBoaWMtcGF0dGVybg.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvczI4Sk52dDdGTmJxQkRjdmtlaVh3NS9zYW5kYm94LzV4eU5mVXRqMkQ4QUxXNjlZS3c4amJfMTc3MDU4MDUwMjUyMV9uYTFmbl9kRzl3YjJkeVlYQm9hV010Y0dGMGRHVnliZy5wbmc~eC1vc3MtcHJvY2Vzcz1pbWFnZS9yZXNpemUsd18xOTIwLGhfMTkyMC9mb3JtYXQsd2VicC9xdWFsaXR5LHFfODAiLCJDb25kaXRpb24iOnsiRGF0ZUxlc3NUaGFuIjp7IkFXUzpFcG9jaFRpbWUiOjE3OTg3NjE2MDB9fX1dfQ__&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=OAWhwFKD-PZvp~QO9bJWPashZwaOywxorh9DweLfTsSJCGJgjELPYseqKaxc3hfZc5sSP88WgzrhcO~ROw28ndG~mtBjiODm7TptnheLimwi67DPobgC8tO2YgofxvZ56P6rxg60tFgbZ5~2Aqsw9w~DzH9QtKb4JecwztczyRWrlyYz8ONi1L3d8NJ45e2MtRgmbThWS4fOUk9TAmMPCTxeRAyc38xEnBIRGkAk8iAJzgT0CmoPxCWrvASiWVb5EYIK0E~GTrUpG5tyymBa0zmrpxxzwLgqE5hU78QzM5hKI4VkSFnju-0bgGTf3n65SD~MftIaGKhoGIig0hLrcg__)`,
+          backgroundImage: `url(/images/topo-pattern.png)`,
           backgroundSize: "400px 400px",
         }}
       />

@@ -21,7 +21,7 @@ export default function Hero() {
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url(https://private-us-east-1.manuscdn.com/sessionFile/s28JNvt7FNbqBDcvkeiXw5/sandbox/5xyNfUtj2D8ALW69YKw8jb-img-1_1770580497000_na1fn_aGVyby1zcXVhbWlzaC1tb3VudGFpbg.png?x-oss-process=image/resize,w_1920,h_1920/format,webp/quality,q_80&Expires=1798761600&Policy=eyJTdGF0ZW1lbnQiOlt7IlJlc291cmNlIjoiaHR0cHM6Ly9wcml2YXRlLXVzLWVhc3QtMS5tYW51c2Nkbi5jb20vc2Vzc2lvbkZpbGUvczI4Sk52dDdGTmJxQkRjdmtlaVh3NS9zYW5kYm94LzV4eU5mVXRqMkQ4QUxXNjlZS3c4amItaW1nLTFfMTc3MDU4MDQ5NzAwMF9uYTFmbl9hR1Z5YnkxemNYVmhiV2x6YUMxdGIzVnVkR0ZwYmcucG5nP3gtb3NzLXByb2Nlc3M9aW1hZ2UvcmVzaXplLHdfMTkyMCxoXzE5MjAvZm9ybWF0LHdlYnAvcXVhbGl0eSxxXzgwIiwiQ29uZGl0aW9uIjp7IkRhdGVMZXNzVGhhbiI6eyJBV1M6RXBvY2hUaW1lIjoxNzk4NzYxNjAwfX19XX0_&Key-Pair-Id=K2HSFNDJXOU9YS&Signature=SE~uxSvE3adfcuA1DTsiUjz1v1U0eqOcUuFvOV2VEtO-ltH1eN8bYwoEY0CkU941QFqqh5UXGqRIQL0xb~R8K5WI4eJVAaIJXlnaitlmLVCSmQ7Zpjreo1eGwCEq9x2aeVkuubrHk6HyaqqymQgtROYrDJrq4WXAIBEVKSnR7zEsFH1rRIMk0Urh1jYVYgdikeh5ibEaBrTSjyRkDCKiBbyZ4-biRcZlwCBl0EuX1IaFFD5eKZGguaUYrW6D4jYSa5keetSWbAJjBBeDyG2-P7QOOhIVupR2h~PAcbXU4iujO1RUt7zn3jb6tJA-Wty9H~z0fydNm7NhwR4DGEVHXA__)`,
+          backgroundImage: `url(/images/dashboard/Squamish-3.jpg)`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           transform: `translateY(${scrollY * 0.5}px)`,
