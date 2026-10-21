@@ -93,11 +93,15 @@ export default function VowModal({
                     {
                       label:
                         "“Disclosure of Representation in Trading Services”",
-                      url: "https://sr-webimages-002.s3.us-west-2.amazonaws.com/agreement/bcfsa.pdf",
+                      url: "/docs/Disclosure-of-Representation.pdf",
                     },
                     {
                       label: "“Privacy Notice and Consent”",
-                      url: "https://sr-webimages-002.s3.us-west-2.amazonaws.com/agreement/privacy-statement.pdf",
+                      url: "/docs/Privacy-Document.pdf",
+                    },
+                    {
+                      label: "“Terms of Use”",
+                      url: "/docs/VOW-Terms-of-Use.pdf",
                     },
                   ],
                 },
