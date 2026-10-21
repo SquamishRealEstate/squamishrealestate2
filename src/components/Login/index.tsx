@@ -73,7 +73,7 @@ function LoginContent() {
       {/* LEFT SIDE: Visual Branding */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 items-center justify-center overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
+          src="/images/hero-mountain.jpg"
           alt="Squamish Mountains"
           fill
           className="absolute inset-0 object-cover opacity-60"

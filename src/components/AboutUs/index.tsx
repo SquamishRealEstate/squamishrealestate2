@@ -197,7 +197,7 @@ export default function AboutUs() {
       {/* HEADER SECTION */}
       <div className="relative h-[45vh] w-full bg-slate-900 flex items-center justify-center overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
+          src="/images/hero-mountain.jpg"
           alt="Squamish"
           fill
           className="absolute inset-0 w-full h-full object-cover opacity-50"

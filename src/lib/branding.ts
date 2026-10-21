@@ -1,6 +1,6 @@
 export const header = `
     <div style="background-color: #2e3f6e; text-align: center; padding: 20px; color: white;">
-        <img src="https://drive.google.com/uc?export=view&id=1oPho0IRukaswWHHqZtPZr5-JtUOWtS6k" 
+        <img src="https://squamish.realestate/images/email-logo.png" 
         alt="logo" 
         style="width: 250px; height: auto; margin: 0 auto;"
         />

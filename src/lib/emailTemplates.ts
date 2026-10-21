@@ -9,7 +9,7 @@ const theme = {
 
 export const header = `
   <div style="padding: 32px 24px; text-align: center; background-color: ${theme.primary}; border-bottom: 3px solid ${theme.accent};">
-      <img src="https://drive.google.com/uc?export=view&id=1oPho0IRukaswWHHqZtPZr5-JtUOWtS6k" 
+      <img src="https://squamish.realestate/images/email-logo.png" 
       alt="Squamish Real Estate" 
       style="width: 180px; height: auto; margin: 0 auto; display: block;"
       />

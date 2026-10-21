@@ -929,7 +929,7 @@ export const RequestInfo = ({ listing }: { listing: any }) => {
           <div className="flex items-center gap-4">
             <div className="rounded-2xl overflow-hidden">
               <Image
-                src="https://lh3.googleusercontent.com/d/1OgL1mWWWQijCzPwQWjpIjoamLsUECTQH"
+                src="/images/agent-headshot.jpg"
                 alt="Sean Brawley"
                 width={60}
                 height={60}

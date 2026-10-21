@@ -172,7 +172,7 @@ export function ContactBody() {
       {/* HEADER SECTION */}
       <div className="relative h-[45vh] w-full bg-slate-900 flex items-center justify-center overflow-hidden">
         <Image
-          src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=2070"
+          src="/images/hero-mountain.jpg"
           alt="Squamish"
           fill
           className="absolute inset-0 w-full h-full object-cover opacity-50"
@@ -199,7 +199,7 @@ export function ContactBody() {
               <div className="flex items-center gap-4">
                 <div className="rounded-2xl overflow-hidden">
                   <Image
-                    src="https://lh3.googleusercontent.com/d/1N02fnHn6r8AWbQJMz0D6Rv1hO-8F6Kcl"
+                    src="/images/contact-headshot.png"
                     alt="Sean Brawley"
                     referrerPolicy="no-referrer"
                     width={60}
