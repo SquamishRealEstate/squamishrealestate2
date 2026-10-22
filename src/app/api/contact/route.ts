@@ -33,8 +33,12 @@ export async function POST(req: Request) {
       host: "smtp.gmail.com",
       port: 465,
       auth: {
-        user: process.env.NEXT_PUBLIC_EMAIL_USER,
-        pass: process.env.NEXT_PUBLIC_EMAIL_PASS,
+        // Plain names are server-only (not exposed to the browser bundle).
+        // NEXT_PUBLIC_* fallbacks keep old Vercel env var configs working
+        // until they are migrated; remove the fallbacks once Vercel uses
+        // EMAIL_USER / EMAIL_PASS only.
+        user: process.env.EMAIL_USER || process.env.NEXT_PUBLIC_EMAIL_USER,
+        pass: process.env.EMAIL_PASS || process.env.NEXT_PUBLIC_EMAIL_PASS,
       },
     });
 

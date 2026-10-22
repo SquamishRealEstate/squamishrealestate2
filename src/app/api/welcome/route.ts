@@ -68,10 +68,13 @@ export async function POST(req: Request) {
     }));
 
     // 4. Send the welcome email
+    // Prefer server-only names (not exposed to the browser bundle);
+    // NEXT_PUBLIC_* fallbacks keep old Vercel env configs working until
+    // they are migrated to EMAIL_USER / EMAIL_PASS.
     const emailUser =
-      process.env.NEXT_PUBLIC_EMAIL_USER || process.env.EMAIL_USER;
+      process.env.EMAIL_USER || process.env.NEXT_PUBLIC_EMAIL_USER;
     const emailPass =
-      process.env.NEXT_PUBLIC_EMAIL_PASS || process.env.EMAIL_PASS;
+      process.env.EMAIL_PASS || process.env.NEXT_PUBLIC_EMAIL_PASS;
 
     const transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
