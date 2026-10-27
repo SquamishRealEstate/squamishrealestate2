@@ -76,8 +76,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Without Supabase env vars (e.g. CI, preview builds) serve static URLs only.
   if (!supabase) return urls;
 
-  // ALL LISTINGS
-  // LISTINGS
+  // Only public Active listing pages are submitted. Expired, Sold,
+  // Terminated, and all other non-Active member-only listings are excluded.
+  // Public /property/landing/ historical-inventory pages are handled separately.
   let allListings: any[] = [];
   let listing_page = 0;
   const listing_pageSize = 1000;

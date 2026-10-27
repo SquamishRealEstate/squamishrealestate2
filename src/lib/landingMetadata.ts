@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getListingByPid, getPropertyByPid } from "@/lib/serverData";
+import { isProtectedListingStatus } from "@/lib/listingAccess";
 
 function formatAddressFromSlug(slug: string) {
   return slug
@@ -102,6 +103,8 @@ export async function buildLandingMetadata({
       .slice(0, 300) || `${address} — Squamish, BC real estate.`;
 
   const ogImage = firstPhoto(record.photos);
+  const isProtectedListing =
+    kind === "listing" && isProtectedListingStatus(record.market_status);
 
   return {
     record,
@@ -109,6 +112,9 @@ export async function buildLandingMetadata({
       title,
       description,
       alternates: { canonical },
+      robots: isProtectedListing
+        ? { index: false, follow: false }
+        : undefined,
       openGraph: {
         type: "website",
         url: canonical,

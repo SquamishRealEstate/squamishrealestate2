@@ -70,7 +70,7 @@ export const TermsOfUse = () => {
                 <span className="font-bold text-foreground">Privacy</span>. You
                 acknowledge that you have read the
                 <Link
-                  href="/privacyStatement"
+                  href="/privacy-statement"
                   className="text-primary font-bold hover:text-accent transition-colors px-1 underline decoration-primary/30 underline-offset-4"
                 >
                   {" "}
