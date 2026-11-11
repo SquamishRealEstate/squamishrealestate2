@@ -1,5 +1,6 @@
 import Home from "@/components/Home";
 import { createClient } from "@supabase/supabase-js";
+import { buildFaqJsonLd } from "@/lib/faqData";
 
 // Revalidate the homepage every 15 minutes so fresh listings/blogs appear
 // in the server-rendered HTML without a full rebuild.
@@ -25,5 +26,14 @@ async function getLatestBlogs() {
 export default async function Page() {
   const latestBlogs = await getLatestBlogs();
 
-  return <Home latestBlogs={latestBlogs} />;
+  return (
+    <>
+      {/* FAQ structured data (content source: @/lib/faqData) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildFaqJsonLd()) }}
+      />
+      <Home latestBlogs={latestBlogs} />
+    </>
+  );
 }

@@ -236,7 +236,12 @@ export async function buildLandingMetadata({
   type: string;
   pid: string;
   civicaddress: string;
-}): Promise<{ metadata: Metadata; record: any | null; jsonLd: any | null }> {
+}): Promise<{
+  metadata: Metadata;
+  record: any | null;
+  jsonLd: any | null;
+  description: string | null;
+}> {
   const record =
     kind === "listing"
       ? await getListingByPid(type, pid)
@@ -256,6 +261,7 @@ export async function buildLandingMetadata({
     return {
       record: null,
       jsonLd: null,
+      description: null,
       metadata: {
         title: `${address} | Squamish Real Estate`,
         alternates: { canonical },
@@ -342,6 +348,7 @@ export async function buildLandingMetadata({
   return {
     record,
     jsonLd,
+    description,
     metadata: {
       title,
       description,

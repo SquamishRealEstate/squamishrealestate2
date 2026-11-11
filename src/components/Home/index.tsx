@@ -7,6 +7,7 @@ import CollapsibleMap from "@/components/Map/collapsibleMap";
 import LazySection from "@/components/LazySection";
 import Footer from "@/components/Footer";
 import Blogs from "@/components/Blogs";
+import Faq from "@/components/Faq";
 import HomeListingsGate from "@/components/Home/HomeListingsGate";
 import GoogleOneTap from "@/components/Login/googleOneTap";
 export default function Home({ latestBlogs = [] }: { latestBlogs?: any[] }) {
@@ -26,6 +27,10 @@ export default function Home({ latestBlogs = [] }: { latestBlogs?: any[] }) {
 
       <LazySection>
         <FeaturedProperties />
+      </LazySection>
+
+      <LazySection>
+        <Faq />
       </LazySection>
 
       <LazySection>

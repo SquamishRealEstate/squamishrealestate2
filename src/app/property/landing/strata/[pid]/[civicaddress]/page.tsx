@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { pid, civicaddress } = await params;
-  const { record, jsonLd } = await buildLandingMetadata({
+  const { record, jsonLd, description } = await buildLandingMetadata({
     kind: "property",
     type: "strata",
     pid,
@@ -36,7 +36,11 @@ export default async function Page({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <PropertyDetailPage type="strata" initialProperty={record} />
+      <PropertyDetailPage
+        type="strata"
+        initialProperty={record}
+        intro={description}
+      />
     </>
   );
 }

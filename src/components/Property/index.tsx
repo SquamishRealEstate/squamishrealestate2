@@ -71,9 +71,11 @@ import HonestDoorPriceChart from "./HonestdoorPriceChart";
 export const PropertyDetailPage = ({
   type,
   initialProperty,
+  intro,
 }: {
   type: string;
   initialProperty?: any;
+  intro?: string | null;
 }) => {
   const { pid } = useParams();
 
@@ -616,6 +618,20 @@ export const PropertyDetailPage = ({
           </div>
         </div>
       </main>
+
+      {/* Server-rendered intro paragraph (visible in the initial HTML) */}
+      {intro && (
+        <section className="bg-white border-b border-gray-100">
+          <div className="max-w-7xl mx-auto px-6 md:px-12 lg:px-16 py-8 md:py-10">
+            <h2 className="text-[11px] uppercase tracking-[0.15em] font-bold text-slate-400 mb-3">
+              About this {type === "strata" ? "property" : "home"}
+            </h2>
+            <p className="text-base md:text-lg text-slate-700 leading-relaxed max-w-4xl">
+              {intro}
+            </p>
+          </div>
+        </section>
+      )}
 
       <div className="bg-white border-b border-gray-100">
         <div className="mx-auto px-6 md:px-12 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
