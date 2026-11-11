@@ -21,12 +21,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { pid, civicaddress } = await params;
-  const { record } = await buildLandingMetadata({
+  const { record, jsonLd } = await buildLandingMetadata({
     kind: "listing",
     type: "detached",
     pid,
     civicaddress,
   });
 
-  return <ListingDetailPage type="detached" initialListing={record} />;
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <ListingDetailPage type="detached" initialListing={record} />
+    </>
+  );
 }

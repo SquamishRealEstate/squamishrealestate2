@@ -1,4 +1,4 @@
-import { PropertyDetailPage } from "@/components/Property";
+import { ListingDetailPage } from "@/components/Listing";
 import type { Metadata } from "next";
 import { buildLandingMetadata } from "@/lib/landingMetadata";
 
@@ -11,7 +11,7 @@ export const revalidate = 3600;
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { pid, civicaddress } = await params;
   const { metadata } = await buildLandingMetadata({
-    kind: "property",
+    kind: "listing",
     type: "detached",
     pid,
     civicaddress,
@@ -21,12 +21,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { pid, civicaddress } = await params;
-  const { record } = await buildLandingMetadata({
-    kind: "property",
+  const { record, jsonLd } = await buildLandingMetadata({
+    kind: "listing",
     type: "detached",
     pid,
     civicaddress,
   });
 
-  return <PropertyDetailPage type="detached" initialProperty={record} />;
+  return (
+    <>
+      {jsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      )}
+      <ListingDetailPage type="detached" initialListing={record} />
+    </>
+  );
 }

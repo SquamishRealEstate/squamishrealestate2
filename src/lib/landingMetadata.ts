@@ -26,6 +26,12 @@ function formatNumber(value: any): string | null {
   return num.toLocaleString("en-US");
 }
 
+/** Positive number or undefined (for structured data fields) */
+function num(value: any): number | undefined {
+  const n = Number(value);
+  return value != null && !isNaN(n) && n > 0 ? n : undefined;
+}
+
 function firstPhoto(photos: any): string | undefined {
   if (!photos) return undefined;
   try {
@@ -74,9 +80,9 @@ function friendlyPropertyKind(dwellType: any, fallback: string): string {
 
 /** "3 bedrooms" / "1 bedroom" — null when missing or zero */
 function bedsPhrase(value: any): string | null {
-  const num = Number(value);
-  if (!value || isNaN(num) || num <= 0) return null;
-  return num === 1 ? "1 bedroom" : `${num} bedrooms`;
+  const n = Number(value);
+  if (!value || isNaN(n) || n <= 0) return null;
+  return n === 1 ? "1 bedroom" : `${n} bedrooms`;
 }
 
 /** "2.5 bathrooms" / "1 bathroom" — handles full+half splits or a single total */
@@ -94,6 +100,127 @@ function bathsPhrase(record: any, kind: "listing" | "property"): string | null {
   return total === 1 ? "1 bathroom" : `${total} bathrooms`;
 }
 
+/** Total bathrooms as a number for structured data */
+function bathsTotal(record: any, kind: "listing" | "property"): number | undefined {
+  if (kind === "listing") {
+    const full = Number(record.full_baths) || 0;
+    const half = Number(record.half_baths) || 0;
+    const total = full + half * 0.5;
+    return total > 0 ? total : num(record.bathrooms);
+  }
+  return num(record.bathrooms);
+}
+
+/**
+ * Builds schema.org JSON-LD structured data for a landing page.
+ * Listings become RealEstateListing (with Offer + MLS identifier);
+ * property pages become SingleFamilyResidence / Apartment.
+ */
+function buildJsonLd({
+  kind,
+  type,
+  record,
+  address,
+  canonical,
+  title,
+  description,
+  ogImage,
+}: {
+  kind: "listing" | "property";
+  type: string;
+  record: any;
+  address: string;
+  canonical: string;
+  title: string;
+  description: string;
+  ogImage?: string;
+}) {
+  const residenceType =
+    type === "strata"
+      ? "Apartment"
+      : type === "land"
+        ? "Residence"
+        : "SingleFamilyResidence";
+
+  const bedrooms = num(record.bedrooms);
+  const bathrooms = bathsTotal(record, kind);
+  const floorArea = num(
+    kind === "listing" ? record.total_floor_area : record.floor_area,
+  );
+  const lat = num(record.latitude);
+  const lng = num(record.longitude);
+
+  const residence: any = {
+    "@type": residenceType,
+    name: address,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: address,
+      addressLocality: "Squamish",
+      addressRegion: "BC",
+      addressCountry: "CA",
+      ...(record.postal_code ? { postalCode: record.postal_code } : {}),
+    },
+    ...(bedrooms ? { numberOfBedrooms: bedrooms } : {}),
+    ...(bathrooms ? { numberOfBathroomsTotal: bathrooms } : {}),
+    ...(floorArea
+      ? {
+          floorSize: {
+            "@type": "QuantitativeValue",
+            value: floorArea,
+            unitCode: "FTK", // square feet
+          },
+        }
+      : {}),
+    ...(lat && lng
+      ? { geo: { "@type": "GeoCoordinates", latitude: lat, longitude: lng } }
+      : {}),
+  };
+
+  if (kind === "property") {
+    return {
+      "@context": "https://schema.org",
+      ...residence,
+      description,
+      url: canonical,
+      ...(ogImage ? { image: ogImage } : {}),
+    };
+  }
+
+  const price = num(record.asking_price);
+
+  return {
+    "@context": "https://schema.org",
+    "@type": "RealEstateListing",
+    name: title,
+    description,
+    url: canonical,
+    ...(ogImage ? { image: ogImage } : {}),
+    ...(record.listing_date ? { datePosted: record.listing_date } : {}),
+    ...(record.mls_number
+      ? {
+          identifier: {
+            "@type": "PropertyValue",
+            name: "MLS",
+            value: record.mls_number,
+          },
+        }
+      : {}),
+    about: residence,
+    ...(price
+      ? {
+          offers: {
+            "@type": "Offer",
+            price,
+            priceCurrency: "CAD",
+            availability: "https://schema.org/InStock",
+            url: canonical,
+          },
+        }
+      : {}),
+  };
+}
+
 /**
  * Builds unique, crawlable metadata for listing/property landing pages.
  * Fetches the record server-side so title/description reflect real data
@@ -109,7 +236,7 @@ export async function buildLandingMetadata({
   type: string;
   pid: string;
   civicaddress: string;
-}): Promise<{ metadata: Metadata; record: any | null }> {
+}): Promise<{ metadata: Metadata; record: any | null; jsonLd: any | null }> {
   const record =
     kind === "listing"
       ? await getListingByPid(type, pid)
@@ -128,6 +255,7 @@ export async function buildLandingMetadata({
   if (!record) {
     return {
       record: null,
+      jsonLd: null,
       metadata: {
         title: `${address} | Squamish Real Estate`,
         alternates: { canonical },
@@ -182,7 +310,8 @@ export async function buildLandingMetadata({
   // --- Sentence 3 (listings only): status / price / MLS ---
   const status = record.market_status ? `${record.market_status}.` : "";
   const price = formatPrice(record.asking_price);
-  const mls = pid ? `MLS® ${pid}.` : "";
+  // Use the real MLS® number (e.g. R3182561) — pid is an assessment ID, not MLS
+  const mls = record.mls_number ? `MLS® ${record.mls_number}.` : "";
   const sentence3 =
     kind === "listing"
       ? [status, price && `Listed at ${price}.`, mls].filter(Boolean).join(" ")
@@ -194,14 +323,27 @@ export async function buildLandingMetadata({
     [sentence1, sentence2, sentence3, cta].filter(Boolean).join(" ").slice(0, 300) ||
     `${address} — Squamish, BC real estate.`;
 
+  const title = `${address} | Squamish Real Estate`;
   const ogImage = firstPhoto(record.photos);
   const isProtectedListing =
     kind === "listing" && isProtectedListingStatus(record.market_status);
 
+  const jsonLd = buildJsonLd({
+    kind,
+    type,
+    record,
+    address,
+    canonical,
+    title,
+    description,
+    ogImage,
+  });
+
   return {
     record,
+    jsonLd,
     metadata: {
-      title: `${address} | Squamish Real Estate`,
+      title,
       description,
       alternates: { canonical },
       robots: isProtectedListing
@@ -210,7 +352,7 @@ export async function buildLandingMetadata({
       openGraph: {
         type: "website",
         url: canonical,
-        title: `${address} | Squamish Real Estate`,
+        title,
         description,
         images: ogImage ? [{ url: ogImage }] : undefined,
       },
