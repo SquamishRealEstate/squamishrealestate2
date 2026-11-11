@@ -7,11 +7,20 @@ import { supabase } from "@/config/supabaseClient";
 
 type ReviewStatus = "pending" | "approved" | "rejected";
 
+type ActionFeedback = {
+  type: "approved" | "rejected" | "error" | null;
+  message: string;
+};
+
 // --- Review Manager Page ---
 export default function ReviewManager() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ReviewStatus>("pending");
+  const [feedback, setFeedback] = useState<ActionFeedback>({
+    type: null,
+    message: "",
+  });
 
   useEffect(() => {
     fetchReviews(activeTab);
@@ -113,17 +122,58 @@ export default function ReviewManager() {
     setReviews((prev) => prev.filter((review) => review.id !== id));
 
     try {
-      const { error } = await supabase
+      // .select() returns the updated rows — if the database silently
+      // blocked the change (e.g. permissions), data will be empty.
+      const { data, error } = await supabase
         .from("property_reviews")
         .update({ status: newStatus })
-        .eq("id", id);
+        .eq("id", id)
+        .select();
 
-      if (error) {
-        console.error(`Error updating review to ${newStatus}:`, error);
+      if (error || !data || data.length === 0) {
+        console.error(
+          `Error updating review to ${newStatus}:`,
+          error ?? "0 rows updated",
+        );
+        setFeedback({
+          type: "error",
+          message:
+            "The change was NOT saved — the database did not update. Please try again, and contact support if it keeps happening.",
+        });
         fetchReviews(activeTab); // Revert UI if it fails
+        return;
+      }
+
+      // Saved successfully — confirm what happened
+      if (newStatus === "approved") {
+        setFeedback({
+          type: "approved",
+          message:
+            "Review approved — it's now live on the property page with its score shown on the hero photo.",
+        });
+      } else if (newStatus === "rejected") {
+        setFeedback({
+          type: "rejected",
+          message: "Review rejected. It will not be shown publicly.",
+        });
+      } else {
+        setFeedback({
+          type: "approved",
+          message: "Review moved back to pending.",
+        });
       }
     } catch (error) {
       console.error("Action failed:", error);
+      setFeedback({
+        type: "error",
+        message: "The change was NOT saved. Please try again.",
+      });
+      fetchReviews(activeTab);
+    } finally {
+      // Auto-dismiss the confirmation banner
+      window.setTimeout(() => {
+        setFeedback({ type: null, message: "" });
+      }, 6000);
     }
   };
 
@@ -133,6 +183,26 @@ export default function ReviewManager() {
         <h1 className="text-3xl font-bold text-gray-900">Review Manager</h1>
         <p className="text-gray-500 mt-2">Manage community property reviews.</p>
       </div>
+
+      {/* Save confirmation banner */}
+      {feedback.type && (
+        <div
+          className={`flex items-center gap-3 p-4 mb-6 rounded-xl text-sm font-medium border transition-all animate-in fade-in slide-in-from-top-2 ${
+            feedback.type === "approved"
+              ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+              : feedback.type === "rejected"
+                ? "bg-red-50 text-red-700 border-red-100"
+                : "bg-amber-50 text-amber-800 border-amber-200"
+          }`}
+        >
+          {feedback.type === "approved" ? (
+            <Check size={20} className="flex-shrink-0" />
+          ) : (
+            <X size={20} className="flex-shrink-0" />
+          )}
+          {feedback.message}
+        </div>
+      )}
 
       {/* Tabs Navigation */}
       <div className="flex space-x-6 mb-6 border-b border-gray-100">
@@ -215,7 +285,7 @@ export const ReviewCard = ({
                     setPhotoIndex(i);
                   }}
                   className={`h-1.5 rounded-full transition-all ${
-                    photoIndex === i ? "w-4 bg-white" : "w-1.5 bg-white/50"
+                    photoIndex === i ? "w-4 bg-white" : "w-1 bg-white/50"
                   }`}
                 />
               ))}
