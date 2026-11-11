@@ -40,7 +40,7 @@ export const Price = ({
         </h2>
 
         <p className="text-xs uppercase tracking-widest text-muted-foreground mt-2">
-          REBGV MLS Graph • Local Properties
+          GVR MLS Graph • Local Properties
         </p>
 
         <div className="h-1 w-14 bg-primary mx-auto mt-4 rounded-full" />

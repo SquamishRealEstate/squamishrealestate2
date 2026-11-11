@@ -17,7 +17,7 @@ export const TermsOfUse = () => {
             <div className="flex items-center gap-3">
               <i className="text-sm font-accent text-muted-foreground uppercase tracking-widest not-italic">
                 Last Updated:{" "}
-                <span className="text-accent font-bold">August 28, 2024</span>
+                <span className="text-accent font-bold">October 20, 2026</span>
               </i>
             </div>
           </header>
@@ -88,10 +88,10 @@ export const TermsOfUse = () => {
               </p>
 
               <p>
-                In accordance with the Rules of Cooperation of the Real Estate
-                Board of Greater Vancouver (REBGV), and in conjunction with
-                Privacy Policy, the User acknowledges understanding of and
-                agreement with the following:
+                In accordance with the Rules of Cooperation of the Greater
+                Vancouver Realtors (GVR), and in conjunction with Privacy
+                Policy, the User acknowledges understanding of and agreement
+                with the following:
               </p>
             </div>
 
@@ -138,7 +138,7 @@ export const TermsOfUse = () => {
               </ul>
 
               {[
-                "the Registrant acknowledges the Board’s (REBGV) ownership of, and the validity of the Board’s proprietary rights and copyright in the MLS® VOW Data, and listing information; and",
+                "the Registrant acknowledges the Board’s (GVR) ownership of, and the validity of the Board’s proprietary rights and copyright in the MLS® VOW Data, and listing information; and",
                 "the Registrant expressly authorizes the Board or their duly authorized representatives, to access the MLS® VOW and User’s information provided to the MLS® VOW Participant, for the purposes of verifying compliance with and pursuing enforcement of the Terms of Use and all applicable rules, regulations, bylaws, policies, and laws.",
                 "Acknowledge and understand that the Terms of Use do not create an agency relationship and do not impose a financial obligation on the Registrant or create any representation agreement between the Registrant and the Participant;",
                 "Acknowledge and enter into a lawful REALTOR®/ consumer or REALTOR®/client relationship with the Participant, including, where necessary, completion of any applicable agency, non-agency, and other disclosure obligations, and execution of any required agreements;",
