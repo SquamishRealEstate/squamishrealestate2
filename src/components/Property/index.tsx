@@ -546,7 +546,7 @@ export const PropertyDetailPage = ({
         <div className="relative w-full h-[65vh] md:h-[75vh] overflow-hidden ">
           <Image
             src={landingImage}
-            alt={property.civic_address}
+            alt={`${property.civic_address}${property.neighbourhood ? `, ${property.neighbourhood}` : ""}, Squamish, BC`}
             fill
             priority
             unoptimized
@@ -956,7 +956,7 @@ export const PropertyDetailPage = ({
               height={300}
               priority
               src={`https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/static/${property.longitude},${property.latitude},17,0/600x300?access_token=${process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}`}
-              alt={property.civic_address}
+              alt={`${property.civic_address}${property.neighbourhood ? `, ${property.neighbourhood}` : ""}, Squamish, BC`}
             ></Image>
           </div>
           <div className="bg-white flex justify-center mb-5">

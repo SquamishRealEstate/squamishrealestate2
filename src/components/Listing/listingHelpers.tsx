@@ -149,7 +149,7 @@ export function ListingGallery({
                   src={url}
                   fill
                   className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.01]"
-                  alt={listing.civic_address}
+                  alt={`${listing.civic_address} - ${listing.dwell_type || "property"} for sale in Squamish, BC`}
                 />
 
                 {/* Counter Badge on every slide */}
@@ -184,7 +184,7 @@ export function ListingGallery({
               className="object-cover transition-transform duration-300 hover:scale-[1.02]"
               src={mainImageUrl}
               fill
-              alt={listing.civic_address}
+              alt={`${listing.civic_address} - ${listing.dwell_type || "property"} for sale in Squamish, BC`}
             />
           </div>
 
@@ -197,7 +197,7 @@ export function ListingGallery({
               className="object-cover transition-transform duration-300 hover:scale-[1.02]"
               src={imageUrl1}
               fill
-              alt={listing.civic_address}
+              alt={`${listing.civic_address} - ${listing.dwell_type || "property"} for sale in Squamish, BC`}
             />
           </div>
 
@@ -210,7 +210,7 @@ export function ListingGallery({
               className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
               src={imageUrl2}
               fill
-              alt={listing.civic_address}
+              alt={`${listing.civic_address} - ${listing.dwell_type || "property"} for sale in Squamish, BC`}
             />
 
             {remainingCount > 0 && (
@@ -247,7 +247,7 @@ export function ListingGallery({
           <div className="relative max-w-5xl max-h-[85vh] w-full h-full px-4 flex flex-col items-center justify-center select-none">
             <Image
               src={displayPhotos[activePhotoIndex]}
-              alt={listing.civic_address}
+              alt={`${listing.civic_address} - ${listing.dwell_type || "property"} for sale in Squamish, BC`}
               width={1920}
               height={1080}
               onClick={(e) => e.stopPropagation()}
