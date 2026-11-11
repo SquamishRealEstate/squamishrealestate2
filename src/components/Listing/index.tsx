@@ -189,6 +189,7 @@ export const ListingDetailPage = ({
           console.error("Error fetching reviews:", error);
         } else {
           setReviews(data || []);
+          setOpenReviews((data || []).length > 0);
           let averageRating = 0;
           if (data && data.length > 0) {
             const totalScore = data.reduce(
