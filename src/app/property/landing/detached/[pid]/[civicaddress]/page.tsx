@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function Page({ params }: Props) {
   const { pid, civicaddress } = await params;
-  const { record, jsonLd, description } = await buildLandingMetadata({
+  const { record, jsonLd, intro } = await buildLandingMetadata({
     kind: "property",
     type: "detached",
     pid,
@@ -39,7 +39,7 @@ export default async function Page({ params }: Props) {
       <PropertyDetailPage
         type="detached"
         initialProperty={record}
-        intro={description}
+        intro={intro}
       />
     </>
   );

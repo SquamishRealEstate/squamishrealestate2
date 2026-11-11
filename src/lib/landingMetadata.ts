@@ -241,6 +241,7 @@ export async function buildLandingMetadata({
   record: any | null;
   jsonLd: any | null;
   description: string | null;
+  intro: string | null;
 }> {
   const record =
     kind === "listing"
@@ -262,6 +263,7 @@ export async function buildLandingMetadata({
       record: null,
       jsonLd: null,
       description: null,
+      intro: null,
       metadata: {
         title: `${address} | Squamish Real Estate`,
         alternates: { canonical },
@@ -323,11 +325,16 @@ export async function buildLandingMetadata({
       ? [status, price && `Listed at ${price}.`, mls].filter(Boolean).join(" ")
       : "";
 
-  const cta = "Photos, price history and showings with Sean Brawley PREC*.";
+  const cta =
+    "For more information on Squamish properties and neighbourhoods, contact Sean Brawley PREC*.";
 
-  const description =
-    [sentence1, sentence2, sentence3, cta].filter(Boolean).join(" ").slice(0, 300) ||
-    `${address} — Squamish, BC real estate.`;
+  // Full text is shown as the visible on-page intro; the meta description
+  // keeps a 300-char cap so search snippets stay tidy.
+  const fallback = `${address} — Squamish, BC real estate.`;
+  const intro =
+    [sentence1, sentence2, sentence3, cta].filter(Boolean).join(" ") ||
+    fallback;
+  const description = intro.slice(0, 300);
 
   const title = `${address} | Squamish Real Estate`;
   const ogImage = firstPhoto(record.photos);
@@ -349,6 +356,7 @@ export async function buildLandingMetadata({
     record,
     jsonLd,
     description,
+    intro,
     metadata: {
       title,
       description,
