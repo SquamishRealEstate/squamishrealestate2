@@ -73,7 +73,9 @@ const realEstateAgentJsonLd = {
   priceRange: "$$",
   address: {
     "@type": "PostalAddress",
-    addressLocality: "Squamish",
+    streetAddress: "PO Box 101",
+    postalCode: "V0N 1T0",
+    addressLocality: "Garibaldi Highlands",
     addressRegion: "BC",
     addressCountry: "CA",
   },
