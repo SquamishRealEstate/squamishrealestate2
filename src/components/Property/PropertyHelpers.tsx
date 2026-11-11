@@ -318,7 +318,7 @@ export const ReviewCard = ({ review }: { review: any }) => {
         <div className="flex justify-between items-start mb-2">
           <h3 className="text-lg font-black text-gray-900 truncate">
             {review.estimated_value
-              ? `Est. ${review.estimated_value}`
+              ? `Est. $${String(review.estimated_value).replace(/^\$+/, "")}`
               : "Property Review"}
           </h3>
           <div className="bg-indigo-50 px-3 py-1 rounded-md text-xs font-mono font-bold text-indigo-600">

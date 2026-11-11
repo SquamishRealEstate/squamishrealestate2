@@ -317,7 +317,7 @@ export const ReviewCard = ({
         {/* Estimated Value */}
         {review.estimated_value && (
           <div className="text-sm font-semibold text-green-700 mb-2">
-            Est. Value: {review.estimated_value}
+            Est. Value: ${String(review.estimated_value).replace(/^\$+/, "")}
           </div>
         )}
 
