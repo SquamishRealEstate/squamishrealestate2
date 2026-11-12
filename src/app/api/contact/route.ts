@@ -348,12 +348,28 @@ export async function POST(req: Request) {
         adminSubject = `New Inquiry: ${name}`;
         userSubject = "We've received your message - Squamish Real Estate";
 
+        // If no tour/meeting date was picked, show when the inquiry was
+        // submitted instead of leaving the row blank.
+        // B.C. adopted permanent Pacific time (PCT, UTC-7) in 2026 — no more
+        // seasonal clock changes — so we use a fixed UTC-7 offset rather than
+        // relying on the server's timezone database being up to date.
+        const pctNow = new Date(Date.now() - 7 * 60 * 60 * 1000);
+        const submittedAt =
+          new Intl.DateTimeFormat("en-US", {
+            timeZone: "UTC",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+          }).format(pctNow) + " PCT";
+
         const details = {
           Name: name,
           Email: email,
-          reason: reason,
+          Reason: reason,
           Message: message,
-          ...(date !== null && { Date: date }),
+          ...(date ? { Date: date } : { Submitted: submittedAt }),
         };
 
         adminHtml = masterDynamicTemplate(
