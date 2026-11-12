@@ -2,10 +2,112 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 import { masterDynamicTemplate } from "@/lib/emailTemplates";
 
+// ---- Anti-spam: best-effort in-memory IP rate limit ----
+// Note: on serverless platforms (e.g. Vercel) each instance has its own map,
+// so this is a speed bump, not a hard guarantee. Turnstile is the hard gate.
+const submissionLog = new Map<string, number[]>();
+const RATE_LIMIT_MAX = 5; // submissions per window
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const recent = (submissionLog.get(ip) || []).filter(
+    (t) => now - t < RATE_LIMIT_WINDOW_MS,
+  );
+  if (recent.length >= RATE_LIMIT_MAX) {
+    submissionLog.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  submissionLog.set(ip, recent);
+  return false;
+}
+
 export async function POST(req: Request) {
   try {
     // 1. Parse the body exactly ONCE here
     const body = await req.json();
+
+    // ---- Anti-spam checks (run before ANY email is sent) ----
+    // Blocked submissions get a fake { success: true } so bots receive no
+    // signal that they were rejected and don't adapt their behaviour.
+    const fakeSuccess = () => NextResponse.json({ success: true });
+
+    const ip =
+      req.headers.get("x-forwarded-for")?.split(",")[0].trim() || "unknown";
+
+    // a) Honeypot: a hidden field humans never fill. If it has any value,
+    //    the submission came from a bot.
+    if (
+      typeof body.company_website === "string" &&
+      body.company_website.trim() !== ""
+    ) {
+      console.warn("Spam blocked (honeypot):", ip);
+      return fakeSuccess();
+    }
+
+    // b) Time-trap: real humans need a few seconds to fill the form.
+    //    Reject submissions faster than 3s or older than 2h (replayed forms).
+    if (typeof body.formLoadedAt === "number") {
+      const elapsed = Date.now() - body.formLoadedAt;
+      if (elapsed < 3000 || elapsed > 2 * 60 * 60 * 1000) {
+        console.warn("Spam blocked (time-trap):", ip);
+        return fakeSuccess();
+      }
+    }
+
+    // c) Rate limit per IP
+    if (isRateLimited(ip)) {
+      console.warn("Spam blocked (rate limit):", ip);
+      return fakeSuccess();
+    }
+
+    // d) Contact-form-specific checks (don't break the other template types)
+    const isContactForm =
+      !body.templateType || body.templateType === "CONTACT_FORM";
+    if (isContactForm) {
+      // Digits-only messages are never real inquiries (bot pattern)
+      if (
+        typeof body.message === "string" &&
+        /^\d+$/.test(body.message.trim())
+      ) {
+        console.warn("Spam blocked (digits-only message):", ip);
+        return fakeSuccess();
+      }
+
+      // Cloudflare Turnstile: enforced when TURNSTILE_SECRET_KEY is set.
+      // Without the secret configured this step is skipped (honeypot +
+      // time-trap still apply).
+      if (process.env.TURNSTILE_SECRET_KEY) {
+        const token = body.turnstileToken;
+        if (!token) {
+          return NextResponse.json(
+            { message: "Verification required" },
+            { status: 400 },
+          );
+        }
+        const verifyRes = await fetch(
+          "https://challenges.cloudflare.com/turnstile/v0/siteverify",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              secret: process.env.TURNSTILE_SECRET_KEY,
+              response: token,
+              remoteip: ip,
+            }),
+          },
+        );
+        const verifyJson = await verifyRes.json();
+        if (!verifyJson.success) {
+          console.warn("Spam blocked (turnstile):", ip);
+          return NextResponse.json(
+            { message: "Verification failed" },
+            { status: 400 },
+          );
+        }
+      }
+    }
 
     // 2. Destructure everything you might need from the body
     const {

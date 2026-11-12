@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import Script from "next/script";
 import Link from "next/link";
 import {
   Mail,
@@ -30,6 +31,39 @@ export function ContactBody() {
   const [reason, setReason] = useState<string>("General Inquiry");
   const searchParams = useSearchParams();
   const paramReason = searchParams.get("reason") || "General Inquiry";
+
+  // ---- Anti-spam: Cloudflare Turnstile + time-trap ----
+  // Set NEXT_PUBLIC_TURNSTILE_SITE_KEY (site key) and TURNSTILE_SECRET_KEY
+  // (server side) in your environment / Vercel project settings. Without the
+  // site key the widget is skipped; honeypot + time-trap still protect you.
+  const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstileTokenRef = useRef<string>("");
+  const formLoadedAtRef = useRef<number>(Date.now());
+
+  const renderTurnstile = () => {
+    const w = window as any;
+    if (
+      TURNSTILE_SITE_KEY &&
+      w.turnstile &&
+      turnstileContainerRef.current &&
+      turnstileWidgetIdRef.current === null
+    ) {
+      turnstileWidgetIdRef.current = w.turnstile.render(
+        turnstileContainerRef.current,
+        {
+          sitekey: TURNSTILE_SITE_KEY,
+          callback: (token: string) => {
+            turnstileTokenRef.current = token;
+          },
+          "expired-callback": () => {
+            turnstileTokenRef.current = "";
+          },
+        },
+      );
+    }
+  };
 
   useEffect(() => {
     setReason(paramReason);
@@ -70,6 +104,7 @@ export function ContactBody() {
     message: "",
     reason: reason,
     templateType: "CONTACT_FORM", // Default template type
+    company_website: "", // Honeypot: humans never see or fill this field
   });
 
   const validations = {
@@ -105,9 +140,18 @@ export function ContactBody() {
 
     const scheduledDate = isScheduling ? selectedDate : null;
 
+    // If Turnstile is configured, wait until the human check has completed
+    if (TURNSTILE_SITE_KEY && !turnstileTokenRef.current) {
+      setMessage("Verifying you're human — please try again in a moment.");
+      setTimeout(() => setMessage(null), 3000);
+      return;
+    }
+
     const payload = {
       ...formData,
       date: formatDate(scheduledDate),
+      formLoadedAt: formLoadedAtRef.current, // time-trap
+      turnstileToken: turnstileTokenRef.current, // Turnstile proof
     };
 
     try {
@@ -140,8 +184,16 @@ export function ContactBody() {
           message: "",
           reason: "General Inquiry",
           templateType: "CONTACT_FORM",
+          company_website: "",
         });
         setTriedToSubmit(false);
+
+        // Reset Turnstile so a fresh token is issued for the next submission
+        const w = window as any;
+        if (w.turnstile && turnstileWidgetIdRef.current !== null) {
+          w.turnstile.reset(turnstileWidgetIdRef.current);
+          turnstileTokenRef.current = "";
+        }
 
         setTimeout(() => setMessage(null), 3000);
       } else {
@@ -168,6 +220,13 @@ export function ContactBody() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 relative">
       <HomeButton />
+      {TURNSTILE_SITE_KEY && (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+          onLoad={renderTurnstile}
+        />
+      )}
 
       {/* HEADER SECTION */}
       <div className="relative h-[45vh] w-full bg-slate-900 flex items-center justify-center overflow-hidden">
@@ -458,6 +517,35 @@ export function ContactBody() {
                       </div>
                     )}
                 </div>
+
+                {/* Honeypot: invisible to humans, bots auto-fill it.
+                    Off-screen (not display:none) so basic bot CSS checks miss it. */}
+                <div
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "-9999px",
+                    top: "-9999px",
+                    height: 0,
+                    overflow: "hidden",
+                  }}
+                >
+                  <label>
+                    Company Website
+                    <input
+                      type="text"
+                      name="company_website"
+                      value={formData.company_website}
+                      onChange={handleChange}
+                      tabIndex={-1}
+                      autoComplete="off"
+                    />
+                  </label>
+                </div>
+
+                {TURNSTILE_SITE_KEY && (
+                  <div ref={turnstileContainerRef} className="min-h-[65px]" />
+                )}
 
                 {message && (
                   <div className="p-4 rounded-xl bg-emerald-50 text-emerald-700 text-sm font-medium border border-emerald-100 animate-in fade-in zoom-in-95">
