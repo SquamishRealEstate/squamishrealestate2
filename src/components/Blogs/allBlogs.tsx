@@ -64,8 +64,8 @@ export const AllBlogs = () => {
       <header className="relative pt-32 pb-16 px-6 bg-primary overflow-hidden">
         {/* Topographic Overlay - Adjusted Opacity for better text contrast */}
         <div
-          className="absolute inset-0 opacity-[0.07] pointer-events-none bg-[url('/images/topo-pattern.png')] bg-repeat"
-          style={{ backgroundSize: "400px" }}
+          className="absolute inset-0 opacity-[0.15] pointer-events-none bg-[url('/images/topo-pattern.png')] bg-repeat"
+          style={{ backgroundSize: "560px" }}
         />
         <div className="container relative z-10 text-center">
           {/* Accent Label */}

@@ -73,10 +73,10 @@ export default function Blogs({ initialBlogs }: { initialBlogs?: Blog[] }) {
       }}
     >
       <div
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `url(/images/topo-pattern.png)`,
-          backgroundSize: "400px 400px",
+          backgroundSize: "560px 560px",
         }}
       />
 
