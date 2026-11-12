@@ -21,7 +21,7 @@ export default function Hero() {
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url(/images/dashboard/Squamish-3.jpg)`,
+          backgroundImage: `url(/images/dashboard/Squamish-3.webp)`,
           backgroundSize: "cover",
           backgroundPosition: "center",
           transform: `translateY(${scrollY * 0.5}px)`,

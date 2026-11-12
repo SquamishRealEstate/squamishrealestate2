@@ -231,7 +231,7 @@ export function ContactBody() {
       {/* HEADER SECTION */}
       <div className="relative h-[45vh] w-full bg-slate-900 flex items-center justify-center overflow-hidden">
         <Image
-          src="/images/hero-mountain.jpg"
+          src="/images/hero-mountain.webp"
           alt="Squamish"
           fill
           className="absolute inset-0 w-full h-full object-cover opacity-50"

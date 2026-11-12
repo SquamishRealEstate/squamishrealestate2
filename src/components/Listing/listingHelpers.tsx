@@ -37,13 +37,13 @@ export function ListingGallery({
   const displayPhotos = [...rawPhotos];
   // if (!singlePhotoOnly && displayPhotos.length < 3) {
   //   const fallbacks = [
-  //     "/images/dashboard/Squamish-1.jpg",
-  //     "/images/dashboard/Squamish-2.jpg",
-  //     "/images/dashboard/Squamish-3.jpg",
-  //     "/images/dashboard/Squamish-4.jpg",
-  //     "/images/dashboard/Squamish-5.jpg",
-  //     "/images/dashboard/Squamish-6.jpg",
-  //     "/images/dashboard/Squamish-7.jpg",
+  //     "/images/dashboard/Squamish-1.webp",
+  //     "/images/dashboard/Squamish-2.webp",
+  //     "/images/dashboard/Squamish-3.webp",
+  //     "/images/dashboard/Squamish-4.webp",
+  //     "/images/dashboard/Squamish-5.webp",
+  //     "/images/dashboard/Squamish-6.webp",
+  //     "/images/dashboard/Squamish-7.webp",
   //   ];
 
   //   fallbacks.forEach((fallback) => {
@@ -55,13 +55,13 @@ export function ListingGallery({
 
   if (!singlePhotoOnly && displayPhotos.length < 3) {
     const fallbacks = [
-      "/images/dashboard/Squamish-1.jpg",
-      "/images/dashboard/Squamish-2.jpg",
-      "/images/dashboard/Squamish-3.jpg",
-      "/images/dashboard/Squamish-4.jpg",
-      "/images/dashboard/Squamish-5.jpg",
-      "/images/dashboard/Squamish-6.jpg",
-      "/images/dashboard/Squamish-7.jpg",
+      "/images/dashboard/Squamish-1.webp",
+      "/images/dashboard/Squamish-2.webp",
+      "/images/dashboard/Squamish-3.webp",
+      "/images/dashboard/Squamish-4.webp",
+      "/images/dashboard/Squamish-5.webp",
+      "/images/dashboard/Squamish-6.webp",
+      "/images/dashboard/Squamish-7.webp",
     ];
 
     // 1. Shuffle the fallbacks array randomly
@@ -80,9 +80,9 @@ export function ListingGallery({
   }
 
   const remainingCount = displayPhotos.length - 3;
-  const mainImageUrl = displayPhotos[0] || "/images/dashboard/Squamish-1.jpg";
-  const imageUrl1 = displayPhotos[1] || "/images/dashboard/Squamish-2.jpg";
-  const imageUrl2 = displayPhotos[2] || "/images/dashboard/Squamish-3.jpg";
+  const mainImageUrl = displayPhotos[0] || "/images/dashboard/Squamish-1.webp";
+  const imageUrl1 = displayPhotos[1] || "/images/dashboard/Squamish-2.webp";
+  const imageUrl2 = displayPhotos[2] || "/images/dashboard/Squamish-3.webp";
 
   const [activePhotoIndex, setActivePhotoIndex] = useState<number | null>(null);
 

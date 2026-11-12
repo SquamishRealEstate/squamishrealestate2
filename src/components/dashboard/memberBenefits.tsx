@@ -37,7 +37,7 @@ export const MemberBenefits = () => {
             <div
               className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
               style={{
-                backgroundImage: "url('/images/dashboard/Squamish-7.jpg')",
+                backgroundImage: "url('/images/dashboard/Squamish-7.webp')",
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-background/10" />
@@ -141,7 +141,7 @@ export const MemberBenefits = () => {
                   key={n}
                   className="bg-cover bg-center transition-transform duration-700 group-hover:scale-[1.01]"
                   style={{
-                    backgroundImage: `url('/images/dashboard/Squamish-${n}.jpg')`,
+                    backgroundImage: `url('/images/dashboard/Squamish-${n}.webp')`,
                   }}
                 />
               ))}
@@ -223,7 +223,7 @@ export const MemberBenefits = () => {
             <div
               className="pointer-events-none absolute inset-0 bg-cover bg-center opacity-[0.08] mix-blend-overlay"
               style={{
-                backgroundImage: "url('/images/dashboard/Squamish-5.jpg')",
+                backgroundImage: "url('/images/dashboard/Squamish-5.webp')",
               }}
             />
             <div className="pointer-events-none absolute -bottom-10 right-16 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
