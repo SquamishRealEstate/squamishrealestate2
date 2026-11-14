@@ -11,7 +11,13 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    formats: ["image/avif", "image/webp"],
+    // WebP only: AVIF would double the transformation cardinality across
+    // ~250k unique MLS/listing images, and transformations are the
+    // scarce metered resource on our hosting plan.
+    formats: ["image/webp"],
+    // Photo URLs are unique per photo (content-immutable), so a long
+    // browser cache TTL is safe and cuts repeat optimizer hits.
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       {
         protocol: "https",

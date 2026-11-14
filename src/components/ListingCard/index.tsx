@@ -64,6 +64,12 @@ export function ListingCard({ listing }: { listing: Listing }) {
   // Initialize state with firstPhoto, falling back to the others if it's undefined
   const [imgSrc, setImgSrc] = useState(firstPhoto || FALLBACK_IMAGE);
 
+  // Supabase card images are already final-size WebP — running them through
+  // the image optimizer again only burns metered transformations (and
+  // upscales them). MLS photos still need the optimizer for resizing.
+  const isPreOptimizedWebp =
+    imgSrc.includes("supabase.co") && imgSrc.endsWith(".webp");
+
   // Keep image in sync if the firstPhoto prop changes
   useEffect(() => {
     setImgSrc(firstPhoto || FALLBACK_IMAGE);
@@ -84,6 +90,8 @@ export function ListingCard({ listing }: { listing: Listing }) {
               alt={listing.civic_address || "Squamish Property"}
               width={800}
               height={600}
+              sizes="(max-width: 640px) 100vw, 416px"
+              unoptimized={isPreOptimizedWebp}
               className="w-full h-52 object-cover group-hover:scale-105 transition-transform duration-300"
               onError={() => {
                 // If the current image fails, gracefully step down to the next fallback
