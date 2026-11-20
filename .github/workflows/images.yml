@@ -38,6 +38,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add synced_mls.json
-          git commit -m "Auto-update synced_mls.json [skip ci]" || echo "No new listings to sync"
+          git add synced_mls_webp.json
+          git commit -m "Auto-update synced_mls_webp.json [skip ci]" || echo "No new listings to sync"
           git push

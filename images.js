@@ -1,7 +1,8 @@
 const { google } = require("googleapis");
 const axios = require("axios");
+const sharp = require("sharp");
 const fs = require("fs").promises;
-require("dotenv").config();
+require("dotenv").config({ path: [".env.local", ".env"] });
 
 // ------------------------------------
 // Configuration & Auth
@@ -18,14 +19,56 @@ oauth2Client.setCredentials({
 const drive = google.drive({ version: "v3", auth: oauth2Client });
 const accessToken = process.env.BRIDGE_API_TOKEN;
 
-// Replace with your actual Google Drive Root Folder IDs
+// Legacy JPG roots are kept only to disambiguate the WebP folders by parent.
 const PARCELS_ROOT_FOLDER_ID = "1dZnLEUjDYm7JiUNu3pJyKiyPlCOXWHm1";
 const STRATA_ROOT_FOLDER_ID = "1OHeWfV64XGXc_cZwXxu0sHReVm4hioVr";
+
+// WebP roots are resolved by name at runtime (see storeImagesInDrive).
+let parcelsWebpRootId = null;
+let strataWebpRootId = null;
+
+async function resolveRootFolderId(desiredName, preferredParentId) {
+  const find = (q) =>
+    withRetry(() =>
+      drive.files.list({
+        q,
+        fields: "files(id,name,parents)",
+        pageSize: 10,
+      }),
+    ).then((res) => res.data.files || []);
+
+  let candidates = await find(
+    `name='${desiredName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+  );
+
+  if (!candidates.length) {
+    const fuzzy = await find(
+      `name contains 'Webp' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    );
+    candidates = fuzzy.filter(
+      (f) => f.name.trim().toLowerCase() === desiredName.trim().toLowerCase(),
+    );
+  }
+
+  if (!candidates.length) {
+    throw new Error(`WebP root folder '${desiredName}' not found in Drive.`);
+  }
+
+  const pick =
+    candidates.find((c) => (c.parents || [])[0] === preferredParentId) ||
+    candidates[0];
+
+  console.log(
+    `Resolved WebP root '${desiredName}' -> folder id ${pick.id}` +
+      (candidates.length > 1 ? ` (${candidates.length} candidates)` : ""),
+  );
+  return pick.id;
+}
 
 // ------------------------------------
 // 1. Local Database (Speed Boost & Write-Safe)
 // ------------------------------------
-const DB_FILE = "./synced_mls.json";
+const DB_FILE = "./synced_mls_webp.json";
 let syncedListings = new Set();
 let isWritingDB = false;
 
@@ -151,11 +194,11 @@ async function uploadPropertyImages(
     propertyFolder = address[0]
       ? `${address[0]}-${address[1]}-${streetName}`
       : `${address[1]}-${streetName}`;
-    rootFolderId = STRATA_ROOT_FOLDER_ID;
+    rootFolderId = strataWebpRootId;
   } else {
     streetName = cleanStreetName(address[1]);
     propertyFolder = `${address[0]}-${streetName}`;
-    rootFolderId = PARCELS_ROOT_FOLDER_ID;
+    rootFolderId = parcelsWebpRootId;
   }
 
   const streetFolderId = await getOrCreateFolderCached(
@@ -175,19 +218,40 @@ async function uploadPropertyImages(
     propertyFolderId,
   );
 
+  // Skip photos already uploaded on a previous (possibly interrupted) run
+  const existingRes = await withRetry(() =>
+    drive.files.list({
+      q: `'${mlsFolderId}' in parents and trashed=false`,
+      fields: "files(name)",
+      pageSize: 1000,
+    }),
+  );
+  const existingNames = new Set(
+    (existingRes.data.files || []).map((f) => f.name),
+  );
+
   // Upload images in batches of 10 to respect Google Drive rate limits
   const imageBatches = chunkArray(imageUrls, 10);
 
   for (const batch of imageBatches) {
     const uploadPromises = batch.map(async (url) => {
       try {
-        const fileName = url.split("/").pop().split("?")[0];
+        const rawName = url.split("/").pop().split("?")[0] || "photo";
+        const baseName = rawName.replace(/\.(jpe?g|png|gif|bmp|tiff?)$/i, "");
+        const fileName = `${baseName}.webp`;
+
+        if (existingNames.has(fileName)) return;
 
         await withRetry(async () => {
-          const response = await axios.get(url, { responseType: "stream" });
+          const response = await axios.get(url, {
+            responseType: "arraybuffer",
+          });
+          const webpBuffer = await sharp(response.data)
+            .webp({ quality: 80 })
+            .toBuffer();
           await drive.files.create({
             requestBody: { name: fileName, parents: [mlsFolderId] },
-            media: { mimeType: "image/jpeg", body: response.data },
+            media: { mimeType: "image/webp", body: webpBuffer },
           });
         });
       } catch (err) {
@@ -319,6 +383,15 @@ async function processListingsCategory(configs, trackName) {
 async function storeImagesInDrive() {
   try {
     await loadLocalDatabase();
+
+    parcelsWebpRootId = await resolveRootFolderId(
+      "Parcels Webp",
+      PARCELS_ROOT_FOLDER_ID,
+    );
+    strataWebpRootId = await resolveRootFolderId(
+      "Strata Webp",
+      STRATA_ROOT_FOLDER_ID,
+    );
 
     const parcelsConfigs = [
       { type: "detached", apiFilter: "Residential Detached", fields: fields },
