@@ -63,7 +63,24 @@ async function resolveRootFolderId(desiredName, preferredParentId) {
         console.log(`${label} root children: <error: ${e.message}>`);
       }
     }
-    throw new Error(`WebP root folder '${desiredName}' not found in Drive.`);
+    console.log(
+      `Creating WebP root folder '${desiredName}' inside the legacy root...`,
+    );
+    const folder = await withRetry(() =>
+      drive.files.create({
+        requestBody: {
+          name: desiredName,
+          mimeType: "application/vnd.google-apps.folder",
+          parents: [preferredParentId],
+        },
+        fields: "id",
+        supportsAllDrives: true,
+      }),
+    );
+    console.log(
+      `Created WebP root '${desiredName}' -> folder id ${folder.data.id}`,
+    );
+    return folder.data.id;
   }
 
   const pick =
