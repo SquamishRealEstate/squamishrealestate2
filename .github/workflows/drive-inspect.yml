@@ -1,0 +1,84 @@
+name: Drive Inspect (temporary)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install
+      - name: Inspect Drive folders (read-only)
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: |
+          node <<'EOF'
+          const { google } = require('googleapis');
+          const oauth2Client = new google.auth.OAuth2(
+            process.env.GOOGLE_CLIENT_ID,
+            process.env.GOOGLE_CLIENT_SECRET,
+          );
+          oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
+          const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+          const LEGACY = {
+            Parcels: '1dZnLEUjDYm7JiUNu3pJyKiyPlCOXWHm1',
+            Strata: '1OHeWfV64XGXc_cZwXxu0sHReVm4hioVr',
+          };
+
+          const list = async (q) =>
+            (await drive.files.list({
+              q,
+              fields: 'files(id,name,parents,mimeType)',
+              pageSize: 200,
+              supportsAllDrives: true,
+              includeItemsFromAllDrives: true,
+            })).data.files || [];
+
+          const describe = async (id) => {
+            try {
+              const r = await drive.files.get({ fileId: id, fields: 'id,name,mimeType', supportsAllDrives: true });
+              return `${r.data.name} (${id}) [${r.data.mimeType}]`;
+            } catch (e) {
+              return `<inaccessible: ${e.message}>`;
+            }
+          };
+
+          (async () => {
+            const about = await drive.about.get({ fields: 'user' });
+            console.log('Sync account:', about.data.user.emailAddress);
+
+            for (const [label, id] of Object.entries(LEGACY)) {
+              console.log(`Legacy ${label} root:`, await describe(id));
+            }
+
+            const roots = await list("name = 'Squamish Real Estate' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+            for (const r of roots) {
+              console.log('Squamish Real Estate root:', await describe(r.id));
+              const kids = await list(`'${r.id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+              for (const k of kids) console.log(`  child folder: '${k.name}' (${k.id})`);
+            }
+
+            const webp = await list("name contains 'Webp' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+            console.log(`--- All 'Webp' folders visible (${webp.length}) ---`);
+            for (const f of webp) {
+              const parents = await Promise.all((f.parents || []).map(describe));
+              const kids = await list(`'${f.id}' in parents and trashed = false`);
+              console.log(`'${f.name}' id=${f.id} parents=[${parents.join(' | ')}] children=${kids.length}`);
+            }
+
+            for (const target of ['Parcels Webp 1', 'Strata Webp 1']) {
+              const matches = await list(`name = '${target}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
+              console.log(`EXACT MATCH '${target}': ${matches.length ? matches.map((m) => `${m.id} parents=${JSON.stringify(m.parents)}`).join(', ') : 'NOT FOUND / NOT VISIBLE'}`);
+            }
+          })().catch((e) => { console.error('INSPECT FAILED:', e.message); process.exit(1); });
+          EOF
