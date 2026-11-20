@@ -419,6 +419,9 @@ async function storeImagesInDrive() {
   try {
     await loadLocalDatabase();
 
+    const about = await drive.about.get({ fields: "user" });
+    console.log(`Google Drive account: ${about.data.user.emailAddress}`);
+
     parcelsWebpRootId = await resolveRootFolderId(
       "Parcels Webp",
       PARCELS_ROOT_FOLDER_ID,
