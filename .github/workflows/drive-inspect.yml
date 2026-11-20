@@ -2,6 +2,11 @@ name: Drive Inspect (temporary)
 
 on:
   workflow_dispatch:
+    inputs:
+      folder_ids:
+        description: 'Comma-separated Drive folder IDs to probe by ID (from the browser URL)'
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -20,6 +25,7 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+          FOLDER_IDS: ${{ inputs.folder_ids }}
         run: |
           node <<'EOF'
           const { google } = require('googleapis');
@@ -80,6 +86,23 @@ jobs:
             for (const target of ['Parcels Webp 1', 'Strata Webp 1']) {
               const matches = await list(`name = '${target}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
               console.log(`EXACT MATCH '${target}': ${matches.length ? matches.map((m) => `${m.id} parents=${JSON.stringify(m.parents)}`).join(', ') : 'NOT FOUND / NOT VISIBLE'}`);
+            }
+
+            const probeIds = (process.env.FOLDER_IDS || '').split(',').map((s) => s.trim()).filter(Boolean);
+            for (const id of probeIds) {
+              console.log(`=== PROBE BY ID: ${id} ===`);
+              try {
+                const meta = await drive.files.get({ fileId: id, fields: 'id,name,mimeType,parents,trashed,owners', supportsAllDrives: true });
+                console.log(`  accessible: name='${meta.data.name}' trashed=${meta.data.trashed} parents=${JSON.stringify(meta.data.parents)} owners=${JSON.stringify((meta.data.owners || []).map((o) => o.emailAddress))}`);
+                try {
+                  const perms = await drive.permissions.list({ fileId: id, fields: 'permissions(id,type,emailAddress,role,pendingOwner)', supportsAllDrives: true });
+                  for (const p of perms.data.permissions || []) console.log(`  perm: ${p.type} ${p.emailAddress || ''} role=${p.role}${p.pendingOwner ? ' PENDING' : ''}`);
+                } catch (e) { console.log(`  perms: <error: ${e.message}>`); }
+                const kids = await list(`'${id}' in parents and trashed = false`);
+                console.log(`  children: ${kids.length}${kids.length ? ` -> ${kids.slice(0, 8).map((k) => `'${k.name}'`).join(', ')}${kids.length > 8 ? ' ...' : ''}` : ''}`);
+              } catch (e) {
+                console.log(`  NOT ACCESSIBLE: ${e.message}`);
+              }
             }
 
             const squamish = await list("name contains 'Squamish' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
