@@ -64,24 +64,9 @@ async function resolveRootFolderId(desiredName, preferredParentId) {
         console.log(`${label} root children: <error: ${e.message}>`);
       }
     }
-    console.log(
-      `Creating WebP root folder '${desiredName}' inside the legacy root...`,
+    throw new Error(
+      `WebP root folder '${desiredName}' not found or not shared with the sync account. Share it with the account above (Editor) and re-run.`,
     );
-    const folder = await withRetry(() =>
-      drive.files.create({
-        requestBody: {
-          name: desiredName,
-          mimeType: "application/vnd.google-apps.folder",
-          parents: [preferredParentId],
-        },
-        fields: "id",
-        supportsAllDrives: true,
-      }),
-    );
-    console.log(
-      `Created WebP root '${desiredName}' -> folder id ${folder.data.id}`,
-    );
-    return folder.data.id;
   }
 
   const pick =
@@ -436,11 +421,11 @@ async function storeImagesInDrive() {
     console.log(`Google Drive account: ${about.data.user.emailAddress}`);
 
     parcelsWebpRootId = await resolveRootFolderId(
-      "Parcels Webp",
+      "Parcels Webp 1",
       PARCELS_ROOT_FOLDER_ID,
     );
     strataWebpRootId = await resolveRootFolderId(
-      "Strata Webp",
+      "Strata Webp 1",
       STRATA_ROOT_FOLDER_ID,
     );
 
