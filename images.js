@@ -32,25 +32,37 @@ async function resolveRootFolderId(desiredName, preferredParentId) {
     withRetry(() =>
       drive.files.list({
         q,
-        fields: "files(id,name,parents)",
-        pageSize: 10,
+        fields: "files(id,name,parents,mimeType)",
+        pageSize: 100,
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
       }),
     ).then((res) => res.data.files || []);
 
-  let candidates = await find(
-    `name='${desiredName}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+  const allWebpFolders = await find(
+    `name contains 'Webp' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+  );
+  const candidates = allWebpFolders.filter(
+    (f) => f.name.trim().toLowerCase() === desiredName.trim().toLowerCase(),
   );
 
   if (!candidates.length) {
-    const fuzzy = await find(
-      `name contains 'Webp' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+    // Diagnostics: show what WebP-ish folders exist and what the legacy roots contain
+    console.log(
+      `WebP folders visible to this account: ${allWebpFolders.map((f) => `'${f.name}' (id ${f.id})`).join(", ") || "NONE"}`,
     );
-    candidates = fuzzy.filter(
-      (f) => f.name.trim().toLowerCase() === desiredName.trim().toLowerCase(),
-    );
-  }
-
-  if (!candidates.length) {
+    for (const [label, legacyId] of [
+      ["Parcels", PARCELS_ROOT_FOLDER_ID],
+      ["Strata", STRATA_ROOT_FOLDER_ID],
+    ]) {
+      try {
+        const kids = (await find(`'${legacyId}' in parents and trashed=false`))
+          .filter((k) => k.mimeType === "application/vnd.google-apps.folder");
+        console.log(`${label} root folder children: ${kids.map((k) => `'${k.name}'`).join(", ") || "(none)"}`);
+      } catch (e) {
+        console.log(`${label} root children: <error: ${e.message}>`);
+      }
+    }
     throw new Error(`WebP root folder '${desiredName}' not found in Drive.`);
   }
 
@@ -119,6 +131,8 @@ function getOrCreateFolderCached(folderName, parentId) {
       drive.files.list({
         q: `name='${folderName}' and '${parentId}' in parents and trashed=false`,
         fields: "files(id,name)",
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
       }),
     );
 
@@ -134,6 +148,7 @@ function getOrCreateFolderCached(folderName, parentId) {
           parents: [parentId],
         },
         fields: "id",
+        supportsAllDrives: true,
       }),
     );
 
@@ -224,6 +239,8 @@ async function uploadPropertyImages(
       q: `'${mlsFolderId}' in parents and trashed=false`,
       fields: "files(name)",
       pageSize: 1000,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
     }),
   );
   const existingNames = new Set(
@@ -252,6 +269,7 @@ async function uploadPropertyImages(
           await drive.files.create({
             requestBody: { name: fileName, parents: [mlsFolderId] },
             media: { mimeType: "image/webp", body: webpBuffer },
+            supportsAllDrives: true,
           });
         });
       } catch (err) {
