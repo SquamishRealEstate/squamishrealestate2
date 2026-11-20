@@ -35,13 +35,14 @@ jobs:
             Strata: '1OHeWfV64XGXc_cZwXxu0sHReVm4hioVr',
           };
 
-          const list = async (q) =>
+          const list = async (q, extra = {}) =>
             (await drive.files.list({
               q,
               fields: 'files(id,name,parents,mimeType)',
-              pageSize: 200,
+              pageSize: 1000,
               supportsAllDrives: true,
               includeItemsFromAllDrives: true,
+              ...extra,
             })).data.files || [];
 
           const describe = async (id) => {
@@ -80,5 +81,18 @@ jobs:
               const matches = await list(`name = '${target}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`);
               console.log(`EXACT MATCH '${target}': ${matches.length ? matches.map((m) => `${m.id} parents=${JSON.stringify(m.parents)}`).join(', ') : 'NOT FOUND / NOT VISIBLE'}`);
             }
+
+            const squamish = await list("name contains 'Squamish' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+            console.log(`--- name contains 'Squamish' (${squamish.length}) ---`);
+            for (const f of squamish) console.log(`  '${f.name}' id=${f.id} parents=${JSON.stringify(f.parents)}`);
+
+            const sharedWithMe = await list("sharedWithMe and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+            console.log(`--- Shared with me: folders (${sharedWithMe.length}) ---`);
+            for (const f of sharedWithMe.slice(0, 50)) console.log(`  '${f.name}' id=${f.id} parents=${JSON.stringify(f.parents)}`);
+
+            const all = await list("mimeType = 'application/vnd.google-apps.folder' and trashed = false");
+            console.log(`--- ALL folders visible to this account: ${all.length} ---`);
+            for (const f of all.slice(0, 200)) console.log(`  '${f.name}' id=${f.id}`);
+            if (all.length > 200) console.log(`  ... and ${all.length - 200} more`);
           })().catch((e) => { console.error('INSPECT FAILED:', e.message); process.exit(1); });
           EOF
