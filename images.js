@@ -2,6 +2,7 @@ const { google } = require("googleapis");
 const axios = require("axios");
 const sharp = require("sharp");
 const fs = require("fs").promises;
+const { Readable } = require("stream");
 require("dotenv").config({ path: [".env.local", ".env"] });
 
 // ------------------------------------
@@ -266,6 +267,7 @@ async function uploadPropertyImages(
 
   // Upload images in batches of 10 to respect Google Drive rate limits
   const imageBatches = chunkArray(imageUrls, 10);
+  const failedUrls = [];
 
   for (const batch of imageBatches) {
     const uploadPromises = batch.map(async (url) => {
@@ -285,16 +287,27 @@ async function uploadPropertyImages(
             .toBuffer();
           await drive.files.create({
             requestBody: { name: fileName, parents: [mlsFolderId] },
-            media: { mimeType: "image/webp", body: webpBuffer },
+            // googleapis multipart upload requires a stream body, not a Buffer
+            media: {
+              mimeType: "image/webp",
+              body: Readable.from([webpBuffer]),
+            },
             supportsAllDrives: true,
           });
         });
       } catch (err) {
+        failedUrls.push(url);
         console.error(`Permanent upload failure for ${url}:`, err.message);
       }
     });
 
     await Promise.all(uploadPromises);
+  }
+
+  if (failedUrls.length) {
+    throw new Error(
+      `${failedUrls.length}/${imageUrls.length} images failed for MLS ${mlsNumber}`,
+    );
   }
 
   console.log(`Completed: ${mlsNumber}`);
