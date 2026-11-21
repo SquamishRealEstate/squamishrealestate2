@@ -39,3 +39,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# sync database temp file (atomic-write leftover)
+synced_mls_webp.json.tmp

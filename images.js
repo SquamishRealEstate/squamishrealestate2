@@ -1,8 +1,8 @@
 const { google } = require("googleapis");
 const axios = require("axios");
 const sharp = require("sharp");
-const fs = require("fs").promises;
 const { Readable } = require("stream");
+const fs = require("fs").promises;
 require("dotenv").config({ path: [".env.local", ".env"] });
 
 // ------------------------------------
@@ -64,9 +64,24 @@ async function resolveRootFolderId(desiredName, preferredParentId) {
         console.log(`${label} root children: <error: ${e.message}>`);
       }
     }
-    throw new Error(
-      `WebP root folder '${desiredName}' not found or not shared with the sync account. Share it with the account above (Editor) and re-run.`,
+    console.log(
+      `Creating WebP root folder '${desiredName}' inside the legacy root...`,
     );
+    const folder = await withRetry(() =>
+      drive.files.create({
+        requestBody: {
+          name: desiredName,
+          mimeType: "application/vnd.google-apps.folder",
+          parents: [preferredParentId],
+        },
+        fields: "id",
+        supportsAllDrives: true,
+      }),
+    );
+    console.log(
+      `Created WebP root '${desiredName}' -> folder id ${folder.data.id}`,
+    );
+    return folder.data.id;
   }
 
   const pick =
@@ -101,6 +116,23 @@ async function loadLocalDatabase() {
   }
 }
 
+// Atomic write (temp file + rename) so a mid-write crash can't corrupt the DB
+async function saveDB() {
+  const tmp = `${DB_FILE}.tmp`;
+  await fs.writeFile(tmp, JSON.stringify([...syncedListings], null, 2));
+  // Windows can hold a brief lock on the target (AV scan, indexer) — retry the
+  // rename instead of failing the whole sync.
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await fs.rename(tmp, DB_FILE);
+      return;
+    } catch (err) {
+      if (attempt >= 5) throw err;
+      await wait(1000);
+    }
+  }
+}
+
 async function markAsSynced(mlsNumber) {
   syncedListings.add(String(mlsNumber));
 
@@ -109,7 +141,7 @@ async function markAsSynced(mlsNumber) {
 
   isWritingDB = true;
   try {
-    await fs.writeFile(DB_FILE, JSON.stringify([...syncedListings], null, 2));
+    await saveDB();
   } catch (err) {
     console.error("Failed to write to DB:", err);
   } finally {
@@ -132,7 +164,7 @@ function getOrCreateFolderCached(folderName, parentId) {
   const folderPromise = (async () => {
     const res = await withRetry(() =>
       drive.files.list({
-        q: `name='${folderName}' and '${parentId}' in parents and trashed=false`,
+        q: `name='${escapeDriveQuery(folderName)}' and '${parentId}' in parents and trashed=false`,
         fields: "files(id,name)",
         supportsAllDrives: true,
         includeItemsFromAllDrives: true,
@@ -168,16 +200,29 @@ function getOrCreateFolderCached(folderName, parentId) {
 // ------------------------------------
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function withRetry(apiCall, retries = 3, delay = 2000) {
+async function withRetry(apiCall, retries = 5, delay = 2000, isRetryable) {
   for (let i = 0; i < retries; i++) {
     try {
       return await apiCall();
     } catch (err) {
+      // Some errors are deterministic (e.g. 403 AccessDenied on a dead media
+      // link) — isRetryable lets the caller bail out immediately instead.
+      if (isRetryable && !isRetryable(err)) throw err;
       if (i === retries - 1) throw err;
+      const raw = err.response?.data;
+      const text = Buffer.isBuffer(raw)
+        ? raw.toString("utf8")
+        : raw
+          ? typeof raw === "string"
+            ? raw
+            : JSON.stringify(raw)
+          : "";
+      const detail = text ? ` | ${text.slice(0, 200)}` : "";
       console.warn(
-        `API Error. Retrying in ${delay / 1000}s... (${err.message})`,
+        `API Error. Retrying in ${delay / 1000}s... (${err.message}${detail})`,
       );
       await wait(delay);
+      delay *= 2; // exponential backoff: 2s, 4s, 8s, 16s...
     }
   }
 }
@@ -194,6 +239,11 @@ function cleanStreetName(street) {
   if (!street) return "";
   const firstWord = street.trim().replace(/\s+/g, " ").split(" ")[0];
   return firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
+}
+
+// Drive query strings require ' and \ to be escaped (e.g. street "Bill's")
+function escapeDriveQuery(value) {
+  return String(value).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
 }
 
 // ------------------------------------
@@ -250,38 +300,47 @@ async function uploadPropertyImages(
     (existingRes.data.files || []).map((f) => f.name),
   );
 
-  // Upload images in batches of 10 to respect Google Drive rate limits
-  const imageBatches = chunkArray(imageUrls, 10);
-  const failedUrls = [];
+  // Upload images in batches of 5 to stay under Google Drive per-user rate limits
+  const imageBatches = chunkArray(imageUrls, 5);
+  let attempted = 0;
+  let uploaded = 0;
+  let failed = 0;
 
   for (const batch of imageBatches) {
     const uploadPromises = batch.map(async (url) => {
+      const rawName = url.split("/").pop().split("?")[0] || "photo";
+      const baseName = rawName.replace(/\.(jpe?g|png|gif|bmp|tiff?)$/i, "");
+      const fileName = `${baseName}.webp`;
+
+      if (existingNames.has(fileName)) return;
+
+      attempted++;
       try {
-        const rawName = url.split("/").pop().split("?")[0] || "photo";
-        const baseName = rawName.replace(/\.(jpe?g|png|gif|bmp|tiff?)$/i, "");
-        const fileName = `${baseName}.webp`;
-
-        if (existingNames.has(fileName)) return;
-
-        await withRetry(async () => {
-          const response = await axios.get(url, {
-            responseType: "arraybuffer",
-          });
-          const webpBuffer = await sharp(response.data)
-            .webp({ quality: 80 })
-            .toBuffer();
-          await drive.files.create({
+        // Download: retry network issues, but fail fast on 403/404 — dead
+        // media links (S3 AccessDenied) never succeed on retry.
+        const response = await withRetry(
+          () => axios.get(url, { responseType: "arraybuffer" }),
+          5,
+          2000,
+          (err) => ![403, 404].includes(err.response?.status),
+        );
+        const webpBuffer = await sharp(response.data)
+          .webp({ quality: 80 })
+          .toBuffer();
+        // Upload: full retry/backoff (Drive 403s are rate limits, which recover)
+        await withRetry(() =>
+          drive.files.create({
             requestBody: { name: fileName, parents: [mlsFolderId] },
-            // googleapis multipart upload requires a stream body, not a Buffer
             media: {
               mimeType: "image/webp",
               body: Readable.from([webpBuffer]),
             },
             supportsAllDrives: true,
-          });
-        });
+          }),
+        );
+        uploaded++;
       } catch (err) {
-        failedUrls.push(url);
+        failed++;
         console.error(`Permanent upload failure for ${url}:`, err.message);
       }
     });
@@ -289,9 +348,16 @@ async function uploadPropertyImages(
     await Promise.all(uploadPromises);
   }
 
-  if (failedUrls.length) {
+  // If nothing uploaded, something systemic is wrong — don't mark as synced.
+  if (attempted > 0 && uploaded === 0) {
     throw new Error(
-      `${failedUrls.length}/${imageUrls.length} images failed for MLS ${mlsNumber}`,
+      `All ${attempted} image uploads failed for MLS ${mlsNumber}`,
+    );
+  }
+
+  if (failed > 0) {
+    console.warn(
+      `Partial failure for ${mlsNumber}: ${failed}/${attempted} images failed (missing ones retry on next run)`,
     );
   }
 
@@ -367,8 +433,8 @@ async function processListingsCategory(configs, trackName) {
 
   if (unProcessedListings.length === 0) return;
 
-  // Process 5 properties at a time for THIS track
-  const batches = chunkArray(unProcessedListings, 5);
+  // Process 2 properties at a time per track (2 tracks => max 4 in parallel)
+  const batches = chunkArray(unProcessedListings, 2);
 
   for (const batch of batches) {
     const batchPromises = batch.map(async (raw) => {
@@ -413,6 +479,27 @@ async function processListingsCategory(configs, trackName) {
 // ------------------------------------
 // 7. Main Execution (Two Parallel Tracks)
 // ------------------------------------
+// The WebP folders live in the root "Squamish Real Estate" Drive folder.
+// We discover that root by looking at the parent of the legacy Parcels folder.
+async function resolveSquamishRootId() {
+  try {
+    const res = await withRetry(() =>
+      drive.files.get({
+        fileId: PARCELS_ROOT_FOLDER_ID,
+        fields: "parents",
+        supportsAllDrives: true,
+      }),
+    );
+    const parent = (res.data.parents || [])[0];
+    if (parent) return parent;
+  } catch (err) {
+    console.warn(
+      `Could not resolve 'Squamish Real Estate' root (${err.message}). Falling back to legacy Parcels root as parent.`,
+    );
+  }
+  return PARCELS_ROOT_FOLDER_ID;
+}
+
 async function storeImagesInDrive() {
   try {
     await loadLocalDatabase();
@@ -420,13 +507,15 @@ async function storeImagesInDrive() {
     const about = await drive.about.get({ fields: "user" });
     console.log(`Google Drive account: ${about.data.user.emailAddress}`);
 
+    const squamishRootId = await resolveSquamishRootId();
+
     parcelsWebpRootId = await resolveRootFolderId(
       "Parcels Webp 1",
-      PARCELS_ROOT_FOLDER_ID,
+      squamishRootId,
     );
     strataWebpRootId = await resolveRootFolderId(
       "Strata Webp 1",
-      STRATA_ROOT_FOLDER_ID,
+      squamishRootId,
     );
 
     const parcelsConfigs = [
@@ -444,7 +533,7 @@ async function storeImagesInDrive() {
     ];
 
     console.log(
-      "\n Starting Simultaneous Sync Tracks: Parcels (5) & Strata (5) => Total 10 properties processing at once...",
+      "\n Starting Simultaneous Sync Tracks: Parcels (2) & Strata (2) => Total 4 properties processing at once...",
     );
 
     // RUN BOTH TRACKS AT THE EXACT SAME TIME
@@ -454,7 +543,7 @@ async function storeImagesInDrive() {
     ]);
 
     // One final save to guarantee nothing was missed during the write lock
-    await fs.writeFile(DB_FILE, JSON.stringify([...syncedListings], null, 2));
+    await saveDB();
 
     console.log("\nFULL SYNC COMPLETE");
   } catch (err) {

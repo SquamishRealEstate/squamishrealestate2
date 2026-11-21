@@ -1,68 +1,61 @@
-// One-time helper: mint a fresh Google OAuth refresh token for images.js.
-// Needed if the existing GOOGLE_REFRESH_TOKEN belongs to an old/migrated
-// Google identity (symptom: the script cannot see folders your browser owns).
-//
-// Usage (Git Bash):
-//   GOOGLE_CLIENT_ID=<id> GOOGLE_CLIENT_SECRET=<secret> node google-auth.js
-//
-// Then open the printed URL, sign in as the account that OWNS the Drive
-// folders, and click Allow. This script captures the redirect automatically
-// and prints the refresh token to store in GitHub secrets.
-
-const { google } = require("googleapis");
+// One-time helper: generates a GOOGLE_REFRESH_TOKEN for images.js.
+// Run with: npm run auth:google
 const http = require("http");
+const { google } = require("googleapis");
+require("dotenv").config({ path: [".env.local", ".env"] });
 
-const clientId = process.env.GOOGLE_CLIENT_ID;
-const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-const PORT = 3000;
+const CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+const CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const PORT = 3001; // avoids clashing with `next dev` on 3000
+const REDIRECT_URI = `http://localhost:${PORT}/oauth2callback`;
 
-if (!clientId || !clientSecret) {
-  console.error("Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET first.");
+if (!CLIENT_ID || !CLIENT_SECRET) {
+  console.error(
+    "Missing GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in .env.local",
+  );
   process.exit(1);
 }
 
 const oauth2Client = new google.auth.OAuth2(
-  clientId,
-  clientSecret,
-  `http://localhost:${PORT}/callback`,
+  CLIENT_ID,
+  CLIENT_SECRET,
+  REDIRECT_URI,
 );
 
-const url = oauth2Client.generateAuthUrl({
-  access_type: "offline", // required to receive a refresh token
-  prompt: "consent", // force the consent screen so a refresh token is issued
+const authUrl = oauth2Client.generateAuthUrl({
+  access_type: "offline", // required to get a refresh token
+  prompt: "consent", // forces re-consent so a refresh token is always returned
   scope: ["https://www.googleapis.com/auth/drive"],
 });
 
+console.log("\n1) In Google Cloud Console, add this Authorized redirect URI");
+console.log("   to your OAuth client (APIs & Services > Credentials):");
+console.log(`   ${REDIRECT_URI}\n`);
+console.log("2) Open this URL in your browser and sign in with the Google");
+console.log("   account that owns the Drive:\n");
+console.log(authUrl + "\n");
+
 const server = http.createServer(async (req, res) => {
+  const url = new URL(req.url, `http://localhost:${PORT}`);
+  if (url.pathname !== "/oauth2callback") return;
+
+  const code = url.searchParams.get("code");
+  if (!code) {
+    res.end("No authorization code received.");
+    return;
+  }
+
   try {
-    const u = new URL(req.url, `http://localhost:${PORT}`);
-    if (u.pathname !== "/callback") {
-      res.end();
-      return;
-    }
-    const code = u.searchParams.get("code");
-    if (!code) {
-      res.end("No authorization code received.");
-      return;
-    }
     const { tokens } = await oauth2Client.getToken(code);
-    res.end("Authorization complete. You can close this tab.");
+    res.end("Success! You can close this tab and return to the terminal.");
+    console.log("\nAdd this line to your .env.local:\n");
+    console.log(`GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}\n`);
     server.close();
-    console.log("\nRefresh token (set as the GOOGLE_REFRESH_TOKEN secret):\n");
-    console.log(tokens.refresh_token);
-    console.log(
-      "\nReminder: GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET secrets must match the OAuth client used above.",
-    );
     process.exit(0);
   } catch (err) {
-    res.end("Error: " + err.message);
+    console.error("Token exchange failed:", err.message);
+    res.end("Token exchange failed — see terminal.");
   }
 });
 
-server.listen(PORT, () => {
-  console.log(
-    "Open this URL in your browser and sign in as the account that OWNS the Drive folders:\n",
-  );
-  console.log(url);
-  console.log("\nWaiting for authorization...");
-});
+server.listen(PORT, () => console.log(`Waiting for callback on port ${PORT}...`));

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync:images": "node images.js",
+    "auth:google": "node google-auth.js"
   },
   "dependencies": {
     "@honestdoor/widget-react": "^0.2.5",
