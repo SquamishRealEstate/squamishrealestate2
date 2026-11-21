@@ -7,6 +7,7 @@ import { supabase } from "@/config/supabaseClient";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import HomeButton from "../ui/homeButton";
+import GoogleSignInButton from "@/components/Login/GoogleSignInButton";
 import { Input } from "../ui/input";
 import Image from "next/image";
 
@@ -191,6 +192,13 @@ function LoginContent() {
                 </>
               )}
             </Button>
+
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-sm text-muted-foreground">or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <GoogleSignInButton />
           </form>
         </div>
       </div>

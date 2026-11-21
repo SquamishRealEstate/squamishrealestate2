@@ -15,6 +15,7 @@ import { supabase } from "@/config/supabaseClient";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import VowModal from "@/components/Register/vowModal";
+import GoogleSignInButton from "@/components/Login/GoogleSignInButton";
 import HomeButton from "../ui/homeButton";
 import { Input } from "../ui/input";
 import Image from "next/image";
@@ -422,6 +423,13 @@ function RegisterContent() {
                 </>
               )}
             </Button>
+
+            <div className="flex items-center gap-3">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-sm text-muted-foreground">or</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <GoogleSignInButton />
           </form>
         </div>
       </div>
