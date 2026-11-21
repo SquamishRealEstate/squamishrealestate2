@@ -44,7 +44,7 @@ export const metadata: Metadata = {
       "Discover mountain view properties, townhomes, and market insights in Squamish, BC.",
     images: [
       {
-        url: "/images/landing.jpg",
+        url: "/images/og-image.jpg",
         width: 1200,
         height: 630,
         alt: "Squamish, British Columbia — mountain view real estate",
@@ -56,7 +56,7 @@ export const metadata: Metadata = {
     title: "Squamish Real Estate & MLS® Listings | Sean Brawley",
     description:
       "Discover mountain view properties, townhomes, and market insights in Squamish, BC.",
-    images: ["/images/landing.jpg"],
+    images: ["/images/og-image.jpg"],
   },
 };
 
@@ -65,7 +65,7 @@ const realEstateAgentJsonLd = {
   "@context": "https://schema.org",
   "@type": "RealEstateAgent",
   name: "Sean Brawley PREC*",
-  image: "https://squamish.realestate/images/landing.jpg",
+  image: "https://squamish.realestate/images/og-image.jpg",
   "@id": "https://squamish.realestate/#agent",
   url: "https://squamish.realestate",
   telephone: "+1-604-849-0500",
